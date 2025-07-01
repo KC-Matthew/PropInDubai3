@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Maps - PropInDubai</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="styles/accueil.css" />
+  <link rel="stylesheet" href="styles/maps.css" />
+  <link rel="stylesheet" href="styles/sidebar.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="side-bar">
+    <div class="hight-sidebar">
+      <button class="button-helps">HELPS</button>
+    </div>
+    <div class="middle-sidebar">
+      <a href="areaforyou.html" class="area-button">AREA FOR YOU</a>
+      <a href="offplan.html" class="prediction-button">OFF PLAN</a>
+      <a href="ROI-calculator-accueil.html" class="ROI-button">ROI-CALCULATOR</a>
+      <a href="#" class="maps-button active">MAPS</a>
+    </div>
+    <div class="low-sidebar">
+      <button class="button-how-it-works">HOW IT WORKS</button>
+    </div>
+  </div>
+
+  <!-- Header -->
+<div class="header2">
+   <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
+  <div class="all-button">
+    <a href="areaforyou.html" class="chat-button header-btn">Chatgpt</a>
+    <a href="buy.html" class="buy-button header-btn">Buy</a>
+    <a href="rent.html" class="rent-button header-btn">Rent</a>
+    <a href="commercial.html" class="commercial-button header-btn">Commercial</a>
+    <a href="off-plan-search.html" class="project-button header-btn">Off Plan</a>
+    <a href="findagent.html" class="agent-button header-btn">Find agents</a>
+  </div>
+  <div class="profil-block">
+    <a href="login.html" class="login-button header-btn">Login</a>
+  </div>
+</div>
+
+  <main class="maps-main">
+    <section class="map-side-left">
+      <!-- Search bar with min/max price -->
+      <div class="property-search-bar">
+        <input type="text" id="searchInput" placeholder="Search by location, type..." />
+        <div class="price-inputs-group">
+          <input type="number" id="minPriceInput" placeholder="Min Price" min="0" />
+          <input type="number" id="maxPriceInput" placeholder="Max Price" min="0" />
+        </div>
+        <button id="searchBtn"><i class="fa fa-search"></i></button>
+      </div>
+      <!-- Cards -->
+      <div class="property-list-grid" id="propertyGrid"></div>
+      <!-- Pagination -->
+      <div class="pagination" id="pagination"></div>
+    </section>
+    <section class="map-side-map">
+      <div id="leafletMap"></div>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script src="javascript/maps.js"></script>
+</body>
+</html>

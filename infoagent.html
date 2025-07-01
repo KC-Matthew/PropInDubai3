@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Agent Profile - PropInDubai</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles/infoagent.css">
+  <link rel="stylesheet" href="styles/accueil.css"> <!-- si tu veux réutiliser ta base -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<div class="header2">
+   <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
+  <div class="all-button">
+    <a href="areaforyou.html" class="chat-button header-btn">Chatgpt</a>
+    <a href="buy.html" class="buy-button header-btn">Buy</a>
+    <a href="rent.html" class="rent-button header-btn">Rent</a>
+    <a href="commercial.html" class="commercial-button header-btn">Commercial</a>
+    <a href="off-plan-search.html" class="project-button header-btn">Off Plan</a>
+    <a href="findagent.html" class="agent-button header-btn">Find agents</a>
+  </div>
+  <div class="profil-block">
+    <a href="login.html" class="login-button header-btn">Login</a>
+  </div>
+</div>
+
+  <div class="agent-header-container">
+    <div class="agent-photo-rect">
+      <img src="styles/photo/profil.png" alt="John May">
+    </div>
+    <div class="agent-header-main">
+      <h1 class="agent-name">John May</h1>
+      <a href="#" class="agent-company-link">Hyde Real Estate</a>
+      <div class="agent-stats">
+        <span><b id="agent-active-count">16</b> Active Properties</span>
+      </div>
+
+      <div class="agent-contact-buttons">
+        <a href="mailto:johnmay@email.com" class="contact-btn email"><i class="fas fa-envelope"></i> Email</a>
+        <a href="tel:+97155555555" class="contact-btn call"><i class="fas fa-phone"></i> Call</a>
+        <a href="https://wa.me/97155555555" class="contact-btn whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="agent-info-block">
+    <h2>About John</h2>
+    <p id="agent-about">
+      John has lived in Dubai for the past 10 years, following 5 years in recruitment in London.
+      His background in the fast-paced recruitment industry has given him valuable skills like excellent client care, strong negotiation, and adaptability to client needs. He also believes that honesty is essential when helping buyers and sellers with property transactions. John is specialising in the Tilal Al Ghaf and Damac Lagoons communities along Hessa Street in Dubai.
+    </p>
+    <p class="agent-language"><i class="fas fa-language"></i> Speaks English</p>
+  </div>
+  
+  <div class="agent-sidebox">
+    <div class="sidebox-inner">
+      <h3>About John</h3>
+      <ul>
+        <li><b>Expertise:</b> Residential Sales</li>
+        <li><b>Service Areas:</b> Dubai</li>
+        <li><b>Properties:</b> <span id="agent-sale-count">15 For Sale</span>, <span id="agent-rent-count">1 For Rent</span></li>
+      </ul>
+    </div>
+    <div class="sidebox-inner">
+      <h3>Agency</h3>
+      <div class="agency-logo">
+        <img src="styles/photo/profil.png" alt="Hyde Real Estate" />
+      </div>
+      <a href="#" class="agent-company-link">Hyde Real Estate</a>
+    </div>
+  </div>
+  
+  <div class="agent-properties-section">
+    <h2>Active Properties</h2>
+    <div class="agent-prop-filters">
+      <select id="prop-type">
+        <option value="">All</option>
+        <option value="Townhouse">Townhouse</option>
+        <option value="Apartment">Apartment</option>
+      </select>
+      <input id="prop-search" type="text" placeholder="Enter location">
+      <select id="prop-sort">
+        <option value="popular">Popular</option>
+        <option value="price">Price (Low to High)</option>
+        <option value="priceDesc">Price (High to Low)</option>
+      </select>
+    </div>
+    <div class="agent-prop-list" id="agentPropList"></div>
+    <div id="agentPropPagination"></div>
+  </div>
+
+  <footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-left">
+      <h3 class="footer-logo">PropInDubai</h3>
+      <p>Connecting you with the best properties in Dubai.</p>
+    </div>
+
+    <div class="footer-links">
+      <a href="about-us.html">About Us</a>
+      <a href="contact-us.html">Contact us</a>
+      <a href="privacy-policy.html">Privacy Policy</a>
+      <a href="term-condition.html">Terms & Conditions</a>
+      <a href="cookies-policy.html">Cookies policy</a>
+      <a href="disclaimer.html">Disclaimer</a>
+    </div>
+
+    <div class="footer-socials">
+      <a href="#"><img src="styles/photo/facebook.png" alt="Facebook" /></a>
+      <a href="#"><img src="styles/photo/insta.png" alt="Instagram" /></a>
+      <a href="#"><img src="styles/photo/linkedin.png" alt="LinkedIn" /></a>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    © 2025 PropInDubai. All rights reserved.
+  </div>
+</footer>
+
+  <script src="javascript/infoagent.js"></script>
+</body>
+</html>

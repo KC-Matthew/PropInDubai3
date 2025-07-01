@@ -1,0 +1,289 @@
+body { font-family: 'Inter', Arial, sans-serif; }
+.title, .form-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+}
+
+.form-title {
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: #000000;
+  letter-spacing: 1.2px;
+  margin-bottom: 18px;
+  text-align: center;
+  text-transform: uppercase;
+  background: rgb(255, 255, 255,0.4);
+  border-radius: 16px;
+  padding: 10px 28px 8px 28px;
+  display: inline-block;
+  box-shadow: 0 1.5px 10px rgba(0,0,0,0.07);
+} 
+
+@media (max-width: 900px) {
+  .window {
+    margin-left: 0;
+    border-radius: 28px;
+    padding: 100px 4vw 24px 4vw;
+  }
+}
+@media (max-width: 550px) {
+  .window {
+    padding: 72px 0 10px 0; 
+    border-radius: 0;
+  }
+}
+
+.header2 {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  padding: 0 20px;
+  z-index: 10;
+  border-bottom: 1px solid #ddd;
+  gap: 20px;
+}
+
+.title {
+  font-size: 24px;
+  white-space: nowrap;
+}
+
+.all-button {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 15px;
+  max-width: 1000px;
+}
+
+.all-button button {
+  flex: 1;
+  max-width: 150px;
+  padding: 8px 12px;
+  border: none;
+  background-color: rgb(255, 255, 255);
+  color: rgb(104, 104, 104);
+  cursor: pointer;
+  border-radius: 5px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.header-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  max-width: 150px;
+  padding: 8px 12px;
+  border: none;
+  background-color: rgb(255, 255, 255);
+  color: rgb(104, 104, 104);
+  cursor: pointer;
+  border-radius: 5px;
+  text-align: center;
+  font-weight: bold;
+  text-decoration: none;
+  transition: background-color 0.2s, height 0.2s;
+  height: 60px;
+  box-sizing: border-box;
+}
+
+.header-btn:hover {
+  background-color: rgb(245, 245, 245);
+  height: 60px;
+}
+
+.profil-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.login-button {
+  background-color: rgb(255, 255, 255);
+  color: rgb(104, 104, 104);
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 10px;
+  border-color: rgb(255, 153, 0);
+}
+
+.window {
+  margin-top: 60px;
+  margin-left: 249px;
+  padding: 40px 40px 40px;
+  background-color: rgb(255, 255, 255);
+  color: rgb(14, 14, 14);
+  font-family: Arial, sans-serif;
+  background: url('/styles/photo/roi.png');
+  background-size: cover;
+  width: auto;
+  height: auto;
+  border-radius: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ensemble-top {
+  margin: auto auto auto auto;
+  margin-top: none;
+}
+
+/* Groupement vertical pour chaque bloc label+input */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  margin-bottom: 10px;
+}
+.deco-no-bg {
+  background: none !important;
+  box-shadow: none !important;
+  /* Si tu veux tout enlever, tu peux aussi ajouter : */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.deco-text {
+  
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(30px) saturate(160%);
+  border-radius: 18px;
+  padding: 8px 30px;
+  display: inline-block;
+  color: #222;
+  font-size: 19px;
+  font-weight: 700;
+  margin: 10px auto 4px auto;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.09);
+  letter-spacing: 0.02em;
+  transition: background 0.2s, box-shadow 0.18s;
+}
+.roi-form > .deco-text {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.roi-form label {
+  font-size: 18px;
+  font-weight: 700;
+  color: #232323;
+  margin-bottom: 3px;
+  margin-top: 3px;
+  text-shadow: 0 1.5px 5px rgba(255,255,255,0.10);
+}
+.roi-form input {
+  width: 60%;       /* Ajoute cette ligne pour limiter la largeur */
+  min-width: 220px; /* Tu peux adapter selon ton design */
+  max-width: 500px;
+  margin: 0 auto;   /* Pour centrer l'input dans le form-group */
+  display: block;   /* Pour forcer le centrage avec margin auto */
+  padding: 14px;
+  font-size: 17px;
+  border-radius: 15px;
+  border: 2px solid #ffbe40;
+  outline: none;
+  background: #faf8f5;
+  transition: border 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 9px rgba(0,0,0,0.03);
+}
+
+
+
+.roi-form input:focus {
+  border: 2px solid #ff9f00;
+  box-shadow: 0 2px 12px #ffeabf;
+}
+
+.button-ROI {
+  background: linear-gradient(90deg, #ffae00 20%, #ffc44d 100%);
+  color: #232323;
+  padding: 18px 0;
+  font-size: 20px;
+  font-weight: bold;
+  border-radius: 18px;
+  border: none;
+  font-family: 'Inter', Arial, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+  width: 60%;
+  min-width: 220px;
+  max-width: 500px;
+  margin: 10px auto 0 auto;
+  display: block;
+}
+
+.button-ROI:hover {
+  background: linear-gradient(90deg, #ffcc80 10%, #ffd699 90%);
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.10);
+}
+
+@media (max-width: 600px) {
+  .button-ROI {
+    width: 98%;
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+
+.roi-table {
+  margin: 40px auto 20px auto;
+  margin-bottom: 20px;
+  margin-top: 40px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  max-width: 1100px;
+  border: 2px solid rgb(245, 139, 1);
+}
+
+.roi-table-title {
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #1a1a1a;
+}
+
+#roi-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#roi-table th,
+#roi-table td {
+  padding: 15px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+#roi-table th {
+  background-color: #b9b9b9;
+  color: #fff;
+}
+
+.view-btn {
+  padding: 10px 15px;
+  border: none;
+  background-color: #585858;
+  color: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.view-btn:hover {
+  background-color: #2a3f5f;
+}

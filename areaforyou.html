@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Area For You</title>
+  <link rel="stylesheet" href="styles/header.css">
+  <link rel="stylesheet" href="styles/sidebar.css">
+  <link rel="stylesheet" href="styles/general.css">
+  <link rel="stylesheet" href="styles/areaforyou.css">
+  <link rel="stylesheet" href="styles/accueil.css">
+</head>
+<body>
+
+  <div class="side-bar">
+    <div class="hight-sidebar">
+      <button class="button-helps">HELPS</button>
+    </div>
+    <div class="middle-sidebar">
+      <a href="#" class="area-button active">AREA FOR YOU</a>
+      <a href="offplan.html" class="prediction-button">OFF PLAN</a>
+      <a href="ROI-calculator-accueil.html" class="ROI-button">ROI-CALCULATOR</a>
+      <a href="maps.html" class="maps-button">MAPS</a>
+    </div>
+    <div class="low-sidebar">
+      <button class="button-how-it-works">HOW IT WORKS</button>
+    </div>
+  </div>
+  
+
+<div class="header2">
+   <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
+  <div class="all-button">
+    <a href="areaforyou.html" class="chat-button header-btn">Chatgpt</a>
+    <a href="buy.html" class="buy-button header-btn">Buy</a>
+    <a href="rent.html" class="rent-button header-btn">Rent</a>
+    <a href="commercial.html" class="commercial-button header-btn">Commercial</a>
+    <a href="off-plan-search.html" class="project-button header-btn">Off Plan</a>
+    <a href="findagent.html" class="agent-button header-btn">Find agents</a>
+  </div>
+  <div class="profil-block">
+    <a href="login.html" class="login-button header-btn">Login</a>
+  </div>
+</div>
+
+
+  <div class="hero-section">
+  <!-- Tu peux mettre du contenu ici -->
+</div>
+
+  <!-- Contenu principal -->
+<div class="main-content">
+  <!-- Section Chat -->
+ <div class="chat-section">
+
+  <div class="chat-messages" id="chat-messages">
+    <!-- Les messages s’afficheront ici -->
+  </div>
+
+  <form class="chat-input-area" id="chat-form">
+    <input type="text" id="user-input" placeholder="Enter your criteria..." autocomplete="off">
+    <button id="send-button" type="submit">➤</button>
+    </form>
+    <div class="reset-button-container">
+    <button id="reset-chat-button">Reset Chat</button>
+    </div>
+
+</div>
+
+  <!-- Section Affichage des biens -->
+  <div class="properties-display" id="properties-display">
+    <div id="property-cards-container"></div>
+
+  </div>
+</div>
+</div>
+
+
+
+  <script src="javascript/areaforyou.js"></script>
+</body>
+</html>

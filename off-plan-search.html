@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PropInDubai - Off Plan</title>
+  <link rel="stylesheet" href="styles/off-plan-search.css" />
+  <link rel="stylesheet" href="styles/accueil.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+</head>
+<body>
+  <!-- HEADER -->
+<div class="header2">
+   <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
+  <div class="all-button">
+    <a href="areaforyou.html" class="chat-button header-btn">Chatgpt</a>
+    <a href="buy.html" class="buy-button header-btn">Buy</a>
+    <a href="rent.html" class="rent-button header-btn">Rent</a>
+    <a href="commercial.html" class="commercial-button header-btn">Commercial</a>
+    <a href="off-plan-search.html" class="project-button header-btn">Off Plan</a>
+    <a href="findagent.html" class="agent-button header-btn">Find agents</a>
+  </div>
+  <div class="profil-block">
+    <a href="login.html" class="login-button header-btn">Login</a>
+  </div>
+</div>
+
+  <!-- FILTER BAR (DYNAMIQUE via JS) -->
+  <div class="filter-bar">
+    <input type="text" placeholder="Search by project, area, developer..." id="search" />
+    <select id="areaFilter"></select>
+    <select id="propertyType"></select>
+    <select id="developerFilter"></select>
+    <input type="number" placeholder="Min Price" id="priceMin" />
+    <input type="number" placeholder="Max Price" id="priceMax" />
+    <select id="handoverFilter"></select>
+    <button id="searchBtn" class="main-orange-btn"><i class="fa fa-search"></i></button>
+    <button id="clearBtn" class="main-orange-btn outline">Clear</button>
+  </div>
+
+  <!-- HOW OFFPLAN WORKS BANNER -->
+  <div class="how-offplan-works">
+    <h2>How does buying off-plan work in Dubai?</h2>
+    <div class="offplan-steps">
+      <div class="step"><i class="fa fa-check-circle"></i> Choose</div>
+      <i class="fa fa-arrow-right step-arrow"></i>
+      <div class="step"><i class="fa fa-credit-card"></i> Pay booking fee</div>
+      <i class="fa fa-arrow-right step-arrow"></i>
+      <div class="step"><i class="fa fa-money-bill-wave"></i> Make payments</div>
+    </div>
+  </div>
+
+  <div class="main-content-wrapper">
+    <div class="main-column">
+      <div class="property-summary-wrapper">
+        <a href="offplan.html" target="_blank" class="chatboat-banner">
+          <i class="fa-solid fa-robot"></i>
+          Try our AI assistant to help you find the best off-plan project!
+        </a>
+        <div class="property-count" id="propertyCount"></div>
+      </div>
+      <div class="property-listing" id="propertyResults"></div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+
+  <button id="scrollToTopBtn" title="Back to top">↑</button>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <h3 class="footer-logo">PropInDubai</h3>
+        <p>Connecting you with the best new projects in Dubai.</p>
+      </div>
+      <div class="footer-links">
+        <a href="about-us.html">About Us</a>
+        <a href="contact-us.html">Contact us</a>
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="term-condition.html">Terms & Conditions</a>
+        <a href="cookies-policy.html">Cookies policy</a>
+        <a href="disclaimer.html">Disclaimer</a>
+      </div>
+      <div class="footer-socials">
+        <a href="#"><img src="styles/photo/facebook.png" alt="Facebook" /></a>
+        <a href="#"><img src="styles/photo/insta.png" alt="Instagram" /></a>
+        <a href="#"><img src="styles/photo/linkedin.png" alt="LinkedIn" /></a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © 2025 PropInDubai. All rights reserved.
+    </div>
+  </footer>
+  <script src="javascript/off-plan-search.js"></script>
+</body>
+</html>

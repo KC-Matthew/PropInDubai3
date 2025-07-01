@@ -1,0 +1,36 @@
+.header {
+  height: 90px;
+  display: flex;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 250px;
+  right: 0;
+  background-color: rgb(255, 255, 255);
+  color: rgb(14, 14, 14);
+  padding: 0 20px;
+  z-index: 10;
+}
+
+.title {
+  font-size: 24px;
+}
+
+.profil-main {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  position: fixed;
+  right: 10px;
+}
+
+.profil-main-first {
+  margin-right: 10px;
+  margin-left: 550px;
+  display: flex;
+  position: fixed;
+  right: 55px;
+  font-weight: bold;
+}

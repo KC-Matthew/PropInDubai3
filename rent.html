@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PropInDubai - Buy</title>
+  <link rel="stylesheet" href="styles/rent.css" />
+  <link rel="stylesheet" href="styles/accueil.css" />
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+
+<div class="header2">
+   <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
+  <div class="all-button">
+    <a href="areaforyou.html" class="chat-button header-btn">Chatgpt</a>
+    <a href="buy.html" class="buy-button header-btn">Buy</a>
+    <a href="rent.html" class="rent-button header-btn">Rent</a>
+    <a href="commercial.html" class="commercial-button header-btn">Commercial</a>
+    <a href="off-plan-search.html" class="project-button header-btn">Off Plan</a>
+    <a href="findagent.html" class="agent-button header-btn">Find agents</a>
+  </div>
+  <div class="profil-block">
+    <a href="login.html" class="login-button header-btn">Login</a>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <input type="text" placeholder="Search..." id="search" />
+
+  <select id="transaction">
+    <option>Transaction</option>
+    <option>Buy</option>
+    <option>Rent</option>
+    <option>Commercial Buy</option>
+    <option>Commercial Rent</option>
+    <option>New Project</option>
+  </select>
+
+  <select id="propertyType">
+    <option>Property Type</option>
+    <option>Apartment</option>
+    <option>Villa</option>
+    <option>Townhouse</option>
+    <option>Penthouse</option>
+    <option>Compound</option>
+    <option>Duplex</option>
+  </select>
+
+  <select id="bedrooms">
+    <option>Bedrooms</option>
+    <option>1+</option>
+    <option>2+</option>
+    <option>3+</option>
+    <option>4+</option>
+    <option>5+</option>
+    <option>6+</option>
+  </select>
+
+  <select id="bathrooms">
+    <option>Bathrooms</option>
+    <option>1+</option>
+    <option>2+</option>
+    <option>3+</option>
+    <option>4+</option>
+    <option>5+</option>
+    <option>6+</option>
+  </select>
+
+  <input type="number" placeholder="Min Price" id="priceMin" />
+  <input type="number" placeholder="Max Price" id="priceMax" />
+  <button id="searchBtn">Search</button>
+  <button id="clearBtn">Clear</button>
+</div>
+
+<div class="buy-hook">
+  <span>“Discover the best properties to rent in Dubai. Find your next home or investment!”</span>
+</div>
+
+
+<div class="main-content-wrapper">
+  <div class="main-column">
+          <div class="property-summary-wrapper">
+        <a href="areaforyou.html" target="_blank" class="chatboat-banner">
+          <i class="fa-solid fa-robot"></i>
+          Try our AI assistant to help you find the best properties for you!
+        </a>
+      <div class="property-count" id="propertyCount"></div>
+      <div class="property-types-summary" id="propertyTypesSummary"></div>
+    </div>
+    <div class="property-listing" id="propertyResults"></div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</div>
+
+<!-- Bouton retour en haut -->
+<button id="scrollToTopBtn" title="Back to top">↑</button>
+
+  <footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-left">
+      <h3 class="footer-logo">PropInDubai</h3>
+      <p>Connecting you with the best properties in Dubai.</p>
+    </div>
+
+    <div class="footer-links">
+      <a href="about-us.html">About Us</a>
+      <a href="contact-us.html">Contact us</a>
+      <a href="privacy-policy.html">Privacy Policy</a>
+      <a href="term-condition.html">Terms & Conditions</a>
+      <a href="cookies-policy.html">Cookies policy</a>
+      <a href="disclaimer.html">Disclaimer</a>
+    </div>
+
+    <div class="footer-socials">
+      <a href="#"><img src="styles/photo/facebook.png" alt="Facebook" /></a>
+      <a href="#"><img src="styles/photo/insta.png" alt="Instagram" /></a>
+      <a href="#"><img src="styles/photo/linkedin.png" alt="LinkedIn" /></a>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    © 2025 PropInDubai. All rights reserved.
+  </div>
+</footer>
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="javascript/rent.js"></script>
+</body>
+</html>

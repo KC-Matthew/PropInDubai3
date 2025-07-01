@@ -1,0 +1,82 @@
+.side-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px;
+  height: 100vh;
+  background-color: rgb(236, 236, 236);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: white;
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+}
+
+.hight-sidebar,
+.low-sidebar {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.middle-sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.side-bar a {
+  text-decoration: none;
+  padding: 10px 20px;
+  border: none;
+  background-color: rgb(236, 236, 236);
+  color: rgb(13, 13, 13);
+  transition: 0.3s;
+  margin-bottom: 30px;
+  padding: 15px 20px;
+  text-align: center;
+  width: 160px;
+  font-weight: bold;
+  border-radius: 30px;
+}
+
+.side-bar a:hover,
+.side-bar .active {
+  background-color: rgb(200, 200, 200);
+  color: rgb(12, 12, 12);
+}
+
+.button-helps {
+  width: 100px;
+  padding: 3px 7px;
+  margin-top: 13px;
+  font-weight: bold;
+  border-radius: 30px;
+  cursor: pointer;
+  background-color: rgb(236, 236, 236);
+  border: none;
+}
+
+.button-helps:hover,
+.button-helps:active {
+  background-color: rgb(200, 200, 200);
+  color: rgb(14, 14, 14);
+}
+
+.button-how-it-works {
+  width: 160px;
+  padding: 3px 7px;
+  margin-bottom: 13px;
+  font-weight: bold;
+  border-radius: 30px;
+  cursor: pointer;
+  background-color: rgb(241, 240, 240);
+  border: none;
+}
+
+.button-how-it-works:hover,
+.button-how-it-works:active {
+  background-color: rgb(200, 200, 200);
+  color: rgb(14, 14, 14);
+}

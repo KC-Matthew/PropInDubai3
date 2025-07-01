@@ -1,0 +1,250 @@
+body {
+  font-family: 'Inter', Arial, sans-serif;
+  background: #faf8f2;
+  margin: 0;
+  padding: 0;
+  color: #202048;
+}
+
+/* HEADER */
+.header2 {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  padding: 0 24px;
+  z-index: 10;
+  border-bottom: 1.5px solid #eee;
+  gap: 16px;
+}
+.logo {
+  height: 52px;
+  margin-right: 16px;
+  cursor: pointer;
+  transition: transform .16s;
+}
+.logo:hover {
+  transform: scale(1.06);
+}
+
+main {
+  max-width: 1280px;
+  margin: 0 auto;
+  margin-top: 90px;
+  padding: 0 12px;
+}
+
+/* Section titles */
+.roi-section {
+  margin-top: 56px;
+  margin-bottom: 36px;
+}
+.roi-section h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.05rem;
+  color: #263063;
+  margin-bottom: 22px;
+  margin-top: 0;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.emoji-title {
+  font-size: 1.28em;
+}
+
+/* Cards Row */
+.roi-card-row {
+  display: flex;
+  gap: 28px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: #ffcf93 #f7f2e6;
+}
+.roi-card-row::-webkit-scrollbar {
+  height: 7px;
+}
+.roi-card-row::-webkit-scrollbar-thumb {
+  background: #ffcf93;
+  border-radius: 6px;
+}
+
+/* Card Design */
+.card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px #ffb9001a;
+  border: 2px solid #ffcf93;
+  min-width: 320px;
+  max-width: 360px;
+  flex: 0 0 320px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.18s cubic-bezier(.39,.58,.57,1), box-shadow 0.18s cubic-bezier(.39,.58,.57,1), border-color 0.2s;
+  scroll-snap-align: start;
+  cursor: pointer;
+}
+.card:hover {
+  transform: translateY(-7px) scale(1.025);
+  box-shadow: 0 10px 36px #ffb90021, 0 1.5px 8px rgba(0,0,0,0.09);
+  border-color: #ff9500;
+}
+
+.card-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  height: 190px;
+  background: #faf8f7;
+}
+.card-image-wrapper img {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  transition: opacity 0.22s;
+}
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.85);
+  color: #ff9500;
+  border: none;
+  font-size: 1.35rem;
+  padding: 6px 12px;
+  cursor: pointer;
+  z-index: 2;
+  border-radius: 50%;
+  transition: background 0.13s;
+}
+.carousel-arrow:hover {
+  background: #ffe9cc;
+}
+.arrow-left { left: 8px; }
+.arrow-right { right: 8px; }
+
+/* Card Content */
+.card-content {
+  padding: 18px 18px 12px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.card-content h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.18rem;
+  color: #e17000;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.card-content p {
+  margin: 0.25rem 0;
+  font-size: 1.04rem;
+  color: #666683;
+}
+.card-content .location {
+  font-size: 1.1rem;
+  color: #222;
+  font-weight: 600;
+  margin-top: 3px;
+}
+.card-content .roi {
+  font-weight: bold;
+  color: #28a745;
+}
+.card-content .rent {
+  font-size: 0.98rem;
+  color: #9a9aaf;
+}
+.similar-label {
+  position: absolute;
+  top: 11px;
+  left: 11px;
+  background-color: #3ea755;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 7px;
+  font-size: 0.86rem;
+  font-weight: bold;
+  z-index: 2;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 7px #4b29972a;
+}
+
+/* ROI Table Styles (do not touch, sauf bg!) */
+.roi-table {
+  margin-top: 62px;
+  padding: 28px 14px 32px 14px;
+  background-color: #fff;
+  border-radius: 17px;
+  box-shadow: 0 4px 24px #ffb90010;
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+  border: 2px solid rgb(245, 139, 1);
+}
+.roi-table-title {
+  font-size: 25px;
+  margin-bottom: 23px;
+  text-align: center;
+  color: #1a1a1a;
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+}
+
+#roi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.09rem;
+}
+#roi-table th,
+#roi-table td {
+  padding: 15px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+#roi-table th {
+  background-color: #f7a933;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  font-family: 'Inter', Arial, sans-serif;
+}
+.view-btn {
+  padding: 10px 15px;
+  border: none;
+  background-color: #585858;
+  color: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1.01rem;
+}
+.view-btn:hover {
+  background-color: #2a3f5f;
+}
+
+@media (max-width: 1024px) {
+  .roi-card-row { gap: 12px; }
+  .card { min-width: 94vw; max-width: 99vw; }
+  .main { padding: 0 2vw; }
+}
+
+@media (max-width: 750px) {
+  .header2, .footer-container { flex-direction: column; gap: 0; }
+  .card { min-width: 98vw; max-width: 100vw; }
+  .roi-table { padding: 7vw 2vw; }
+  main { padding: 0 2vw; }
+  .card-image-wrapper { height: 33vw; min-height: 128px; }
+}
