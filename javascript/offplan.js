@@ -43,8 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Crée un lien autour de chaque carte
     const link = document.createElement("a");
     link.href = `off-plan-click.html?id=${index}`;
-    link.style.textDecoration = "none"; // enlève le soulignement
-    link.style.color = "inherit"; // garde la couleur du texte
+    link.style.textDecoration = "none";
+    link.style.color = "inherit";
 
     const card = document.createElement("div");
     card.classList.add("property-card");
@@ -57,8 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
     card.innerHTML = `
       <div class="carousel-container" data-index="${index}">
         ${carouselImages}
-        <button class="carousel-button prev">&lt;</button>
-        <button class="carousel-button next">&gt;</button>
+        <button class="carousel-button prev" type="button">&lt;</button>
+        <button class="carousel-button next" type="button">&gt;</button>
       </div>
       <div class="property-details">
         <div>
@@ -71,18 +71,18 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
-    // Place la card dans le lien
     link.appendChild(card);
     propertiesContainer.appendChild(link);
   });
 
-  // Carrousel JS
+  // Carrousel JS avec event.stopPropagation + preventDefault sur le bouton
   document.querySelectorAll('.carousel-container').forEach(container => {
     const images = container.querySelectorAll('.carousel-image');
     let current = 0;
 
     container.querySelector('.next').addEventListener('click', (e) => {
-      e.stopPropagation(); // évite de cliquer sur la card
+      e.stopPropagation();
+      e.preventDefault(); // Ajoute cette ligne pour empêcher le lien de se déclencher
       images[current].classList.remove('active');
       current = (current + 1) % images.length;
       images[current].classList.add('active');
@@ -90,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     container.querySelector('.prev').addEventListener('click', (e) => {
       e.stopPropagation();
+      e.preventDefault();
       images[current].classList.remove('active');
       current = (current - 1 + images.length) % images.length;
       images[current].classList.add('active');
