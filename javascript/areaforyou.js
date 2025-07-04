@@ -75,17 +75,20 @@ properties.forEach((property, index) => {
     const images = container.querySelectorAll('.carousel-image');
     let current = 0;
 
-    container.querySelector('.next').addEventListener('click', () => {
-      images[current].classList.remove('active');
-      current = (current + 1) % images.length;
-      images[current].classList.add('active');
-    });
+  container.querySelector('.next').addEventListener('click', (event) => {
+    event.stopPropagation(); // <-- AJOUT
+    images[current].classList.remove('active');
+    current = (current + 1) % images.length;
+    images[current].classList.add('active');
+  });
 
-    container.querySelector('.prev').addEventListener('click', () => {
-      images[current].classList.remove('active');
-      current = (current - 1 + images.length) % images.length;
-      images[current].classList.add('active');
-    });
+  container.querySelector('.prev').addEventListener('click', (event) => {
+    event.stopPropagation(); // <-- AJOUT
+    images[current].classList.remove('active');
+    current = (current - 1 + images.length) % images.length;
+    images[current].classList.add('active');
+  });
+
   });
 });
 
