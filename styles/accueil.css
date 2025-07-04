@@ -1,618 +1,142 @@
-.header2 {
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center; /* centre horizontalement tout */
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background-color: white;
-  padding: 0 20px;
-  z-index: 10;
-  border-bottom: 1px solid #ddd;
-  gap: 20px; /* espace entre les blocs (titre, boutons, profil) */
-}
-
-.logo {
-  width: 200px;
-  margin-top: 5px;
-}
-
-.all-button {
-  display: flex;
-  flex: 1; /* prend toute la place centrale disponible */
-  justify-content: center;
-  gap: 15px; /* espace entre les boutons */
-  max-width: 1000px; /* limite la largeur max */
-}
-
-.all-button button {
-  flex: 1;
-  max-width: 150px; /* évite que les boutons soient trop larges */
-  padding: 8px 12px;
-  border: none;
-  background-color: rgb(255, 255, 255);
-  color: rgb(104, 104, 104);
-  cursor: pointer;
-  border-radius: 5px;
-  text-align: center;
-  font-weight: bold;
-}
-
-/* Pour que les liens <a> ressemblent EXACTEMENT à tes boutons */
-.header-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  max-width: 150px;
-  padding: 8px 12px;
-  border: none;
-  background-color: rgb(255, 255, 255);
-  color: rgb(104, 104, 104);
-  cursor: pointer;
-  border-radius: 5px;
-  text-align: center;
-  font-weight: bold;
-  text-decoration: none; /* enlève le soulignement */
-  transition: background-color 0.2s, height 0.2s;
-  height: 60px; /* même hauteur que tes boutons par défaut */
-  box-sizing: border-box;
-}
-
-.header-btn:hover {
-  background-color: rgb(245, 245, 245);
-  height: 60px;
-}
-
-
-
-.profil-block {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  white-space: nowrap;
-}
-
-.login-button {
-  background-color: rgb(255, 255, 255);
-  color: rgb(104, 104, 104);
-  cursor: pointer;
-  padding: 10px;
-  border-radius: 10px;
-  border-color: rgb(255, 153, 0);
-}
-
-
-.fond-accueil {
-  position: relative;
-  height: 70vh;
-  border-radius: 80px;
-  margin-top: 70px;
-  /* overflow: hidden; <-- SUPPRIMÉ pour que l'image ne coupe pas les éléments en dessous */
-}
-
-.fond-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* ajuste comme un background */
-  z-index: -1;       /* met l’image derrière les contenus */
-  border-radius: 50px;
-}
-
-.content {
-  position: relative;
-  color: white;
-  text-align: center;
-  top: 40%;
-  background-color: white;
-}
-
-/* Le rectangle flou et transparent */
-.overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PropInDubai</title>
+  <link rel="stylesheet" href="styles/accueil.css">
+</head>
+<body>
   
-  background: rgba(0, 0, 0, 0.1); /* transparence */
-  backdrop-filter: blur(10px);         /* flou */
-  -webkit-backdrop-filter: blur(10px); /* flou Safari */
-  
-  height: 150px;
-  margin-top: 150px;
-  padding-left: 80px;
-  padding-right: 80px;
-  border-radius: 50px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.2);
-  color: white;
-  text-align: center;
-}
-
-    .tabs {
-      margin-top: 15px;
-      display: flex;
-      border-radius: 30px;
-      overflow: hidden;
-      margin-bottom: 20px;
-      background: #eee;
-      color: black;
-      width: 600px;
-      margin-left: 70px;
-    }
-
-    .tab {
-      flex: 1;
-      padding: 15px;
-      text-align: center;
-      cursor: pointer;
-      transition: background 0.3s, color 0.3s;
-    }
-
-    .tab.active {
-      background-color: white;
-      color: rgb(255, 145, 0);
-      font-weight: bold;
-    }
-
-    .search-bar {
-      display: flex;
-      border-radius: 30px;
-      overflow: hidden;
-      background: white;
-      width: 750px;
-    }
-
-    .search-bar input,
-    .search-bar select {
-      flex: 1;
-      padding: 15px;
-      border: none;
-      outline: none;
-      font-size: 16px;
-    }
-
-    .search-bar button {
-      background-color: rgb(255, 115, 0);
-      color: white;
-      padding: 15px 25px;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    @media (max-width: 768px) {
-      .search-bar {
-        flex-direction: column;
-      }
-
-      .search-bar button {
-        width: 100%;
-      }
-    }
-
-
-.border-short {
-  width: 1000px;
-  border-bottom: 1px solid rgb(189, 189, 189);
-  margin: 5px auto;
-  margin-top: 40px;
-}
-
-.ai-section {
-  background-color: #ffffff;
-  padding: 80px 20px;
-  text-align: center;
-  margin-top: 10px;
-  position: relative;
-  overflow: hidden;
-}
-
-#particles-canvas {
-  pointer-events: none; /* pas d’interaction */
-}
-
-.ai-section::before {
-  content: "";
-  position: absolute;
-  top: -30px;
-  right: -30px;
-  width: 150px;
-  height: 150px;
-  background: radial-gradient(circle, #ff9900 2px, transparent 3px);
-  background-size: 15px 15px;
-  border-radius: 50%;
-  opacity: 0.1;
-  pointer-events: none;
-  z-index: 0;
-}
-
-
-
-.ai-title {
-  font-size: 60px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
-  border-width: 2px;
-}
-
-.ai-subtitle {
-  font-size: 25px;
-  color: #666;
-  max-width: 700px;
-  margin: 0 auto 30px;
-}
-
-.chat-btn {
-  padding: 20px 40px;
-  background-color: rgb(255, 115, 0);
-  color: #fff;
-  font-size: 24px;
-  font-weight: bold;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.chat-btn:hover {
-  background-color: #d93400;
-  box-shadow: 0 0 20px 4px rgba(255, 115, 0, 0.7);
-  transform: translateY(-3px) scale(1.05);
-  transition: all 0.3s ease;
-}
-
-
-
-
-
-.border-short {
-  width: 1000px;
-  border-bottom: 1px solid rgb(189, 189, 189);
-  margin: 5px auto;
-  margin-top: 40px;
-}
-
-.offplan-section {
-  background-color: #ffffff;
-  padding: 80px 20px;
-  text-align: center;
-  margin-top: 10px;
-}
-
-.offplan-section::before {
-  content: "";
-  position: absolute;
-  top: -30px;
-  right: -30px;
-  width: 150px;
-  height: 150px;
-  background: radial-gradient(circle, #ff9900 2px, transparent 3px);
-  background-size: 15px 15px;
-  border-radius: 50%;
-  opacity: 0.1;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.offplan-title {
-  font-size: 60px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
-  border-width: 2px;
-}
-
-.offplan-subtitle {
-  font-size: 25px;
-  color: #666;
-  max-width: 700px;
-  margin: 0 auto 30px;
-}
-
-.chat-btn {
-  padding: 20px 40px;
-  background-color: rgb(255, 115, 0);
-  color: #fff;
-  font-size: 24px;
-  font-weight: bold;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.chat-btn:hover {
-  background-color: #d93400;
-}
-
-
-
-
-
-
-.border-short {
-  width: 1000px;
-  border-bottom: 1px solid rgb(189, 189, 189);
-  margin: 5px auto;
-  margin-top: 40px;
-}
-
-.roi-section {
-  background-color: #ffffff;
-  padding: 80px 20px;
-  text-align: center;
-  margin-top: 10px;
-}
-
-.roi-section::before {
-  content: "";
-  position: absolute;
-  top: -30px;
-  right: -30px;
-  width: 150px;
-  height: 150px;
-  background: radial-gradient(circle, #ff9900 2px, transparent 3px);
-  background-size: 15px 15px;
-  border-radius: 50%;
-  opacity: 0.1;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.roi-title {
-  font-size: 60px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
-  border-width: 2px;
-}
-
-.roi-subtitle {
-  font-size: 25px;
-  color: #666;
-  max-width: 700px;
-  margin: 0 auto 30px;
-}
-
-.chat-btn {
-  padding: 20px 40px;
-  background-color: rgb(255, 115, 0);
-  color: #fff;
-  font-size: 24px;
-  font-weight: bold;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.chat-btn:hover {
-  background-color: #d93400;
-}
-
-
-
-
-
-
-.border-short {
-  width: 1000px;
-  border-bottom: 1px solid rgb(189, 189, 189);
-  margin: 5px auto;
-  margin-top: 40px;
-}
-
-.map-section {
-  background-color: #ffffff;
-  padding: 80px 20px;
-  text-align: center;
-  margin-top: 10px;
-}
-
-.map-section::before {
-  content: "";
-  position: absolute;
-  top: -30px;
-  right: -30px;
-  width: 150px;
-  height: 150px;
-  background: radial-gradient(circle, #ff9900 2px, transparent 3px);
-  background-size: 15px 15px;
-  border-radius: 50%;
-  opacity: 0.1;
-  pointer-events: none;
-  z-index: 0;
-}
-
-
-.map-title {
-  font-size: 60px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
-  border-width: 2px;
-}
-
-.map-subtitle {
-  font-size: 25px;
-  color: #666;
-  max-width: 700px;
-  margin: 0 auto 30px;
-}
-
-.chat-btn {
-  padding: 20px 40px;
-  background-color: rgb(255, 115, 0);
-  color: #fff;
-  font-size: 24px;
-  font-weight: bold;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.chat-btn:hover {
-  background-color: #d93400;
-}
-
-.map-container {
-  position: relative;
-  max-width: 1000px;
-  margin: 40px auto;
-  border-radius: 30px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-
-.map-image {
-  width: 100%;
-  display: block;
-  filter: blur(6px);
-  transition: filter 0.3s ease;
-  cursor: pointer;
-  border-radius: 30px;
-}
-
-.map-container:hover .map-image {
-  filter: blur(3px);
-}
-
-.map-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 30px;
-  pointer-events: none;
-}
-
-/* Centrer le bouton au milieu */
-.map-view-btn {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: rgb(255, 115, 0);
-  color: white;
-  padding: 20px 45px;
-  font-weight: bold;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  box-shadow: 0 5px 15px rgba(255, 115, 0, 0.6);
-  transition: background-color 0.3s ease;
-  font-size: 22px;
-  z-index: 10;
-}
-
-.map-view-btn:hover {
-  background-color: #d93400;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.site-footer {
-  background-color: #f9f9f9;
-  padding: 40px 20px 20px;
-  border-top: 1px solid #ddd;
-  font-family: Arial, sans-serif;
-  color: #444;
-}
-
-.footer-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 20px;
-  max-width: 1200px;
-  margin: auto;
-}
-
-.footer-left {
-  max-width: 300px;
-}
-
-.footer-logo {
-  font-size: 24px;
-  color: #ff9900;
-  margin-bottom: 10px;
-}
-
-.footer-links {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.footer-links a {
-  color: #444;
-  text-decoration: none;
-  font-size: 18px;
-}
-
-.footer-links a:hover {
-  color: #ff9900;
-}
-
-.footer-socials {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-}
-
-.footer-socials img {
-  width: 50px;
-  height: 50px;
-  filter: grayscale(100%);
-  transition: filter 0.3s;
-}
-
-.footer-socials img:hover {
-  filter: grayscale(0%);
-}
-
-.footer-bottom {
-  text-align: center;
-  margin-top: 30px;
-  font-size: 12px;
-  color: #999;
-}
-
-
-
+<div class="header2">
+  <div class="logo-container">
+    <a href="accueil.html" class="logo-link">
+      <img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo">
+    </a>
+  </div>
+  <div class="all-button">
+    <a href="areaforyou.html" class="chat-button header-btn">Chatgpt</a>
+    <a href="buy.html" class="buy-button header-btn">Buy</a>
+    <a href="rent.html" class="rent-button header-btn">Rent</a>
+    <a href="commercial.html" class="commercial-button header-btn">Commercial</a>
+    <a href="off-plan-search.html" class="project-button header-btn">Off Plan</a>
+    <a href="findagent.html" class="agent-button header-btn">Find agents</a>
+  </div>
+  <div class="profil-block">
+    <a href="login.html" class="login-button header-btn">Login</a>
+  </div>
+</div>
+
+
+  <!-- Image de fond -->
+  <div class="fond-accueil">
+    <img src="styles/photo/accueil.png" alt="Dubai" class="fond-image">
+    <div class="overlay">
+      <div class="container">
+        <div class="tabs">
+          <div class="tab active">Rent</div>
+          <div class="tab">Buy</div>
+          <div class="tab">New Projects</div>
+          <div class="tab">Commercial</div>
+        </div>
+        <div class="search-bar">
+          <input type="text" placeholder="City, community or building" />
+          <select>
+            <option>Property type</option>
+            <option>Apartment</option>
+            <option>Villa</option>
+          </select>
+          <select>
+            <option>Beds & Baths</option>
+            <option>1 Bed, 1 Bath</option>
+            <option>2 Bed, 2 Bath</option>
+          </select>
+          <button>Search</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nouvelle section AI, EN DEHORS de l'image -->
+  <section class="ai-section">
+     <canvas id="particles-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;"></canvas>
+    <h2 class="ai-title">AI Assistance : ChatProperty</h2>
+    <p class="ai-subtitle">
+      Ask anything about properties, locations, prices and more — powered by ChatProperty.
+    </p>
+     <a href="areaforyou.html">
+     <button class="chat-btn">Start Chat</button>
+    </a>
+    <div class="border-short"></div>
+  </section>
+
+   <!-- Nouvelle section OFFPLAN -->
+  <section class="offplan-section">
+    <h2 class="offplan-title">AI Assistance : Off Plan</h2>
+    <p class="offplan-subtitle">
+      Ask anything about properties, new projects, prices and more — powered by ChatProperty.
+    </p>
+    <a href="offplan.html">
+    <button class="chat-btn">Start Chat</button>
+    </a>
+    <div class="border-short"></div>
+  </section>
+
+   <!-- Nouvelle section ROI -->
+  <section class="roi-section">
+    <h2 class="roi-title">ROI Calculator</h2>
+    <p class="roi-subtitle">
+      Estimate your rental income, property costs, and ROI in just a few clicks.
+    </p>
+     <a href="ROI-calculator-accueil.html">
+     <button class="chat-btn">Let's Calculate</button>
+    </a>
+    <div class="border-short"></div>
+  </section>
+
+   <!-- Nouvelle section MAP -->
+  <section class="map-section">
+  <h2 class="map-title">Maps</h2>
+  <p class="map-subtitle">Explore Dubai properties with our interactive map.</p>
+
+  <div class="map-container" id="map-container">
+    <img src="styles/photo/dubai-map.jpg" alt="Dubai Map" class="map-image" />
+    <div class="map-overlay"></div>
+    <button class="map-view-btn" id="viewMapsBtn">View Maps</button>
+
+  </div>
+</section>
+
+  <footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-left">
+      <h3 class="footer-logo">PropInDubai</h3>
+      <p>Connecting you with the best properties in Dubai.</p>
+    </div>
+
+    <div class="footer-links">
+      <a href="about-us.html">About Us</a>
+      <a href="contact-us.html">Contact us</a>
+      <a href="privacy-policy.html">Privacy Policy</a>
+      <a href="term-condition.html">Terms & Conditions</a>
+      <a href="cookies-policy.html">Cookies policy</a>
+      <a href="disclaimer.html">Disclaimer</a>
+    </div>
+
+    <div class="footer-socials">
+      <a href="#"><img src="styles/photo/facebook.png" alt="Facebook" /></a>
+      <a href="#"><img src="styles/photo/insta.png" alt="Instagram" /></a>
+      <a href="#"><img src="styles/photo/linkedin.png" alt="LinkedIn" /></a>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    © 2025 PropInDubai. All rights reserved.
+  </div>
+</footer>
+
+
+  <script src="javascript/accueil.js"></script>
+  <script src="https://unpkg.com/scrollreveal"></script>
+</body>
+</html>
