@@ -24,49 +24,138 @@ const agentData = {
   whatsappNumber: "+971123456789"
 };
 
-window.onload = () => {
+// ------------- CARROUSEL PRINCIPAL -------------
+let currentIndex = 0;
+
+function updateMainCarousel() {
   const mainImage = document.getElementById('main-image');
   const thumb1 = document.getElementById('thumb1');
   const thumb2 = document.getElementById('thumb2');
-  const info = document.getElementById('property-info');
-  const description = document.getElementById('property-description');
-
-  // Affiche les images
-  mainImage.src = propertyData.images[0];
+  mainImage.src = propertyData.images[currentIndex];
+  thumb1.src = propertyData.images[(currentIndex + 1) % propertyData.images.length];
+  thumb2.src = propertyData.images[(currentIndex + 2) % propertyData.images.length];
   document.getElementById('image-count').textContent = propertyData.images.length;
-  thumb1.src = propertyData.images[1] || propertyData.images[0];
-  thumb2.src = propertyData.images[2] || propertyData.images[0];
+}
 
-  // Lightbox onclick
-  mainImage.addEventListener('click', () => openLightboxCarousel(0));
-  thumb1.addEventListener('click', () => openLightboxCarousel(1));
-  thumb2.addEventListener('click', () => openLightboxCarousel(2));
+function openLightbox(index) {
+  // Supprime un éventuel lightbox déjà présent
+  const prevLightbox = document.getElementById('lightbox-bien');
+  if (prevLightbox) prevLightbox.remove();
 
-  // Infos propriété
-  info.innerHTML = `
-    <h2>${propertyData.location}</h2>
-    <div class="price">${propertyData.price}</div>
-    <div class="details">
-      <span>🛏️ ${propertyData.bedrooms} Bedrooms</span>
-      <span>🛁 ${propertyData.bathrooms} Bathrooms</span>
-      <span>📐 ${propertyData.size}</span>
-    </div>
-    <p style="margin-top: 20px;">${propertyData.description}</p>
+  // Overlay
+  const lightbox = document.createElement('div');
+  lightbox.id = 'lightbox-bien';
+  lightbox.style.cssText = `
+    position: fixed; z-index: 9999;
+    top:0;left:0;width:100vw;height:100vh;
+    background:rgba(0,0,0,0.95);
+    display:flex; align-items:center; justify-content:center;
   `;
 
-  // Description détaillée
-  description.textContent = propertyData.description;
+  // Image
+  const img = document.createElement('img');
+  img.src = propertyData.images[index];
+  img.style.cssText = `
+    max-width:90vw; max-height:90vh; border-radius:12px; box-shadow:0 0 40px #0008;
+    display:block; margin:auto;
+    background:white;
+  `;
+  lightbox.appendChild(img);
 
-  // Met à jour les détails additionnels
-  document.getElementById('detail-property-type').textContent = propertyData.propertyType;
-  document.getElementById('detail-property-size').textContent = propertyData.size;
-  document.getElementById('detail-bedrooms').textContent = propertyData.bedrooms;
-  document.getElementById('detail-bathrooms').textContent = propertyData.bathrooms;
+  // Flèche gauche
+  const prevBtn = document.createElement('button');
+  prevBtn.textContent = "❮";
+  prevBtn.style.cssText = `
+    position:absolute; left:2vw; top:50%; transform:translateY(-50%);
+    background:none; border:none; color:#fff; font-size:4rem; cursor:pointer; z-index:10;
+    opacity:0.7; transition:opacity 0.2s;
+  `;
+  prevBtn.onclick = (e) => {
+    e.stopPropagation();
+    index = (index - 1 + propertyData.images.length) % propertyData.images.length;
+    img.src = propertyData.images[index];
+  };
+  lightbox.appendChild(prevBtn);
 
-  // Injecte les infos agent
-  renderAgentInfo();
-};
+  // Flèche droite
+  const nextBtn = document.createElement('button');
+  nextBtn.textContent = "❯";
+  nextBtn.style.cssText = `
+    position:absolute; right:2vw; top:50%; transform:translateY(-50%);
+    background:none; border:none; color:#fff; font-size:4rem; cursor:pointer; z-index:10;
+    opacity:0.7; transition:opacity 0.2s;
+  `;
+  nextBtn.onclick = (e) => {
+    e.stopPropagation();
+    index = (index + 1) % propertyData.images.length;
+    img.src = propertyData.images[index];
+  };
+  lightbox.appendChild(nextBtn);
 
+  // Close
+  lightbox.onclick = () => { document.body.removeChild(lightbox); };
+
+  document.body.appendChild(lightbox);
+}
+
+// Flèches sur l'image principale
+function createMainArrows() {
+  let arrowsDiv = document.getElementById('main-arrows-bien');
+  if (arrowsDiv) arrowsDiv.remove();
+  arrowsDiv = document.createElement('div');
+  arrowsDiv.id = 'main-arrows-bien';
+  arrowsDiv.style.cssText = `
+    position:absolute; width:100%; top:45%; left:0; display:flex; justify-content:space-between; pointer-events:none;
+  `;
+  // Prev
+  const prev = document.createElement('button');
+  prev.textContent = '❮';
+  prev.style.cssText = `
+    pointer-events:auto; margin-left:8px;
+    background:rgba(255,255,255,0.8); border:none; border-radius:50%; font-size:2rem; width:48px; height:48px; cursor:pointer;
+    box-shadow:0 2px 8px #0002;
+  `;
+  prev.onclick = (e) => {
+    e.stopPropagation();
+    currentIndex = (currentIndex - 1 + propertyData.images.length) % propertyData.images.length;
+    updateMainCarousel();
+  };
+  // Next
+  const next = document.createElement('button');
+  next.textContent = '❯';
+  next.style.cssText = `
+    pointer-events:auto; margin-right:8px;
+    background:rgba(255,255,255,0.8); border:none; border-radius:50%; font-size:2rem; width:48px; height:48px; cursor:pointer;
+    box-shadow:0 2px 8px #0002;
+  `;
+  next.onclick = (e) => {
+    e.stopPropagation();
+    currentIndex = (currentIndex + 1) % propertyData.images.length;
+    updateMainCarousel();
+  };
+  arrowsDiv.appendChild(prev);
+  arrowsDiv.appendChild(next);
+
+  // Place dans le main-and-thumbs
+  const mainAndThumbs = document.querySelector('.main-and-thumbs');
+  mainAndThumbs.style.position = 'relative';
+  mainAndThumbs.appendChild(arrowsDiv);
+}
+
+// Events (clic image/thumbnails)
+function setupCarouselEvents() {
+  document.getElementById('main-image').onclick = () => openLightbox(currentIndex);
+  document.getElementById('thumb1').onclick = () => {
+    currentIndex = (currentIndex + 1) % propertyData.images.length;
+    updateMainCarousel();
+  };
+  document.getElementById('thumb2').onclick = () => {
+    currentIndex = (currentIndex + 2) % propertyData.images.length;
+    updateMainCarousel();
+  };
+}
+
+// ----------- INFOS, AGENT, DETAILS (inchangés) -----------
 function renderAgentInfo() {
   const container = document.getElementById('agent-contact-card-container');
   container.innerHTML = `
@@ -86,151 +175,49 @@ function renderAgentInfo() {
   `;
 }
 
-// Lightbox avec navigation (simplifié)
-function openLightboxCarousel(startIndex) {
-  let index = startIndex;
+// -------------- INIT ----------------
+window.onload = () => {
+  // Carrousel principal
+  updateMainCarousel();
+  createMainArrows();
+  setupCarouselEvents();
 
-  const overlay = document.createElement('div');
-  overlay.style.cssText = `
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    flex-direction: column;
+  // Infos propriété
+  const info = document.getElementById('property-info');
+  info.innerHTML = `
+    <h2>${propertyData.location}</h2>
+    <div class="price">${propertyData.price}</div>
+    <div class="details">
+      <span>🛏️ ${propertyData.bedrooms} Bedrooms</span>
+      <span>🛁 ${propertyData.bathrooms} Bathrooms</span>
+      <span>📐 ${propertyData.size}</span>
+    </div>
+    <p style="margin-top: 20px;">${propertyData.description}</p>
   `;
-
-  const img = document.createElement('img');
-  img.src = propertyData.images[index];
-  img.style.cssText = `
-    max-width: 90%;
-    max-height: 85%;
-    border-radius: 10px;
-  `;
-
-  const closeBtn = document.createElement('button');
-  closeBtn.textContent = "✕ Close";
-  closeBtn.style.cssText = `
-    margin-top: 20px;
-    padding: 8px 16px;
-    font-size: 16px;
-    cursor: pointer;
-    border: none;
-    border-radius: 8px;
-  `;
-
-  // Navigation
-  const prevBtn = document.createElement('button');
-  prevBtn.textContent = '⬅ Prev';
-  prevBtn.style.cssText = 'margin-right: 10px; padding: 8px 16px; cursor: pointer; border-radius: 8px;';
-
-  const nextBtn = document.createElement('button');
-  nextBtn.textContent = 'Next ➡';
-  nextBtn.style.cssText = 'padding: 8px 16px; cursor: pointer; border-radius: 8px;';
-
-  const navDiv = document.createElement('div');
-  navDiv.style.cssText = 'margin-top: 10px;';
-  navDiv.appendChild(prevBtn);
-  navDiv.appendChild(nextBtn);
-
-  overlay.appendChild(img);
-  overlay.appendChild(navDiv);
-  overlay.appendChild(closeBtn);
-  document.body.appendChild(overlay);
-
-  prevBtn.onclick = () => {
-    index = (index - 1 + propertyData.images.length) % propertyData.images.length;
-    img.src = propertyData.images[index];
-  };
-
-  nextBtn.onclick = () => {
-    index = (index + 1) % propertyData.images.length;
-    img.src = propertyData.images[index];
-  };
-
-  closeBtn.onclick = () => {
-    document.body.removeChild(overlay);
-  };
-}
-
-
-window.onload2 = () => {
-  // Ton code existant pour afficher les images, infos, agent...
-
-  // --- Initialisation de la carte Leaflet ---
-  const map = L.map('map').setView([25.2048, 55.2708], 13); // Coordonnées approximatives de Dubaï
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
-
-  // Ajouter un marqueur à la localisation approximative du bien
-  L.marker([25.2048, 55.2708]).addTo(map)
-    .bindPopup(propertyData.location)
-    .openPopup();
+  document.getElementById('property-description').textContent = propertyData.description;
+  document.getElementById('detail-property-type').textContent = propertyData.propertyType;
+  document.getElementById('detail-property-size').textContent = propertyData.size;
+  document.getElementById('detail-bedrooms').textContent = propertyData.bedrooms;
+  document.getElementById('detail-bathrooms').textContent = propertyData.bathrooms;
+  renderAgentInfo();
 };
 
-// javascript/map-similar.js
+// --------- MAP (inchangé) ----------
 window.addEventListener("load", function () {
   const mapElement = document.getElementById("map");
-  if (!mapElement) {
-    console.error("Div with ID 'map' not found.");
-    return;
-  }
-
-  // Définir une hauteur pour la carte si non définie via CSS
+  if (!mapElement) return;
   mapElement.style.height = "400px";
-
-  // Coordonnées approximatives de Dubai
   const dubaiCoordinates = [25.2048, 55.2708];
-
-  // Initialisation de la carte
   const map = L.map("map").setView(dubaiCoordinates, 13);
-
-  // Ajout du fond de carte OpenStreetMap
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: '&copy; OpenStreetMap contributors',
   }).addTo(map);
-
-  // Ajout d'un marqueur sur Dubai
   L.marker(dubaiCoordinates).addTo(map)
     .bindPopup("Propriété située ici")
     .openPopup();
 });
 
-
-// Initialisation de la carte
-const map = L.map('map').setView([25.2048, 55.2708], 12); // Coordonnées de Dubaï
-
-// Ajout d'une couche de tuiles OpenStreetMap
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
-
-// Marqueur (facultatif)
-L.marker([25.2048, 55.2708]).addTo(map)
-  .bindPopup('Propriété à Dubaï')
-  .openPopup();
-
-  // Vérifie que la carte n'est pas déjà initialisée
-document.addEventListener("DOMContentLoaded", function () {
-  const map = L.map("map").setView([25.2048, 55.2708], 12); // Coordonnées de Dubaï
-
-  // Ajoute une couche de tuiles (tiles layer)
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
-  }).addTo(map);
-
-  // Ajoute un marqueur sur la carte
-  L.marker([25.2048, 55.2708]).addTo(map).bindPopup("Propriété à Dubaï").openPopup();
-});
-
-
-// Exemple données simulées biens similaires (remplace par ta vraie BDD)
+// --------- SIMILAR PROPERTIES (inchangé) ----------
 const similarProperties = [
   {
     id: 1,
@@ -262,40 +249,29 @@ const similarProperties = [
       "styles/photo/profil.png"
     ]
   },
-  // Ajoute autant que tu veux
 ];
 
 function createSimilarPropertyCard(property) {
-  // Création du card container
   const card = document.createElement('div');
   card.classList.add('similar-property-card');
-
-  // Images carousel container
   const imagesContainer = document.createElement('div');
   imagesContainer.classList.add('similar-property-carousel-images');
-  
-  // For each image create img tag, only first active
   property.images.forEach((imgSrc, index) => {
     const img = document.createElement('img');
     img.src = imgSrc;
     if(index === 0) img.classList.add('active');
     imagesContainer.appendChild(img);
   });
-
-  // Carousel buttons for images
   const btns = document.createElement('div');
   btns.classList.add('similar-property-carousel-buttons');
-
   const prevBtn = document.createElement('button');
   prevBtn.textContent = '‹';
   const nextBtn = document.createElement('button');
   nextBtn.textContent = '›';
-
   btns.appendChild(prevBtn);
   btns.appendChild(nextBtn);
   imagesContainer.appendChild(btns);
 
-  // Image navigation logic
   let currentIndex = 0;
   const imgs = imagesContainer.querySelectorAll('img');
   prevBtn.addEventListener('click', e => {
@@ -311,7 +287,6 @@ function createSimilarPropertyCard(property) {
     imgs[currentIndex].classList.add('active');
   });
 
-  // Property info block
   const info = document.createElement('div');
   info.classList.add('similar-property-info');
   info.innerHTML = `
@@ -321,21 +296,16 @@ function createSimilarPropertyCard(property) {
 
   card.appendChild(imagesContainer);
   card.appendChild(info);
-
-  // REND LA CARTE CLIQUABLE POUR ALLER SUR "bien.html"
   card.style.cursor = "pointer";
   card.addEventListener('click', () => {
     window.location.href = "bien.html";
   });
-
   return card;
-
 }
 
 window.addEventListener('load', () => {
   const container = document.querySelector('.similar-properties-wrapper');
   if (!container) return;
-
   similarProperties.forEach(prop => {
     const card = createSimilarPropertyCard(prop);
     container.appendChild(card);
