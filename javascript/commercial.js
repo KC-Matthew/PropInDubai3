@@ -162,7 +162,6 @@ document.addEventListener("DOMContentLoaded", () => {
     currentPage = page;
     let filtered = properties.slice();
     const search = document.getElementById("search").value.trim().toLowerCase();
-    const transaction = document.getElementById("transaction").value;
     const propertyType = propertyTypeSelect.value;
     const bedrooms = document.getElementById("bedrooms").value;
     const bathrooms = document.getElementById("bathrooms").value;
