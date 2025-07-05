@@ -75,3 +75,47 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
+document.addEventListener('DOMContentLoaded', function () {
+  const tabs = Array.from(document.querySelectorAll('.tab'));
+  const searchBar = document.querySelector('.search-bar');
+  if (!searchBar) return;
+
+  const input = searchBar.querySelector('input[type="text"]');
+  const selectType = searchBar.querySelectorAll('select')[0];
+  const selectBeds = searchBar.querySelectorAll('select')[1];
+  const searchBtn = searchBar.querySelector('button');
+
+  searchBtn.addEventListener('click', function () {
+    // Récupère l'onglet actif
+    const tabActive = tabs.find(tab => tab.classList.contains('active')).textContent.trim().toLowerCase();
+    // Récupère les filtres
+    const q = encodeURIComponent(input.value.trim());
+    const type = encodeURIComponent(selectType.value !== "Property type" ? selectType.value : "");
+    const beds = encodeURIComponent(selectBeds.value !== "Beds & Baths" ? selectBeds.value : "");
+
+    // Détermine la page cible
+    let page = "";
+    if (tabActive === "buy") page = "buy.html";
+    else if (tabActive === "rent") page = "rent.html";
+    else if (tabActive === "new projects") page = "off-plan-search.html";
+    else if (tabActive === "commercial") page = "commercial.html";
+    else page = "buy.html"; // fallback
+
+    // Construit les query params
+    let params = [];
+    if (q) params.push(`search=${q}`);
+    if (type) params.push(`type=${type}`);
+    if (beds) params.push(`beds=${beds}`);
+    const queryString = params.length ? "?" + params.join("&") : "";
+
+    // Redirige vers la page cible avec les filtres
+    window.location.href = page + queryString;
+  });
+
+  // (optionnel) Permet de lancer la recherche avec "Entrée"
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') searchBtn.click();
+  });
+});
+
+
