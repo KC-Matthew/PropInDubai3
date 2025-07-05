@@ -330,3 +330,48 @@ document.addEventListener('DOMContentLoaded', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 });
+
+// --- Auto-prefill from query params + auto-search on arrival ---
+document.addEventListener('DOMContentLoaded', function () {
+  // Helper to get URL params
+  function getParam(name) {
+    return new URLSearchParams(window.location.search).get(name);
+  }
+
+  // Find filter fields by ID or fallback by order
+  const searchInput = document.getElementById('search') ||
+    document.querySelector('.filter-bar input[type="text"]');
+  const typeSelect = document.getElementById('propertyType') ||
+    document.querySelectorAll('.filter-bar select')[0];
+  const bedsSelect = document.querySelector('.filter-bar select[name="beds"]') ||
+    document.querySelectorAll('.filter-bar select')[1];
+  const searchBtn = document.getElementById('searchBtn') ||
+    document.querySelector('.filter-bar button[type="submit"], .filter-bar button');
+
+  // 1. Pré-remplit si paramètres présents
+  const q = getParam('search') || '';
+  const type = getParam('type') || '';
+  const beds = getParam('beds') || '';
+
+  if (searchInput && q) searchInput.value = decodeURIComponent(q);
+  if (typeSelect && type) {
+    Array.from(typeSelect.options).forEach(opt => {
+      if (opt.value === decodeURIComponent(type) || opt.text === decodeURIComponent(type)) {
+        opt.selected = true;
+      }
+    });
+  }
+  if (bedsSelect && beds) {
+    Array.from(bedsSelect.options).forEach(opt => {
+      if (opt.value === decodeURIComponent(beds) || opt.text === decodeURIComponent(beds)) {
+        opt.selected = true;
+      }
+    });
+  }
+
+  // 2. Lance la recherche automatiquement si un paramètre présent
+  if ((q || type || beds) && searchBtn) {
+    // petit délai pour laisser le DOM (et JS dynamiques) s'installer
+    setTimeout(() => searchBtn.click(), 100);
+  }
+});
