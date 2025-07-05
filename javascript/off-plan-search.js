@@ -330,26 +330,3 @@ document.addEventListener('DOMContentLoaded', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 });
-
-
-// Sticky filter-bar show/hide on scroll direction
-let lastScrollY = window.scrollY;
-const filterBar = document.querySelector('.filter-bar');
-let ticking = false;
-
-window.addEventListener('scroll', function() {
-  if (!ticking) {
-    window.requestAnimationFrame(function() {
-      if (window.scrollY > lastScrollY + 6) {
-        // Scrolling down
-        filterBar.classList.add('hide-on-scroll');
-      } else if (window.scrollY < lastScrollY - 6) {
-        // Scrolling up
-        filterBar.classList.remove('hide-on-scroll');
-      }
-      lastScrollY = window.scrollY;
-      ticking = false;
-    });
-    ticking = true;
-  }
-});
