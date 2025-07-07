@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PropInDubai</title>
   <link rel="stylesheet" href="styles/accueil.css">
+  <script src="https://unpkg.com/scrollreveal"></script>
 </head>
 <body>
   
@@ -23,94 +24,120 @@
   </div>
 </div>
 
- 
+<!-- Image de fond + overlay compact centré -->
+<div class="fond-accueil">
+  <img src="styles/photo/accueil.png" alt="Dubai" class="fond-image">
 
-  <!-- Image de fond -->
-  <div class="fond-accueil">
-    <img src="styles/photo/accueil.png" alt="Dubai" class="fond-image">
-    <div class="overlay">
-      <div class="container">
-        <div class="tabs">
-          <div class="tab active">Rent</div>
-          <div class="tab">Buy</div>
-          <div class="tab">New Projects</div>
-          <div class="tab">Commercial</div>
-        </div>
-        <div class="search-bar">
-          <input type="text" placeholder="City, community or building" />
-          <select>
-            <option>Property type</option>
-            <option>Apartment</option>
-            <option>Villa</option>
-          </select>
-          <select>
-            <option>Beds & Baths</option>
-            <option>1 Bed, 1 Bath</option>
-            <option>2 Bed, 2 Bath</option>
-          </select>
-          <button>Search</button>
+  <div class="overlay">
+    <div class="tabs">
+      <div class="tab active">Rent</div>
+      <div class="tab">Buy</div>
+      <div class="tab">New Projects</div>
+      <div class="tab">Commercial</div>
+    </div>
+    <div class="search-bar">
+      <input type="text" placeholder="City, community or building" class="search-input" />
+      <!-- Property Type Dropdown -->
+      <div class="dropdown" id="propertyTypeDropdown">
+        <button type="button" class="dropdown-btn">
+          <span class="dropdown-label">Property type</span>
+          <svg class="dropdown-arrow" width="20" height="20"><polyline points="6 8 10 12 14 8" fill="none" stroke="#888" stroke-width="2"/></svg>
+        </button>
+        <div class="dropdown-menu">
+          <div class="dropdown-item">Apartment</div>
+          <div class="dropdown-item">Villa</div>
+          <div class="dropdown-item">Townhouse</div>
+          <div class="dropdown-item">Penthouse</div>
+          <div class="dropdown-item">Compound</div>
+          <div class="dropdown-item">Duplex</div>
         </div>
       </div>
+      <!-- Beds & Baths Dropdown -->
+      <div class="dropdown" id="bedsBathsDropdown">
+        <button type="button" class="dropdown-btn">
+          <span class="dropdown-label">Beds & Baths</span>
+          <svg class="dropdown-arrow" width="20" height="20"><polyline points="6 8 10 12 14 8" fill="none" stroke="#888" stroke-width="2"/></svg>
+        </button>
+        <div class="dropdown-menu">
+          <div class="dropdown-subtitle">Bedrooms</div>
+          <div class="dropdown-options" data-type="bedrooms">
+            <div class="dropdown-item">Studio</div>
+            <div class="dropdown-item">1</div>
+            <div class="dropdown-item">2</div>
+            <div class="dropdown-item">3</div>
+            <div class="dropdown-item">4</div>
+            <div class="dropdown-item">5</div>
+            <div class="dropdown-item">6</div>
+            <div class="dropdown-item">7+</div>
+          </div>
+          <div class="dropdown-subtitle">Bathrooms</div>
+          <div class="dropdown-options" data-type="bathrooms">
+            <div class="dropdown-item">1</div>
+            <div class="dropdown-item">2</div>
+            <div class="dropdown-item">3</div>
+            <div class="dropdown-item">4</div>
+            <div class="dropdown-item">5</div>
+            <div class="dropdown-item">6</div>
+            <div class="dropdown-item">7+</div>
+          </div>
+        </div>
+      </div>
+      <button class="search-btn">Search</button>
     </div>
   </div>
+</div>
 
-  <!-- Nouvelle section AI, EN DEHORS de l'image -->
-  <section class="ai-section">
-     <canvas id="particles-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;"></canvas>
-    <h2 class="ai-title">AI Assistance : ChatProperty</h2>
-    <p class="ai-subtitle">
-      Ask anything about properties, locations, prices and more — powered by ChatProperty.
-    </p>
-     <a href="areaforyou.html">
-     <button class="chat-btn">Start Chat</button>
-    </a>
-    <div class="border-short"></div>
-  </section>
-
-   <!-- Nouvelle section OFFPLAN -->
-  <section class="offplan-section">
-    <h2 class="offplan-title">AI Assistance : Off Plan</h2>
-    <p class="offplan-subtitle">
-      Ask anything about properties, new projects, prices and more — powered by ChatProperty.
-    </p>
-    <a href="offplan.html">
-    <button class="chat-btn">Start Chat</button>
-    </a>
-    <div class="border-short"></div>
-  </section>
-
-   <!-- Nouvelle section ROI -->
-  <section class="roi-section">
-    <h2 class="roi-title">ROI Calculator</h2>
-    <p class="roi-subtitle">
-      Estimate your rental income, property costs, and ROI in just a few clicks.
-    </p>
-     <a href="ROI-calculator-accueil.html">
-     <button class="chat-btn">Let's Calculate</button>
-    </a>
-    <div class="border-short"></div>
-  </section>
-
-   <!-- Nouvelle section MAP -->
-  <section class="map-section">
-  <h2 class="map-title">Maps</h2>
-  <p class="map-subtitle">Explore Dubai properties with our interactive map.</p>
-
-  <div class="map-container" id="map-container">
-    <img src="styles/photo/dubai-map.jpg" alt="Dubai Map" class="map-image" />
-    <div class="map-overlay"></div>
-    <button class="map-view-btn" id="viewMapsBtn">View Maps</button>
-
-  </div>
+<!-- Sections en dessous -->
+<section class="ai-section">
+   <canvas id="particles-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;"></canvas>
+  <h2 class="ai-title">AI Assistance : ChatProperty</h2>
+  <p class="ai-subtitle">
+    Ask anything about properties, locations, prices and more — powered by ChatProperty.
+  </p>
+   <a href="areaforyou.html">
+   <button class="chat-btn">Start Chat</button>
+  </a>
+  <div class="border-short"></div>
 </section>
 
-  <footer class="site-footer">
+<section class="offplan-section">
+  <h2 class="offplan-title">AI Assistance : Off Plan</h2>
+  <p class="offplan-subtitle">
+    Ask anything about properties, new projects, prices and more — powered by ChatProperty.
+  </p>
+  <a href="offplan.html">
+  <button class="chat-btn">Start Chat</button>
+  </a>
+  <div class="border-short"></div>
+</section>
+
+<section class="roi-section">
+  <h2 class="roi-title">ROI Calculator</h2>
+  <p class="roi-subtitle">
+    Estimate your rental income, property costs, and ROI in just a few clicks.
+  </p>
+   <a href="ROI-calculator-accueil.html">
+   <button class="chat-btn">Let's Calculate</button>
+  </a>
+  <div class="border-short"></div>
+</section>
+
+<section class="map-section">
+<h2 class="map-title">Maps</h2>
+<p class="map-subtitle">Explore Dubai properties with our interactive map.</p>
+<div class="map-container" id="map-container">
+  <img src="styles/photo/dubai-map.jpg" alt="Dubai Map" class="map-image" />
+  <div class="map-overlay"></div>
+  <button class="map-view-btn" id="viewMapsBtn">View Maps</button>
+</div>
+</section>
+
+<footer class="site-footer">
   <div class="footer-container">
     <div class="footer-left">
       <h3 class="footer-logo">PropInDubai</h3>
       <p>Connecting you with the best properties in Dubai.</p>
     </div>
-
     <div class="footer-links">
       <a href="about-us.html">About Us</a>
       <a href="contact-us.html">Contact us</a>
@@ -119,21 +146,20 @@
       <a href="cookies-policy.html">Cookies policy</a>
       <a href="disclaimer.html">Disclaimer</a>
     </div>
-
     <div class="footer-socials">
       <a href="#"><img src="styles/photo/facebook.png" alt="Facebook" /></a>
       <a href="#"><img src="styles/photo/insta.png" alt="Instagram" /></a>
       <a href="#"><img src="styles/photo/linkedin.png" alt="LinkedIn" /></a>
     </div>
   </div>
-
   <div class="footer-bottom">
     © 2025 PropInDubai. All rights reserved.
   </div>
 </footer>
 
-
-  <script src="javascript/accueil.js"></script>
-  <script src="https://unpkg.com/scrollreveal"></script>
+<script src="javascript/accueil.js"></script>
+<script src="https://unpkg.com/scrollreveal"></script>
 </body>
 </html>
+
+
