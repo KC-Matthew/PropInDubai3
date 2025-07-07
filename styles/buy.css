@@ -1,9 +1,3 @@
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f9f9f9;
-  margin-top: 90px;
-}
-
 .header2 {
   height: 60px;
   display: flex;
@@ -590,5 +584,6 @@ body {
   letter-spacing: 0.5px;
   padding-left: 10%;
   margin-bottom: 30px;
+  margin-top: 80px;
 }
 
