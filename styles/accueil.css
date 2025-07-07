@@ -32,7 +32,6 @@
   height: auto;
   margin: 0;
   display: block;
-  vertical-align: middle;
 }
 
 
@@ -786,6 +785,7 @@ position: relative;
   font-size: 12px;
   color: #999;
 }
+
 
 
 
