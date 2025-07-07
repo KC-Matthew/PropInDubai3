@@ -215,7 +215,7 @@ main {
   border-bottom: 1px solid #eee;
 }
 #roi-table th {
-  background-color: #f7a933;
+  background-color: rgb(245, 139, 1);
   color: #fff;
   font-weight: 800;
   letter-spacing: 0.5px;
