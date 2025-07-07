@@ -691,6 +691,17 @@
   color: #999;
 }
 
+.header-btn.active,
+.header-btn.active:hover {
+  background-color: rgb(245, 245, 245) !important;
+  color: #000 !important;
+  cursor: default !important;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(241,113,0,0.10);
+  pointer-events: none;
+}
+
+
 
 
 
