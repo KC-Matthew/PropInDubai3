@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Agency Profile – PropInDubai</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles/agence.css">
+  <link rel="stylesheet" href="styles/accueil.css">
+</head>
+<body>
+
+    
+<div class="header2">
+   <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
+  <div class="all-button">
+    <a href="areaforyou.html" class="chat-button header-btn">Chatgpt</a>
+    <a href="buy.html" class="buy-button header-btn">Buy</a>
+    <a href="rent.html" class="rent-button header-btn">Rent</a>
+    <a href="commercial.html" class="commercial-button header-btn">Commercial</a>
+    <a href="off-plan-search.html" class="project-button header-btn">Off Plan</a>
+    <a href="findagent.html" class="agent-button header-btn">Find agents</a>
+  </div>
+  <div class="profil-block">
+    <a href="login.html" class="login-button header-btn">Login</a>
+  </div>
+</div>
+
+
+<div class="agency-header-bg">
+  <div class="agency-header-content">
+    <img class="agency-logo" id="agency-logo" src="" alt="Agency Logo">
+    <div class="agency-info">
+      <h1 class="agency-title" id="agency-name"></h1>
+      <div class="agency-details">
+        <span><span class="icon"></span> <span id="listing-count"></span> Listings</span>
+        <span><span class="icon"></span> <span id="agent-count"></span> Agents</span>
+        <span><span class="icon"></span> ORN: <span id="agency-orn"></span></span>
+        <span><span class="icon"></span> <span id="agency-location"></span></span>
+      </div>
+      <div class="agency-contact-btns">
+        <button id="email-btn"><span class="icon">✉️</span>Email Company</button>
+        <button id="call-btn"><span class="icon">📞</span>Call Company</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="agency-about-section">
+  <div class="about-title">About <span id="about-agency-name"></span></div>
+  <div class="about-text" id="about-text"></div>
+  <button class="read-more-btn" id="read-more-btn">Read more</button>
+</div>
+
+<div class="agency-tabs-section">
+  <div class="agency-tabs">
+    <button class="agency-tab active" id="tab-properties" onclick="showTab('properties')">Properties</button>
+    <button class="agency-tab" id="tab-agents" onclick="showTab('agents')">Agents</button>
+  </div>
+  <div class="agency-tab-content" id="properties-tab-content">
+    <!-- MINI FILTER -->
+    <div class="property-filter-bar">
+      <button class="filter-btn active" data-type="rent">Rent</button>
+      <button class="filter-btn" data-type="buy">Buy</button>
+      <button class="filter-btn" data-type="commercial-rent">Commercial Rent</button>
+      <button class="filter-btn" data-type="commercial-buy">Commercial Buy</button>
+    </div>
+    <div class="property-list-v2" id="property-list"></div>
+  </div>
+  <div class="agency-tab-content" id="agents-tab-content" style="display:none">
+    <div class="agent-list" id="agent-list"></div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-left">
+      <h3 class="footer-logo">PropInDubai</h3>
+      <p>Connecting you with the best properties in Dubai.</p>
+    </div>
+    <div class="footer-links">
+      <a href="about-us.html">About Us</a>
+      <a href="contact-us.html">Contact us</a>
+      <a href="privacy-policy.html">Privacy Policy</a>
+      <a href="term-condition.html">Terms & Conditions</a>
+      <a href="cookies-policy.html">Cookies policy</a>
+      <a href="disclaimer.html">Disclaimer</a>
+    </div>
+    <div class="footer-socials">
+      <a href="#"><img src="styles/photo/facebook.png" alt="Facebook" /></a>
+      <a href="#"><img src="styles/photo/insta.png" alt="Instagram" /></a>
+      <a href="#"><img src="styles/photo/linkedin.png" alt="LinkedIn" /></a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2025 PropInDubai. All rights reserved.
+  </div>
+</footer>
+
+
+<script src="javascript/agence.js"></script>
+</body>
+</html>
