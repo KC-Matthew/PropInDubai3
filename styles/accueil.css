@@ -141,35 +141,38 @@
 /* Le rectangle flou et transparent */
 .overlay {
   position: absolute;
-  top: 50%;
+  top: 74%; /* ajuste ici pour la hauteur verticale sur la bannière */
   left: 50%;
   transform: translate(-50%, -50%);
-  
-  background: rgba(0, 0, 0, 0.1); /* transparence */
-  backdrop-filter: blur(10px);         /* flou */
-  -webkit-backdrop-filter: blur(10px); /* flou Safari */
-  
-  height: 150px;
-  margin-top: 150px;
-  padding-left: 80px;
-  padding-right: 80px;
-  border-radius: 50px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.2);
+  width: auto;           /* réduit la largeur ! */
+  max-width: 94vw;        /* responsive */
+  background: rgba(0,0,0,0.18); /* plus foncé si tu veux accentuer l'effet */
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 38px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.16);
+  padding: 20px 20px 28px 20px; /* padding plus fin pour compacter */
   color: white;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  z-index: 3;
 }
 
-    .tabs {
-      margin-top: 15px;
-      display: flex;
-      border-radius: 30px;
-      overflow: hidden;
-      margin-bottom: 20px;
-      background: #eee;
-      color: black;
-      width: 600px;
-      margin-left: 70px;
-    }
+.tabs {
+  margin: 0 auto 18px auto;
+  display: flex;
+  border-radius: 25px;
+  overflow: hidden;
+  background: #eee;
+  color: black;
+  width: 100%;
+  max-width: 550px;
+  justify-content: center;
+}
+
+
 
     .tab {
       flex: 1;
@@ -185,55 +188,192 @@
       font-weight: bold;
     }
 
-    .search-bar {
-      display: flex;
-      border-radius: 30px;
-      overflow: hidden;
-      background: white;
-      width: 750px;
-    }
 
-    .search-bar input,
-    .search-bar select {
-      flex: 1;
-      padding: 15px;
-      border: none;
-      outline: none;
-      font-size: 16px;
-    }
-
-    .search-bar button {
-      background-color: rgb(255, 115, 0);
-      color: white;
-      padding: 15px 25px;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    @media (max-width: 768px) {
-      .search-bar {
-        flex-direction: column;
-      }
-
-      .search-bar button {
-        width: 100%;
-      }
-    }
-
-
-.border-short {
-  width: 1000px;
-  border-bottom: 1px solid rgb(189, 189, 189);
-  margin: 5px auto;
-  margin-top: 40px;
+.search-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #fff;
+  width: 100%;
+  max-width: 650px;
+  border-radius: 30px;
+  box-shadow: 0 6px 32px 0 rgba(0,0,0,0.09);
+  padding: 0 14px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+  height: 56px;
 }
+
+.search-bar input.search-input {
+  flex: 2;
+  border: none;
+  outline: none;
+  padding: 0 24px;
+  font-size: 18px;
+  background: transparent;
+  color: #444;
+  font-weight: 400;
+  height: 46px;
+  border-radius: 0;
+}
+
+/* Les boutons dropdown hériteront du fond blanc aussi */
+.dropdown-btn {
+  width: auto;
+  background: transparent;
+  border-radius: 0;
+  /* border: none;    // si tu veux virer la bordure */
+}
+
+.dropdown-btn {
+  height: 46px;
+  text-align: left;
+  border: none;
+  background: #fff;
+  color: #444;
+  font-size: 17px;
+  padding: 0 16px;
+  border-radius: 13px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: none;
+  transition: box-shadow 0.13s, border 0.13s;
+  border: 1px solid #eee;
+}
+
+.dropdown-btn:focus, .dropdown.open .dropdown-btn {
+  border: 1.5px solid #ff9900;
+}
+
+.dropdown-label {
+  color: #222;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.dropdown-arrow {
+  margin-left: 12px;
+  transition: transform 0.18s;
+}
+
+.dropdown.open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.dropdown {
+position: relative;
+}
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 105%;
+  left: 0;
+  width: auto;
+  min-width: 165px;
+  background: #fff;
+  box-shadow: 0 6px 28px 0 rgba(0,0,0,0.13);
+  border-radius: 15px;
+  padding: 16px 10px 12px 10px;
+  z-index: 30;
+}
+
+.dropdown.open .dropdown-menu {
+  display: block;
+  animation: fadeIn 0.19s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+
+.dropdown-item {
+  padding: 8px 13px;
+  border-radius: 9px;
+  cursor: pointer;
+  margin-bottom: 3px;
+  font-size: 16px;
+  color: #222;
+  background: transparent;
+  font-weight: 400;
+  transition: background 0.12s, color 0.12s;
+  border: none;
+}
+
+.dropdown-item.selected,
+.dropdown-item:hover {
+  background: #fff3e1;
+  color: #ff8800;
+  font-weight: 600;
+}
+
+.dropdown-subtitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin: 8px 0 5px 2px;
+}
+
+.dropdown-options {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+}
+
+.search-btn {
+  background-color: #ff7000;
+  color: #fff;
+  padding: 0 35px;
+  height: 46px;
+  border: none;
+  border-radius: 15px;
+  font-size: 19px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 2px;
+  transition: background 0.15s;
+  box-shadow: 0 2px 9px rgba(255, 115, 0, 0.14);
+}
+.search-btn:hover {
+  background-color: #e86300;
+}
+
+@media (max-width: 1100px) {
+  .search-bar { width: 99vw; min-width: 0; }
+}
+@media (max-width: 900px) {
+  .search-bar { width: 99vw; min-width: 0; padding: 0 1vw;}
+}
+@media (max-width: 680px) {
+  .search-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 11px;
+    width: 99vw;
+    min-width: 0;
+    padding: 8px 2vw;
+    height: auto;
+  }
+  .dropdown, .search-bar input.search-input, .search-btn {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+  }
+}
+
+
 
 .ai-section {
   background-color: #ffffff;
   padding: 80px 20px;
   text-align: center;
-  margin-top: 10px;
+  margin-top: 60px;
   position: relative;
   overflow: hidden;
 }
@@ -575,10 +715,17 @@
 
 .site-footer {
   background-color: #f9f9f9;
-  padding: 40px 20px 20px;
+  padding: 40px 0 20px 0;
   border-top: 1px solid #ddd;
   font-family: Arial, sans-serif;
   color: #444;
+  width: 100vw; /* largeur de la fenêtre */
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  box-sizing: border-box;
 }
 
 .footer-container {
@@ -640,13 +787,7 @@
   color: #999;
 }
 
-.header-btn.active,
-.header-btn.active:hover {
-  background-color: rgb(245, 245, 245) !important;
-  color: #000 !important;
-  cursor: default !important;
-  font-weight: bold;
-  box-shadow: 0 2px 8px rgba(241,113,0,0.10);
-  pointer-events: none;
-}
+
+
+
 
