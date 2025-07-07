@@ -302,7 +302,7 @@ body { font-family: 'Inter', Arial, sans-serif; }
 }
 
 #roi-table th {
-  background-color: #b9b9b9;
+  background-color: rgb(245, 139, 1);
   color: #fff;
 }
 
