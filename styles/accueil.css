@@ -34,42 +34,24 @@
   display: block;
 }
 
-
 .header2 a {
-  display: flex;           /* important pour que le lien épouse l’image */
-  align-items: center;     /* verticalement */
-  height: 60px;            /* comme ton header */
-  padding: 0;              /* ou ajuste si tu veux */
-}
-
-.search-bar {
-  width: 100%;
-  max-width: 650px;
-  min-width: 0;
-  margin: 0 auto;
-}
-.dropdown, .search-bar input.search-input, .search-btn {
-  width: auto;
-  min-width: 0;
-}
-@media (max-width: 680px) {
-  .search-bar,
-  .dropdown, .search-bar input.search-input, .search-btn {
-    width: 100% !important;
-  }
+  display: flex;
+  align-items: center;
+  height: 60px;
+  padding: 0;
 }
 
 .all-button {
   display: flex;
-  flex: 1; /* prend toute la place centrale disponible */
+  flex: 1;
   justify-content: center;
-  gap: 15px; /* espace entre les boutons */
-  max-width: 1000px; /* limite la largeur max */
+  gap: 15px;
+  max-width: 1000px;
 }
 
 .all-button button {
   flex: 1;
-  max-width: 150px; /* évite que les boutons soient trop larges */
+  max-width: 150px;
   padding: 8px 12px;
   border: none;
   background-color: rgb(255, 255, 255);
@@ -80,7 +62,6 @@
   font-weight: bold;
 }
 
-/* Pour que les liens <a> ressemblent EXACTEMENT à tes boutons */
 .header-btn {
   display: flex;
   align-items: center;
@@ -95,9 +76,9 @@
   border-radius: 5px;
   text-align: center;
   font-weight: bold;
-  text-decoration: none; /* enlève le soulignement */
+  text-decoration: none;
   transition: background-color 0.2s, height 0.2s;
-  height: 60px; /* même hauteur que tes boutons par défaut */
+  height: 60px;
   box-sizing: border-box;
 }
 
@@ -105,8 +86,6 @@
   background-color: rgb(245, 245, 245);
   height: 60px;
 }
-
-
 
 .profil-block {
   display: flex;
@@ -124,13 +103,11 @@
   border-color: rgb(255, 153, 0);
 }
 
-
 .fond-accueil {
   position: relative;
   height: 70vh;
   border-radius: 80px;
   margin-top: 70px;
-  /* overflow: hidden; <-- SUPPRIMÉ pour que l'image ne coupe pas les éléments en dessous */
 }
 
 .fond-image {
@@ -139,8 +116,8 @@
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover; /* ajuste comme un background */
-  z-index: -1;       /* met l’image derrière les contenus */
+  object-fit: cover;
+  z-index: -1;
   border-radius: 50px;
 }
 
@@ -152,20 +129,19 @@
   background-color: white;
 }
 
-/* Le rectangle flou et transparent */
 .overlay {
   position: absolute;
-  top: 74%; /* ajuste ici pour la hauteur verticale sur la bannière */
+  top: 74%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: auto;           /* réduit la largeur ! */
-  max-width: 94vw;        /* responsive */
-  background: rgba(0,0,0,0.18); /* plus foncé si tu veux accentuer l'effet */
+  width: auto;
+  max-width: 94vw;
+  background: rgba(0,0,0,0.18);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border-radius: 38px;
   box-shadow: 0 4px 32px rgba(0,0,0,0.16);
-  padding: 20px 20px 28px 20px; /* padding plus fin pour compacter */
+  padding: 25px 80px 25px 80px;
   color: white;
   text-align: center;
   display: flex;
@@ -186,31 +162,31 @@
   justify-content: center;
 }
 
+.tab {
+  flex: 1;
+  padding: 15px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+  width: 700px;
+}
 
+.tab.active {
+  background-color: white;
+  color: rgb(255, 145, 0);
+  font-weight: bold;
+}
 
-    .tab {
-      flex: 1;
-      padding: 15px;
-      text-align: center;
-      cursor: pointer;
-      transition: background 0.3s, color 0.3s;
-    }
-
-    .tab.active {
-      background-color: white;
-      color: rgb(255, 145, 0);
-      font-weight: bold;
-    }
-
-
+/* ------------------ SEARCH BAR & DROPDOWN FIX ------------------ */
 .search-bar {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 5px;
   background: #fff;
   width: 100%;
-  max-width: 650px;
+  max-width: 900px;
+  min-width: 0;
   border-radius: 30px;
   box-shadow: 0 6px 32px 0 rgba(0,0,0,0.09);
   padding: 0 14px;
@@ -218,10 +194,13 @@
   position: relative;
   z-index: 2;
   height: 56px;
+  box-sizing: border-box;
 }
 
 .search-bar input.search-input {
-  flex: 2;
+  flex: 3;
+  min-width: 240px;
+  max-width: 440px;
   border: none;
   outline: none;
   padding: 0 24px;
@@ -233,15 +212,22 @@
   border-radius: 0;
 }
 
-/* Les boutons dropdown hériteront du fond blanc aussi */
-.dropdown-btn {
-  width: auto;
-  background: transparent;
-  border-radius: 0;
-  /* border: none;    // si tu veux virer la bordure */
+
+.dropdown {
+  position: relative;
+  min-width: 150px;
+  max-width: 200px;
+  flex-shrink: 0;
 }
 
 .dropdown-btn {
+
+  width: auto;
+  min-width: 0;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   height: 46px;
   text-align: left;
   border: none;
@@ -268,6 +254,11 @@
   color: #222;
   font-weight: 500;
   font-size: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  max-width: 110px;
 }
 
 .dropdown-arrow {
@@ -279,21 +270,20 @@
   transform: rotate(180deg);
 }
 
-.dropdown {
-position: relative;
-}
 .dropdown-menu {
   display: none;
   position: absolute;
   top: 105%;
   left: 0;
-  width: auto;
-  min-width: 165px;
+  min-width: 170px;
+  max-width: 240px;
+  width: max-content;
   background: #fff;
   box-shadow: 0 6px 28px 0 rgba(0,0,0,0.13);
   border-radius: 15px;
   padding: 16px 10px 12px 10px;
   z-index: 30;
+  word-break: break-word;
 }
 
 .dropdown.open .dropdown-menu {
@@ -358,13 +348,14 @@ position: relative;
   background-color: #e86300;
 }
 
+/* Responsive */
 @media (max-width: 1100px) {
   .search-bar { width: 99vw; min-width: 0; }
 }
 @media (max-width: 900px) {
   .search-bar { width: 99vw; min-width: 0; padding: 0 1vw;}
 }
-@media (max-width: 680px) {
+@media (max-width: 700px) {
   .search-bar {
     flex-direction: column;
     align-items: stretch;
@@ -373,15 +364,22 @@ position: relative;
     min-width: 0;
     padding: 8px 2vw;
     height: auto;
+    max-width: 98vw;
   }
   .dropdown, .search-bar input.search-input, .search-btn {
     width: 100%;
     min-width: 0;
+    max-width: 100%;
     height: 44px;
   }
+  .dropdown-menu {
+    left: 0;
+    min-width: 120px;
+    max-width: 95vw;
+    width: 100%;
+  }
 }
-
-
+/* ------------------ FIN DEBUG SEARCH BAR & DROPDOWN ------------------ */
 
 .ai-section {
   background-color: #ffffff;
@@ -393,7 +391,7 @@ position: relative;
 }
 
 #particles-canvas {
-  pointer-events: none; /* pas d’interaction */
+  pointer-events: none;
 }
 
 .ai-section::before {
@@ -410,8 +408,6 @@ position: relative;
   pointer-events: none;
   z-index: 0;
 }
-
-
 
 .ai-title {
   font-size: 60px;
@@ -446,10 +442,6 @@ position: relative;
   transform: translateY(-3px) scale(1.05);
   transition: all 0.3s ease;
 }
-
-
-
-
 
 .border-short {
   width: 1000px;
@@ -495,34 +487,6 @@ position: relative;
   margin: 0 auto 30px;
 }
 
-.chat-btn {
-  padding: 20px 40px;
-  background-color: rgb(255, 115, 0);
-  color: #fff;
-  font-size: 24px;
-  font-weight: bold;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.chat-btn:hover {
-  background-color: #d93400;
-}
-
-
-
-
-
-
-.border-short {
-  width: 1000px;
-  border-bottom: 1px solid rgb(189, 189, 189);
-  margin: 5px auto;
-  margin-top: 40px;
-}
-
 .roi-section {
   background-color: #ffffff;
   padding: 80px 20px;
@@ -560,34 +524,6 @@ position: relative;
   margin: 0 auto 30px;
 }
 
-.chat-btn {
-  padding: 20px 40px;
-  background-color: rgb(255, 115, 0);
-  color: #fff;
-  font-size: 24px;
-  font-weight: bold;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.chat-btn:hover {
-  background-color: #d93400;
-}
-
-
-
-
-
-
-.border-short {
-  width: 1000px;
-  border-bottom: 1px solid rgb(189, 189, 189);
-  margin: 5px auto;
-  margin-top: 40px;
-}
-
 .map-section {
   background-color: #ffffff;
   padding: 80px 20px;
@@ -610,7 +546,6 @@ position: relative;
   z-index: 0;
 }
 
-
 .map-title {
   font-size: 60px;
   font-weight: bold;
@@ -624,22 +559,6 @@ position: relative;
   color: #666;
   max-width: 700px;
   margin: 0 auto 30px;
-}
-
-.chat-btn {
-  padding: 20px 40px;
-  background-color: rgb(255, 115, 0);
-  color: #fff;
-  font-size: 24px;
-  font-weight: bold;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.chat-btn:hover {
-  background-color: #d93400;
 }
 
 .map-container {
@@ -675,7 +594,6 @@ position: relative;
   pointer-events: none;
 }
 
-/* Centrer le bouton au milieu */
 .map-view-btn {
   position: absolute;
   top: 50%;
@@ -698,42 +616,13 @@ position: relative;
   background-color: #d93400;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .site-footer {
   background-color: #f9f9f9;
   padding: 40px 0 20px 0;
   border-top: 1px solid #ddd;
   font-family: Arial, sans-serif;
   color: #444;
-  width: 100vw; /* largeur de la fenêtre */
+  width: 100vw;
   position: relative;
   left: 50%;
   right: 50%;
@@ -777,6 +666,7 @@ position: relative;
   color: #ff9900;
 }
 
+
 .footer-socials {
   display: flex;
   gap: 15px;
@@ -800,7 +690,6 @@ position: relative;
   font-size: 12px;
   color: #999;
 }
-
 
 
 
