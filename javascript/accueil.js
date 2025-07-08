@@ -6,6 +6,9 @@ document.querySelectorAll('.tab').forEach(tab => {
   });
 });
 
+
+
+
 // --- Custom Dropdown Property Type ---
 (function() {
   const drop = document.getElementById('propertyTypeDropdown');
@@ -123,3 +126,28 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
+
+
+// Mobile burger menu
+document.addEventListener('DOMContentLoaded', function () {
+  const burger = document.getElementById('burgerMenu');
+  const nav = document.querySelector('.all-button');
+  burger?.addEventListener('click', () => {
+    nav.classList.toggle('mobile-open');
+    // Close on any click outside
+    if (nav.classList.contains('mobile-open')) {
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => {
+        document.addEventListener('click', closeMenu, { once: true });
+      }, 0);
+    } else {
+      document.body.style.overflow = '';
+    }
+    function closeMenu(e) {
+      if (!nav.contains(e.target) && !burger.contains(e.target)) {
+        nav.classList.remove('mobile-open');
+        document.body.style.overflow = '';
+      }
+    }
+  });
+});
