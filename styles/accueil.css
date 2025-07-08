@@ -766,16 +766,24 @@
     border-radius: 0 0 26px 26px;
     z-index: 0;
   }
+  
   .mobile-hero-bottom {
     display: flex !important;
     flex-direction: column;
     align-items: center;
-    position: absolute; left: 0; top: 60vw;
-    width: 100vw;
+    justify-content: center;
+    position: absolute;
+    top: 50%; /* ← milieu vertical de .fond-accueil */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    padding: 0 16px;
     z-index: 2;
     gap: 12px;
     pointer-events: none;
   }
+}
+
   /* ---- TABS ---- */
   .tabs {
     width: 92vw; max-width: 340px;
