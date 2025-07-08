@@ -709,7 +709,7 @@
 
   /* ---- HEADER ---- */
   .header2 {
-    height: 56px;
+    height: 64px;
     padding: 0 8px;
     flex-wrap: wrap;
     gap: 10px;
