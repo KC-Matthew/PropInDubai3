@@ -595,3 +595,195 @@
   margin-top: 80px;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+@media (max-width: 700px) {
+  /* Filtres */
+  .mobile-filter {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    background: #fff;
+    gap: 12px;
+    position: sticky;
+    top: 60px;
+    z-index: 9;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    border-bottom: 1px solid #eee;
+  }
+
+  .mobile-filter input,
+  .mobile-filter select {
+    padding: 10px 14px;
+    border: 1.5px solid #ececec;
+    border-radius: 12px;
+    font-size: 15px;
+    background: #fafafa;
+  }
+
+  .mobile-filter-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .mobile-filter-actions button {
+    flex: 1;
+    padding: 10px 0;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+  }
+
+  #mobileSearchBtn {
+    background: #f17100;
+    color: white;
+  }
+
+  #mobileClearBtn {
+    background: #f6f6f6;
+    color: #f17100;
+    border: 1px solid #f17100;
+  }
+
+  /* Property Card */
+  .property-card {
+    flex-direction: column;
+    width: 100%;
+    padding: 0 10px;
+    box-sizing: border-box;
+  }
+
+  .carousel {
+    width: 100%;
+    height: 240px;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+
+  .property-info {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .property-actions {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 10px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 12px;
+    gap: 8px;
+  }
+
+  .property-actions button {
+    width: 100%;
+    max-width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    box-sizing: border-box;
+  }
+
+  .property-actions button:nth-child(1),
+  .property-actions button:nth-child(2) {
+    display: none; /* Cache Call & Email */
+  }
+
+  /* Agent Info */
+  .agent-info {
+    display: none;
+  }
+
+  /* Filtres (autre section) */
+  .filter-bar {
+    padding: 16px 10px;
+  }
+
+  .filter-bar input[type="text"],
+  .filter-bar input[type="number"],
+  .filter-bar select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border-radius: 20px;
+    font-size: 15px;
+    background-color: #f9f9f9;
+    border: 1.4px solid #eaeaea;
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+  .filter-bar .search-button,
+  .filter-bar .clear-button {
+    width: 100%;
+    margin-top: 8px;
+    border-radius: 40px;
+  }
+
+  /* Slogan accroche */
+  .buy-hook {
+    margin: 80px 10px 20px;
+    font-size: 0.95rem;
+    padding: 10px 18px;
+  }
+
+  /* Chat banner */
+  .chatboat-banner {
+    margin: 12px 10px;
+    max-width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  /* Résumé types de biens */
+  .property-types-summary {
+    gap: 14px 20px;
+    padding: 20px;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .pts-type {
+    font-size: 1rem;
+    margin-right: 0;
+  }
+
+  .property-actions {
+  display: flex;
+  justify-content: center;
+  padding: 0 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.property-actions button {
+  max-width: 100%;
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+.property-actions button {
+  width: 100%;
+  max-width: 90%; /* empêche de coller aux bords */
+}
+}
+
