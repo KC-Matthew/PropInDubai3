@@ -261,3 +261,58 @@ document.addEventListener('DOMContentLoaded', function () {
     setTimeout(() => searchBtn.click(), 100);
   }
 });
+
+// Mobile burger menu
+document.addEventListener('DOMContentLoaded', function () {
+  const burger = document.getElementById('burgerMenu');
+  const nav = document.querySelector('.all-button');
+  burger?.addEventListener('click', () => {
+    nav.classList.toggle('mobile-open');
+    // Close on any click outside
+    if (nav.classList.contains('mobile-open')) {
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => {
+        document.addEventListener('click', closeMenu, { once: true });
+      }, 0);
+    } else {
+      document.body.style.overflow = '';
+    }
+    function closeMenu(e) {
+      if (!nav.contains(e.target) && !burger.contains(e.target)) {
+        nav.classList.remove('mobile-open');
+        document.body.style.overflow = '';
+      }
+    }
+  });
+});
+
+
+// Mobile version bindings
+document.addEventListener('DOMContentLoaded', () => {
+  const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+  const mobileClearBtn = document.getElementById('mobileClearBtn');
+  const mobileSearch = document.getElementById('mobileSearch');
+  const mobileType = document.getElementById('mobileType');
+  const mobileBeds = document.getElementById('mobileBeds');
+
+  if (mobileSearchBtn) {
+    mobileSearchBtn.addEventListener('click', () => {
+      document.getElementById('search').value = mobileSearch.value;
+      document.getElementById('propertyType').value = mobileType.value;
+      document.getElementById('bedrooms').value = mobileBeds.value;
+      filterProperties(1);
+    });
+  }
+
+  if (mobileClearBtn) {
+    mobileClearBtn.addEventListener('click', () => {
+      mobileSearch.value = '';
+      mobileType.value = 'Property Type';
+      mobileBeds.value = 'Bedrooms';
+      document.getElementById('search').value = '';
+      document.getElementById('propertyType').value = 'Property Type';
+      document.getElementById('bedrooms').value = 'Bedrooms';
+      filterProperties(1);
+    });
+  }
+});
