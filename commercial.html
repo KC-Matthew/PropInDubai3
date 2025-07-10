@@ -13,19 +13,12 @@
 <body>
   
 <div class="header2">
-<div class="burger" id="burgerMenu">
-  <span></span>
-  <span></span>
-  <span></span>
-</div>
-
-
-  
-   <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
-
-
-
-
+  <div class="burger" id="burgerMenu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+  <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
   <div class="all-button">
     <a href="areaforyou.html" class="chat-button header-btn">Chatgpt</a>
     <a href="buy.html" class="buy-button header-btn">Buy</a>
@@ -39,11 +32,8 @@
   </div>
 </div>
 
-
 <div class="filter-bar">
   <input type="text" placeholder="Search..." id="search" />
-
-
   <select id="propertyType">
     <option>Property Type</option>
     <option>Apartment</option>
@@ -53,7 +43,6 @@
     <option>Compound</option>
     <option>Duplex</option>
   </select>
-
   <select id="bedrooms">
     <option>Bedrooms</option>
     <option>1+</option>
@@ -63,7 +52,6 @@
     <option>5+</option>
     <option>6+</option>
   </select>
-
   <select id="bathrooms">
     <option>Bathrooms</option>
     <option>1+</option>
@@ -73,25 +61,68 @@
     <option>5+</option>
     <option>6+</option>
   </select>
-
   <input type="number" placeholder="Min Price" id="priceMin" />
   <input type="number" placeholder="Max Price" id="priceMax" />
   <button id="searchBtn">Search</button>
   <button id="clearBtn">Clear</button>
 </div>
 
+
+<!-- NOUVELLE BARRE DE RECHERCHE/FILTRES STICKY -->
+<div class="search-bar-sticky">
+  <input
+    type="text"
+    class="search-input-mobile"
+    id="search"
+    placeholder="Search..." />
+
+  <div class="filters-bar-horizontal">
+    <select id="propertyType">
+      <option>Property Type</option>
+      <option>Apartment</option>
+      <option>Villa</option>
+      <option>Townhouse</option>
+      <option>Penthouse</option>
+      <option>Compound</option>
+      <option>Duplex</option>
+    </select>
+    <select id="bedrooms">
+      <option>Bedrooms</option>
+      <option>1+</option>
+      <option>2+</option>
+      <option>3+</option>
+      <option>4+</option>
+      <option>5+</option>
+      <option>6+</option>
+    </select>
+    <select id="bathrooms">
+      <option>Bathrooms</option>
+      <option>1+</option>
+      <option>2+</option>
+      <option>3+</option>
+      <option>4+</option>
+      <option>5+</option>
+      <option>6+</option>
+    </select>
+    <input type="number" placeholder="Min Price" id="priceMin" />
+    <input type="number" placeholder="Max Price" id="priceMax" />
+    <button id="searchBtn">Search</button>
+    <button id="clearBtn">Clear</button>
+  </div>
+</div>
+<!-- FIN NOUVELLE BARRE -->
+
 <div class="buy-hook">
   <span>“Find the best commercial properties for sale and rent in Dubai. Invest or launch your business in the right location!”</span>
 </div>
 
-
 <div class="main-content-wrapper">
   <div class="main-column">
-          <div class="property-summary-wrapper">
-        <a href="areaforyou.html" target="_blank" class="chatboat-banner">
-          <i class="fa-solid fa-robot"></i>
-          Try our AI assistant to help you find the best office for you!
-        </a>
+    <div class="property-summary-wrapper">
+      <a href="areaforyou.html" target="_blank" class="chatboat-banner">
+        <i class="fa-solid fa-robot"></i>
+        Try our AI assistant to help you find the best office for you!
+      </a>
       <div class="property-count" id="propertyCount"></div>
       <div class="property-types-summary" id="propertyTypesSummary"></div>
     </div>
@@ -103,7 +134,7 @@
 <!-- Bouton retour en haut -->
 <button id="scrollToTopBtn" title="Back to top">↑</button>
 
-  <footer class="site-footer">
+<footer class="site-footer">
   <div class="footer-container">
     <div class="footer-left">
       <h3 class="footer-logo">PropInDubai</h3>
