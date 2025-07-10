@@ -69,7 +69,6 @@
   border-radius: 10px;
   border-color: rgb(255, 153, 0);
 }
-
 .chatboat-banner {
   display: flex;
   align-items: center;
@@ -97,6 +96,10 @@
   color: #ffa600;
 }
 
+
+.search-bar-sticky{
+  display: none;
+}
 
 .filter-bar {
   background: white;
@@ -147,6 +150,27 @@
   box-shadow: 0 2px 12px rgba(232, 66, 66, 0.10);
 }
 
+.buy-hook {
+  max-width: 1100px;
+  margin: 40px auto 0 auto;     /* centre la box sur la page */
+  text-align: left;
+  font-size: 1.50rem;
+  font-style: italic;
+  color: #e57200;
+  background: #fff7ed;
+  border-left: 5px solid #f17100;
+  border-right: 5px solid #f17100;
+  border-radius: 0px 0 16px 16px;
+  padding: 13px 0 13px 13px;    /* padding-left = 28px, comme les .property-info */
+  box-shadow: 0 2px 8px rgba(241,113,0,0.07);
+  letter-spacing: 0.5px;
+  padding-left: 10%;
+  margin-bottom: 30px;
+  margin-top: 80px;
+}
+
+
+
 .filter-bar #clearBtn {
   background: #fafafc;
   color: #e84242;
@@ -162,13 +186,7 @@
   box-shadow: 0 3px 10px rgba(100, 100, 160, 0.06);
 }
 
-@media (max-width: 900px) {
-  .filter-bar {
-    flex-direction: column;
-    gap: 8px;
-    align-items: stretch;
-  }
-}
+
 
 /* --- Résumé/compteur alignés --- */
 .property-summary-wrapper {
@@ -282,15 +300,7 @@
   margin-bottom: 4px;
 }
 
-@media (max-width: 1000px) {
-  .main-content-wrapper { flex-direction: column; }
-  .map-aside { width: 100%; max-width: 100%; margin-top: 22px; }
-  #miniMap { height: 220px; }
-}
 
-@media (max-width: 700px) {
-  .map-aside { display: none; }
-}
 
 .property-listing {
   max-width: 1100px;
@@ -545,7 +555,15 @@
   color: #999;
 }
 
+
+
+
+
+
 /* --- BOUTON RETOUR EN HAUT --- */
+
+@media (max-width: 700px) {
+
 #scrollToTopBtn {
   position: fixed;
   bottom: 36px;
@@ -571,6 +589,7 @@
 }
 
 .buy-hook {
+  display: none;
   max-width: 1100px;
   margin: 40px auto 0 auto;
   text-align: left;
@@ -590,63 +609,133 @@
 
 
 
-@media (max-width: 700px) {
-  /* Filtres */
-  .mobile-filter {
+
+  .header2 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1003;
+    height: 60px;
+    background: #fff;
+  }
+  .search-bar-sticky {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    z-index: 1002;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    padding-bottom: 0;
     display: flex;
     flex-direction: column;
-    padding: 16px;
+    border-bottom: none;
+  }
+  .search-bar-sticky .search-input-mobile {
+    width: calc(100vw - 24px);
+    margin: 12px 12px 0 12px;
+    background: #fafafc;
+    color: #222;
+    border: none;
+    border-radius: 16px;
+    padding: 18px 16px;
+    font-size: 1.25rem;
+    font-weight: bold;
+    box-shadow: 0 2px 10px rgba(200,150,50,0.06);
+    outline: none;
+    transition: border 0.17s, box-shadow 0.13s;
+    border-bottom: 3px solid #ffae42;
+  }
+  .search-bar-sticky .search-input-mobile:focus {
     background: #fff;
-    gap: 12px;
-    position: sticky;
-    top: 60px;
-    z-index: 9;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    border-bottom: 1px solid #eee;
+    border-bottom: 3px solid #f17100;
+    box-shadow: 0 4px 16px rgba(241,113,0,0.08);
   }
 
-  .mobile-filter input,
-  .mobile-filter select {
-    padding: 10px 14px;
-    border: 1.5px solid #ececec;
-    border-radius: 12px;
-    font-size: 15px;
+  .filter-bar{
+    display: none;
+  }
+
+  .filters-bar-horizontal {
+    position: fixed;
+    top: 118px; /* 60(header) + 58(input) */
+    left: 0;
+    right: 0;
+    z-index: 1001;
+    display: flex;
+    flex-direction: row;
+    gap: 13px;
+    overflow-x: auto;
+    padding: 12px 10px 12px 10px;
+    background: #fff;
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+    border-bottom: 1.5px solid #f5f5f5;
+    touch-action: pan-x;
+  }
+  .filters-bar-horizontal::-webkit-scrollbar {
+    height: 6px;
     background: #fafafa;
   }
-
-  .mobile-filter-actions {
-    display: flex;
-    gap: 8px;
+  .filters-bar-horizontal::-webkit-scrollbar-thumb {
+    background: #e5e1dc;
+    border-radius: 5px;
   }
 
-  .mobile-filter-actions button {
-    flex: 1;
-    padding: 10px 0;
-    border-radius: 12px;
+  .filters-bar-horizontal select,
+  .filters-bar-horizontal input[type="number"] {
+    min-width: 120px;
+    max-width: 145px;
+    padding: 13px 17px;
+    border-radius: 24px;
+    border: 1.2px solid #ececec;
+    background: #fcfbfa;
     font-size: 15px;
+    box-sizing: border-box;
+    outline: none;
+    color: #222;
+    font-weight: 600;
+    box-shadow: 0 1px 7px rgba(100,100,100,0.03);
+    margin-right: 3px;
+  }
+  .filters-bar-horizontal select:focus,
+  .filters-bar-horizontal input[type="number"]:focus {
+    border-color: #f17100;
+    background: #fff;
+  }
+
+  .filters-bar-horizontal button {
+    min-width: 92px;
+    padding: 12px 0;
+    border-radius: 24px;
+    font-size: 16px;
     font-weight: bold;
     border: none;
     cursor: pointer;
-  }
-
-  #mobileSearchBtn {
     background: #f17100;
     color: white;
+    transition: background 0.13s;
+    box-shadow: 0 2px 10px rgba(241,113,0,0.11);
+    margin-left: 4px;
+    margin-right: 2px;
   }
-
-  #mobileClearBtn {
-    background: #f6f6f6;
+  .filters-bar-horizontal button:last-child {
+    background: #fff;
     color: #f17100;
-    border: 1px solid #f17100;
+    border: 1.5px solid #f17100;
+  }
+  .filters-bar-horizontal button:last-child:hover {
+    background: #ffe3d2;
   }
 
-  /* Property Card */
-  .property-card {
-    flex-direction: column;
-    width: 100%;
-    padding: 0 10px;
-    box-sizing: border-box;
+  .main-content-wrapper {
+    margin-top: 190px; /* header(60) + search(58) + filtres(56/60) + safe space */
   }
+
+
+
+  /* Cartes des biens (inchangé) */
 
   .carousel {
     width: 100%;
@@ -656,30 +745,16 @@
   }
 
   .property-info {
-    width: 100%;
-    padding: 20px;
+    width: 90%;
+    text-align: center;         /* Centrage du texte */
+    align-items: center;        /* Si display: flex en colonne, sinon ignorer */
+
+
   }
 
-  .property-actions {
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    padding: 0 10px;
-    width: 100%;
-    box-sizing: border-box;
-    margin-top: 12px;
-    gap: 8px;
-  }
 
-  .property-actions button {
-    width: 100%;
-    max-width: 100%;
-    padding: 12px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    box-sizing: border-box;
-  }
+  
+
 
   .property-actions button:nth-child(1),
   .property-actions button:nth-child(2) {
@@ -689,32 +764,6 @@
   /* Agent Info */
   .agent-info {
     display: none;
-  }
-
-  /* Filtres (autre section) */
-  .filter-bar {
-    padding: 16px 10px;
-  }
-
-  .filter-bar input[type="text"],
-  .filter-bar input[type="number"],
-  .filter-bar select {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 12px 14px;
-    border-radius: 20px;
-    font-size: 15px;
-    background-color: #f9f9f9;
-    border: 1.4px solid #eaeaea;
-    min-width: 100%;
-    max-width: 100%;
-  }
-
-  .filter-bar .search-button,
-  .filter-bar .clear-button {
-    width: 100%;
-    margin-top: 8px;
-    border-radius: 40px;
   }
 
   /* Slogan accroche */
@@ -747,26 +796,47 @@
     font-size: 1rem;
     margin-right: 0;
   }
+}
+@media (max-width: 700px) {
+
+  .property-card {
+    flex-direction: column;
+    width: 100%;
+    padding: 0 10px 20px 10px !important;   /* IMPORTANT ! */
+    box-sizing: border-box;
+  }
 
   .property-actions {
     display: flex;
     justify-content: center;
-    padding: 0 10px;
+    align-items: center;
+    flex-direction: column; /* au cas où plusieurs boutons, ils se mettent sous l’autre */
+    padding: 0;    /* IMPORTANT : pas de padding horizontal ici */
     width: 100%;
     box-sizing: border-box;
+    margin-top: 12px;
+    gap: 8px;
   }
 
-  .property-actions button {
-    max-width: 100%;
+  .property-actions button,
+  .property-actions .whatsapp-btn {
     width: 100%;
-    padding: 12px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
+    border-radius: 32px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    text-align: center;
+    display: block;
     box-sizing: border-box;
+    margin: 0;   /* pas de margin horizontal */
+    max-width: unset; /* en mobile, on veut vraiment 100% de largeur */
   }
-  .property-actions button {
-    width: 100%;
-    max-width: 90%; /* empêche de coller aux bords */
-  }
+
 }
+
+
+
+
+
+
+
+
