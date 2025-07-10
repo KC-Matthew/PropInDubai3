@@ -69,6 +69,7 @@
   border-radius: 10px;
   border-color: rgb(255, 153, 0);
 }
+
 .chatboat-banner {
   display: flex;
   align-items: center;
@@ -77,7 +78,7 @@
   color: #000000;
   border-radius: 12px;
   padding: 11px 24px;
-  margin: 20px 0 14px 0;
+  margin: 50px 0 14px 0;
   font-size: 1.08rem;
   font-weight: 600;
   text-decoration: none;
@@ -559,16 +560,15 @@
 
 
 
-
 /* --- BOUTON RETOUR EN HAUT --- */
 
 @media (max-width: 700px) {
+
 
 #scrollToTopBtn {
   position: fixed;
   bottom: 36px;
   right: 32px;
-  z-index: 1001;
   background: linear-gradient(90deg, #f17100 0%, #ffcf93 100%);
   color: #fff;
   border: none;
@@ -624,7 +624,7 @@
     top: 60px;
     left: 0;
     right: 0;
-    z-index: 1002;
+    z-index: 4;
     background: #fff;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     padding-bottom: 0;
@@ -831,11 +831,8 @@
     max-width: unset; /* en mobile, on veut vraiment 100% de largeur */
   }
 
+
 }
-
-
-
-
 
 
 
