@@ -1153,7 +1153,6 @@ body.price-popup-open { overflow: hidden; }
 
 
 
-
 @media (max-width: 700px) {
   .sticky-top-wrapper {
     position: fixed;
@@ -1200,6 +1199,8 @@ body.price-popup-open { overflow: hidden; }
     box-shadow: none;
     min-width: 0;
     max-width: 100vw;
+    overflow-x: visible;
+    overflow-y: visible;
   }
 
   /* Menu mobile ouvert EN DESSOUS de la searchbar+filtres */
@@ -1372,4 +1373,29 @@ body.price-popup-open { overflow: hidden; }
     width: 9px;
     height: 9px;
   }
+
+  .filter-row-scroll {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    max-height: 48px !important;
+    height: 48px !important;
+    /* Empêche tout scroll vertical */
+    touch-action: pan-x;
+    overscroll-behavior-y: contain; /* Anti scroll vertical parasite */
+  }
+
+  .carousel, .carousel img {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 100vw !important;
+    box-sizing: border-box;
+    overflow: hidden !important;
+  }
+  .property-card {
+    overflow: hidden !important;
+  }
+  body, html {
+    overflow-x: hidden !important;
+  }
 }
+
