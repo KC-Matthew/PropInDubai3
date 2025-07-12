@@ -9,6 +9,10 @@
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.css">
+<script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.js"></script>
+
 </head>
 <body>
   
@@ -18,6 +22,9 @@
     <span></span>
     <span></span>
   </div>
+
+  
+
   <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
   <div class="all-button">
     <a href="areaforyou.html" class="chat-button header-btn">Chatgpt</a>
@@ -33,50 +40,14 @@
 </div>
 
 <div class="filter-bar">
-  <input type="text" placeholder="Search..." id="search" />
-  <select id="propertyType">
-    <option>Property Type</option>
-    <option>Apartment</option>
-    <option>Villa</option>
-    <option>Townhouse</option>
-    <option>Penthouse</option>
-    <option>Compound</option>
-    <option>Duplex</option>
-  </select>
-  <select id="bedrooms">
-    <option>Bedrooms</option>
-    <option>1+</option>
-    <option>2+</option>
-    <option>3+</option>
-    <option>4+</option>
-    <option>5+</option>
-    <option>6+</option>
-  </select>
-  <select id="bathrooms">
-    <option>Bathrooms</option>
-    <option>1+</option>
-    <option>2+</option>
-    <option>3+</option>
-    <option>4+</option>
-    <option>5+</option>
-    <option>6+</option>
-  </select>
-  <input type="number" placeholder="Min Price" id="priceMin" />
-  <input type="number" placeholder="Max Price" id="priceMax" />
-  <button id="searchBtn">Search</button>
-  <button id="clearBtn">Clear</button>
-</div>
+  <!-- Search bar toujours en haut -->
+<div class="search-autocomplete-wrapper">
+    <input type="text" placeholder="Search..." id="search" autocomplete="off" />
+    <div id="searchSuggestions" class="autocomplete-suggestions"></div>
+  </div>
 
-
-<!-- NOUVELLE BARRE DE RECHERCHE/FILTRES STICKY -->
-<div class="search-bar-sticky">
-  <input
-    type="text"
-    class="search-input-mobile"
-    id="search"
-    placeholder="Search..." />
-
-  <div class="filters-bar-horizontal">
+  <!-- Ligne filtres scrollable mobile -->
+  <div class="filter-row-scroll">
     <select id="propertyType">
       <option>Property Type</option>
       <option>Apartment</option>
@@ -104,13 +75,106 @@
       <option>5+</option>
       <option>6+</option>
     </select>
-    <input type="number" placeholder="Min Price" id="priceMin" />
-    <input type="number" placeholder="Max Price" id="priceMax" />
+    <button id="openPriceFilter" type="button">Price</button>
+
+    <button id="openMoreFilter" type="button">More Filters</button>
+
+
     <button id="searchBtn">Search</button>
     <button id="clearBtn">Clear</button>
+
+    
+
+  </div>
+
+  <!-- INPUTS cachés pour JS (ne rien toucher) -->
+  <input type="hidden" id="priceMin" />
+  <input type="hidden" id="priceMax" />
+
+  <!-- POPUP du filtre prix -->
+  
+</div>
+<div id="priceFilterPopup">
+    <div class="price-popup-inner">
+      <div class="price-popup-header">
+        <span>Price (AED)</span>
+        <button id="closePricePopup" aria-label="Close">&times;</button>
+      </div>
+      <canvas id="priceHistogram" width="320" height="42"></canvas>
+      <div class="price-hist-label">Distribution of properties by price</div>
+      <div class="price-inputs">
+        <input id="priceMinInput" type="text" autocomplete="off" />
+        <span style="color:#b6b6b6; font-size:1.2em;">—</span>
+        <input id="priceMaxInput" type="text" autocomplete="off" />
+      </div>
+      <div class="slider-labels">
+        <span id="sliderMinLabel"></span>
+        <span id="sliderMaxLabel"></span>
+      </div>
+      <div class="slider-main">
+        <div id="priceSlider"></div>
+      </div>
+      <div id="selectedPriceRange" class="selected-price-label"></div>
+      <button id="validatePriceBtn" class="validate-price-btn">Apply</button>
+    </div>
+  </div>
+
+<!-- POPUP MORE FILTERS (simple & moderne) -->
+<div id="moreFilterPopup">
+  <div class="more-filter-inner">
+    <div class="more-filter-header">
+      <span>More Filters</span>
+      <button id="closeMoreFilter" aria-label="Close">&times;</button>
+    </div>
+    <div class="filter-section">
+      <label><input type="checkbox" id="furnishingFilter"> Furnished only</label>
+    </div>
+
+<div class="filter-section amenities-section">
+  <label>Amenities</label>
+  <div class="amenities-list">
+    <label><input type="checkbox" value="Central A/C"> Central A/C</label>
+    <label><input type="checkbox" value="Maids Room"> Maids Room</label>
+    <label><input type="checkbox" value="Balcony"> Balcony</label>
+    <label><input type="checkbox" value="Shared Pool"> Shared Pool</label>
+    <label><input type="checkbox" value="Shared Gym"> Shared Gym</label>
+    <label><input type="checkbox" value="Concierge Service"> Concierge Service</label>
+    <label><input type="checkbox" value="Covered Parking"> Covered Parking</label>
+    <label><input type="checkbox" value="View of Water"> View of Water</label>
+    <label><input type="checkbox" value="View of Landmark"> View of Landmark</label>
+    <label><input type="checkbox" value="Private Garden"> Private Garden</label>
+    <label><input type="checkbox" value="Pets Allowed"> Pets Allowed</label>
+    <label><input type="checkbox" value="Private Pool"> Private Pool</label>
+    <label><input type="checkbox" value="Built in Wardrobes"> Built in Wardrobes</label>
+    <label><input type="checkbox" value="Built in Kitchen Appliances"> Built in Kitchen Appliances</label>
+    <label><input type="checkbox" value="Barbecue Area"> Barbecue Area</label>
+    <!-- Ajoute ici les autres amenities que tu veux -->
   </div>
 </div>
-<!-- FIN NOUVELLE BARRE -->
+
+
+
+    <div class="filter-section">
+      <label>Min Area (sqft)</label>
+      <input type="text" id="minAreaInput" placeholder="e.g. 800">
+    </div>
+    <div class="filter-section">
+      <label>Max Area (sqft)</label>
+      <input type="text" id="maxAreaInput" placeholder="e.g. 2000">
+    </div>
+    <div class="filter-section">
+      <label>Keywords</label>
+      <input type="text" id="keywordInput" placeholder="e.g. pool, chiller free">
+    </div>
+
+
+    <button id="applyMoreFiltersBtn" class="apply-filters-btn">Apply Filters</button>
+  </div>
+</div>
+
+
+
+
 
 <div class="buy-hook">
   <span>“Find the best commercial properties for sale and rent in Dubai. Invest or launch your business in the right location!”</span>
