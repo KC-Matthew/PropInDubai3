@@ -12,10 +12,8 @@ let minPrice = 0, maxPrice = 0;
 let globalMinPrice = 0, globalMaxPrice = 0;
 const PRICE_STEP = 10000;
 
-
 document.addEventListener("DOMContentLoaded", () => {
-
-  // --- 0. Sticky Header + Filter Bar (MOBILE) : DOIT ÊTRE EN TOUT PREMIER ---
+  // --- 0. Sticky Header + Filter Bar (MOBILE) ---
   if (window.innerWidth < 700) {
     const header = document.querySelector('.header2');
     const filter = document.querySelector('.filter-bar');
@@ -25,12 +23,85 @@ document.addEventListener("DOMContentLoaded", () => {
       header.parentNode.insertBefore(sticky, header);
       sticky.appendChild(header);
       sticky.appendChild(filter);
-      console.log('[WRAP MOBILE] sticky-top-wrapper appliqué');
+      // console.log('[WRAP MOBILE] sticky-top-wrapper appliqué');
     }
   }
 
-  // --- 1. Charge les propriétés (dummy ici, mets ton fetch AJAX plus tard)
-  properties = getDummyProperties(); // Remplace par tes données dynamiques
+  // --- MENU MOBILE BURGER (unique, pas de doublon) ---
+  const burger = document.getElementById('burgerMenu');
+let mobileMenu = null;
+
+burger?.addEventListener('click', function (e) {
+  e.stopPropagation();
+  if (mobileMenu && document.body.contains(mobileMenu)) {
+    // Déjà ouvert → ferme !
+    mobileMenu.remove();
+    mobileMenu = null;
+    return;
+  }
+  const allButton = document.querySelector('.all-button');
+  mobileMenu = document.createElement('nav');
+  mobileMenu.className = 'burger-menu';
+  mobileMenu.innerHTML = allButton?.innerHTML || "";
+  Object.assign(mobileMenu.style, {
+    position: 'fixed',
+    top: '54px',
+    left: 0, right: 0,
+    zIndex: 2000,
+    width: '100vw',
+    background: '#fff',
+    boxShadow: '0 4px 24px 2px rgba(0,0,0,0.11)',
+    padding: '14px 0 18px 0',
+    display: 'flex',
+    flexDirection: 'column',
+    overflowY: 'auto',
+    animation: 'popupAppear .22s cubic-bezier(.61,.01,.74,1.05)'
+  });
+  document.body.appendChild(mobileMenu);
+
+  function closeMenu() {
+    if (mobileMenu) {
+      mobileMenu.remove();
+      mobileMenu = null;
+    }
+  }
+  // Ferme au clic dehors
+  setTimeout(() => {
+    document.addEventListener('click', function escBurger(ev) {
+      if (ev.target === mobileMenu) {
+        closeMenu();
+        document.removeEventListener('click', escBurger);
+      }
+    });
+  }, 10);
+  // Ferme ESC
+  document.addEventListener('keydown', function escClose(ev) {
+    if (ev.key === 'Escape' && mobileMenu && document.body.contains(mobileMenu)) {
+      closeMenu();
+      document.removeEventListener('keydown', escClose);
+    }
+  });
+});
+
+
+
+
+  // --- Responsive : affiche/cacher boutons header selon largeur
+  function responsiveHeader() {
+    const isMobile = window.innerWidth < 700;
+    document.querySelector('.all-button').style.display = isMobile ? 'none' : '';
+    document.querySelector('.profil-block').style.display = isMobile ? 'flex' : '';
+    // Ferme menu si on repasse en desktop
+    if (!isMobile && mobileMenu && document.body.contains(mobileMenu)) {
+      mobileMenu.remove();
+      document.body.style.overflow = '';
+    }
+  }
+  window.addEventListener('resize', responsiveHeader);
+  responsiveHeader();
+
+  // --- 1. Charge les propriétés
+  properties = getDummyProperties(); // À remplacer par ta vraie data
   filteredProperties = properties.slice();
 
   // --- 2. Calcule le min et max global
@@ -38,11 +109,11 @@ document.addEventListener("DOMContentLoaded", () => {
   globalMinPrice = Math.min(...allPrices);
   globalMaxPrice = Math.max(...allPrices);
 
-  // --- 3. Premier affichage : listings + price slider/histogramme
+  // --- 3. Premier affichage
   displayProperties(filteredProperties, 1);
-  updatePriceSliderAndHistogram(properties); // TOUJOURS TOUTES LES PROPRIÉTÉS
+  updatePriceSliderAndHistogram(properties);
 
-  // --- 4. Tous les events
+  // --- 4. Events filtres principaux
   document.getElementById("searchBtn").addEventListener("click", handleSearchOrFilter);
   document.getElementById("clearBtn").addEventListener("click", handleClearFilters);
   document.getElementById("openPriceFilter").addEventListener("click", openPricePopup);
@@ -61,7 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   document.getElementById("closePricePopup").addEventListener("click", closePricePopup);
 
-  // Suggestions dynamiques dans la barre de recherche
+  // Suggestions dynamiques
   document.getElementById("search").addEventListener("input", showSearchSuggestions);
 
   function showSearchSuggestions(e) {
@@ -72,7 +143,6 @@ document.addEventListener("DOMContentLoaded", () => {
       suggestionDiv.style.display = "none";
       return;
     }
-    // Récupère les locations UNIQUES, ignore les doublons
     const locations = properties
       .map(p => p.location && p.location.trim())
       .filter(loc => loc && loc.toLowerCase().includes(val));
@@ -85,7 +155,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     suggestionDiv.innerHTML = uniqueLocations.map(location => {
-      // Met en gras le texte recherché
       const reg = new RegExp(`(${val})`, "i");
       const label = location.replace(reg, '<strong>$1</strong>');
       return `
@@ -97,8 +166,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }).join("");
 
     suggestionDiv.style.display = "block";
-
-    // Clique sur suggestion
     Array.from(suggestionDiv.children).forEach((div, idx) => {
       div.addEventListener('click', () => {
         document.getElementById("search").value = uniqueLocations[idx];
@@ -109,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Pour cacher les suggestions si on clique ailleurs
+  // Ferme suggestions si clic ailleurs
   document.addEventListener("click", function(e){
     if (!document.getElementById("searchSuggestions").contains(e.target) &&
         e.target !== document.getElementById("search")) {
@@ -118,7 +185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Ferme popup si clic dehors
+  // Ferme popup prix si clic dehors ou ESC
   document.getElementById("priceFilterPopup").addEventListener("mousedown", function(e){
     if (e.target === this) closePricePopup();
   });
@@ -132,39 +199,23 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("bedrooms").addEventListener("change", handleSearchOrFilter);
   document.getElementById("bathrooms").addEventListener("change", handleSearchOrFilter);
 
-  // Burger menu mobile, scroll to top, etc.
-  const burger = document.getElementById('burgerMenu');
-  const nav = document.querySelector('.all-button');
-  burger?.addEventListener('click', () => {
-    nav.classList.toggle('mobile-open');
-    if (nav.classList.contains('mobile-open')) {
-      document.body.style.overflow = 'hidden';
-      setTimeout(() => {
-        document.addEventListener('click', closeMenu, { once: true });
-      }, 0);
-    } else {
-      document.body.style.overflow = '';
-    }
-    function closeMenu(e) {
-      if (!nav.contains(e.target) && !burger.contains(e.target)) {
-        nav.classList.remove('mobile-open');
-        document.body.style.overflow = '';
-      }
-    }
-  });
-
+  // --- Scroll To Top BTN ---
   const scrollToTopBtn = document.getElementById("scrollToTopBtn");
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 250) scrollToTopBtn.style.display = 'block';
-    else scrollToTopBtn.style.display = 'none';
-  });
-  scrollToTopBtn.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+  if (scrollToTopBtn) {
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 250) scrollToTopBtn.style.display = 'block';
+      else scrollToTopBtn.style.display = 'none';
+    });
+    scrollToTopBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
 
   autoPrefillFromParams();
 
 });
+
+
 
 
 
@@ -235,14 +286,12 @@ function displayProperties(propsArray, page) {
     const imageElements = property.images.map((src, index) =>
       `<img src="${src}" class="${index === 0 ? 'active' : ''}" alt="Property Photo">`
     ).join('');
-    // Ajoute le conteneur pour les dots ici
     card.innerHTML = `
       <div class="carousel">
         ${imageElements}
         <div class="carousel-btn prev">❮</div>
         <div class="carousel-btn next">❯</div>
         <div class="image-count"><i class="fas fa-camera"></i> ${fmt(property.images.length)}</div>
-        <div class="carousel-dots"></div>
       </div>
       <div class="property-info">
         <h3>${property.title}</h3>
@@ -272,40 +321,26 @@ function displayProperties(propsArray, page) {
     // Carousel logic
     const carousel = card.querySelector(".carousel");
     const imgs = carousel.querySelectorAll("img");
-    const dotsContainer = carousel.querySelector(".carousel-dots");
     let currentIndex = 0;
 
-    // Création des dots
-    imgs.forEach((img, idx) => {
-      const dot = document.createElement("span");
-      dot.className = "carousel-dot" + (idx === 0 ? " active" : "");
-      dotsContainer.appendChild(dot);
-    });
-
-    // Fonction de maj de l'affichage
-    function updateCarousel(index) {
-      imgs.forEach((img, i) => img.classList.toggle("active", i === index));
-      dotsContainer.querySelectorAll(".carousel-dot").forEach((dot, i) => {
-        dot.classList.toggle("active", i === index);
+    // Affichage desktop : flèches visibles et fonctionnelles
+    const prevBtn = carousel.querySelector('.prev');
+    const nextBtn = carousel.querySelector('.next');
+    if (window.innerWidth >= 700) {
+      prevBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        imgs[currentIndex].classList.remove("active");
+        currentIndex = (currentIndex - 1 + imgs.length) % imgs.length;
+        imgs[currentIndex].classList.add("active");
       });
-    }
-
-    // Flèches sur desktop
-    carousel.querySelector(".next").addEventListener("click", (e) => {
-      e.stopPropagation();
-      currentIndex = (currentIndex + 1) % imgs.length;
-      updateCarousel(currentIndex);
-    });
-    carousel.querySelector(".prev").addEventListener("click", (e) => {
-      e.stopPropagation();
-      currentIndex = (currentIndex - 1 + imgs.length) % imgs.length;
-      updateCarousel(currentIndex);
-    });
-
-    // Swipe mobile + cache les flèches
-    if (window.innerWidth < 700) {
-      const prevBtn = carousel.querySelector('.prev');
-      const nextBtn = carousel.querySelector('.next');
+      nextBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        imgs[currentIndex].classList.remove("active");
+        currentIndex = (currentIndex + 1) % imgs.length;
+        imgs[currentIndex].classList.add("active");
+      });
+    } else {
+      // Mobile : flèches cachées + swipe tactile
       if (prevBtn) prevBtn.style.display = "none";
       if (nextBtn) nextBtn.style.display = "none";
       let startX = null;
@@ -316,30 +351,23 @@ function displayProperties(propsArray, page) {
         if (startX === null) return;
         let endX = e.changedTouches[0].clientX;
         let dx = endX - startX;
-        if (Math.abs(dx) > 35) {
-          if (dx < 0) { // swipe gauche, image suivante
+        if (Math.abs(dx) > 35) { // Seuil swipe
+          imgs[currentIndex].classList.remove("active");
+          if (dx < 0) { // swipe gauche : image suivante
             currentIndex = (currentIndex + 1) % imgs.length;
-          } else { // swipe droite, image précédente
+          } else { // swipe droite : image précédente
             currentIndex = (currentIndex - 1 + imgs.length) % imgs.length;
           }
-          updateCarousel(currentIndex);
+          imgs[currentIndex].classList.add("active");
         }
         startX = null;
       });
     }
-
-    // Optionnel : click sur un dot pour aller à l'image correspondante
-    dotsContainer.querySelectorAll(".carousel-dot").forEach((dot, idx) => {
-      dot.addEventListener("click", (e) => {
-        e.stopPropagation();
-        currentIndex = idx;
-        updateCarousel(currentIndex);
-      });
-    });
   });
   displayPropertyTypesSummary(propsArray, document.getElementById("propertyType").value);
   updatePagination(pages, page, propsArray);
 }
+
 
 
 
@@ -490,15 +518,53 @@ function handleSearchOrFilter() {
   updatePriceSliderAndHistogram(properties); // <= TOUJOURS TOUTES LES PROPRIÉTÉS
 }
 
-// --- CLEAR FILTERS ---
 function handleClearFilters() {
+  // 1. Réinitialise la filter-bar
   document.querySelectorAll(".filter-bar input, .filter-bar select").forEach(el => {
-    el.value = el.tagName === "SELECT" ? el.options[0].text : "";
+    if (el.tagName === "SELECT") {
+      el.selectedIndex = 0;
+    } else {
+      el.value = "";
+    }
   });
-  filteredProperties = properties.slice();
-  displayProperties(filteredProperties, 1);
-  updatePriceSliderAndHistogram(properties); // <= TOUJOURS TOUTES LES PROPRIÉTÉS
+
+  // 2. Réinitialise tous les champs du More Filter Popup
+  document.querySelectorAll("#moreFilterPopup input[type='text']").forEach(input => {
+    input.value = "";
+  });
+
+  // --- PATCH ULTRA FIABLE (première fois) ---
+  document.querySelectorAll("#moreFilterPopup input[type='checkbox']").forEach(cb => {
+    cb.checked = false;
+    cb.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+
+  // 3. Réinitialise les prix
+  document.getElementById("priceMin").value = globalMinPrice;
+  document.getElementById("priceMax").value = globalMaxPrice;
+
+  // 4. Relance la logique de filtrage proprement
+  handleSearchOrFilter();
+
+  // 5. Ferme les popups (bonus UX)
+  document.getElementById("priceFilterPopup")?.classList.remove("active");
+  document.getElementById("moreFilterPopup")?.classList.remove("active");
+  document.body.classList.remove("price-popup-open");
+  document.body.style.overflow = "";
+
+  // --- PATCH ULTRA FIABLE (en dernier, après tous les updates) ---
+setTimeout(() => {
+  console.log("Force unreset checkboxes");
+  document.querySelectorAll("#moreFilterPopup input[type='checkbox']").forEach(cb => {
+    cb.checked = false;
+    cb.dispatchEvent(new Event('input', { bubbles: true }));
+    cb.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+}, 10);
+
 }
+
+
 
 // --- PRICE SLIDER + HISTO (track toujours globale) ---
 function getAllPrices(propsArray) {
@@ -636,30 +702,37 @@ function applyPriceFilter() {
 }
 
 
-// Open / close more filter popup
+// --- Open / close more filter popup (nouvelle version, scroll bloqué propre) ---
 document.getElementById("openMoreFilter").addEventListener("click", function(){
   document.getElementById("moreFilterPopup").classList.add('active');
-  document.body.style.overflow = "hidden";
+  document.body.classList.add('more-filters-open');
 });
+
 document.getElementById("closeMoreFilter").addEventListener("click", function(){
   document.getElementById("moreFilterPopup").classList.remove('active');
-  document.body.style.overflow = "";
+  document.body.classList.remove('more-filters-open');
 });
+
 document.getElementById("moreFilterPopup").addEventListener("mousedown", function(e){
   if (e.target === this) {
     this.classList.remove('active');
-    document.body.style.overflow = "";
+    document.body.classList.remove('more-filters-open');
   }
 });
+
 document.addEventListener("keydown", function(e){
-  if (document.getElementById("moreFilterPopup").classList.contains("active") && e.key === "Escape")
+  if (
+    document.getElementById("moreFilterPopup").classList.contains("active")
+    && e.key === "Escape"
+  ) {
     document.getElementById("closeMoreFilter").click();
+  }
 });
 
 // Quand on applique les filtres
 document.getElementById("applyMoreFiltersBtn").addEventListener("click", function() {
   document.getElementById("moreFilterPopup").classList.remove('active');
-  document.body.style.overflow = "";
+  document.body.classList.remove('more-filters-open');
   // Ici tu récupères les valeurs pour tes filtres JS :
   const isFurnished = document.getElementById("furnishingFilter").checked;
   const minArea = document.getElementById("minAreaInput").value;
