@@ -1,3 +1,4 @@
+/* ========== HEADER2 (GLOBAL) ========== */
 .header2 {
   height: 60px;
   display: flex;
@@ -13,16 +14,96 @@
   border-bottom: 1px solid #ddd;
   gap: 20px;
 }
-
-.header2 .header-btn,
-.header-btn {
-  font-family: Arial, sans-serif !important;
-  font-weight: bold;
-  font-size: 1rem;
-  letter-spacing: 0.01em;
+.logo {
+  width: 130px;
+  height: auto;
+  margin: 0;
+  display: block;
+}
+.all-button {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 15px;
+  max-width: 1000px;
+}
+.profil-block {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+.burger { display: none; } /* Cacher le burger en desktop */
+
+/* ========== HEADER2 MOBILE (max 700px) ========== */
+@media (max-width: 700px) {
+  .header2 {
+    height: 54px;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 0 8px;
+    gap: 0;
+  }
+  .burger {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+  }
+  .burger span {
+    height: 4px; width: 25px;
+    background: #ff9900;
+    margin: 3.2px 0;
+    border-radius: 5px;
+    display: block;
+    transition: 0.2s;
+  }
+  .logo {
+    margin: 0 auto !important;
+    left: 0; right: 0;
+    position: relative;
+    height: 34px;
+    width: auto;
+    z-index: 1;
+    display: block;
+  }
+  .all-button {
+    display: none;
+    flex-direction: column;
+    background: white;
+    position: absolute;
+    top: 56px; left: 0; width: 100vw;
+    z-index: 20;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.11);
+    padding: 16px 0;
+    gap: 0;
+    justify-content: flex-start;
+    align-items: flex-start;
+    max-width: 100vw;
+  }
+  .all-button.mobile-open { display: flex; }
+  .profil-block {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    gap: 0;
+    white-space: nowrap;
+  }
+}
+
+/* ========== HEADER BUTTONS ========== */
+.all-button button, .header-btn {
   flex: 1;
   max-width: 150px;
   padding: 8px 12px;
@@ -32,31 +113,19 @@
   cursor: pointer;
   border-radius: 5px;
   text-align: center;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
   transition: background-color 0.2s, height 0.2s;
   height: 60px;
   box-sizing: border-box;
 }
-
 .header-btn:hover {
   background-color: rgb(245, 245, 245);
+  height: 60px;
 }
-
-.all-button {
-  display: flex;
-  flex: 1;
-  justify-content: center;
-  gap: 15px;
-  max-width: 1000px;
-}
-
-.profil-block {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  white-space: nowrap;
-}
-
 .login-button {
   background-color: rgb(255, 255, 255);
   color: rgb(104, 104, 104);
@@ -65,7 +134,23 @@
   border-radius: 10px;
   border-color: rgb(255, 153, 0);
 }
+.login-button {
+  padding: 7px 16px;
+  font-size: 1rem;
+  height: auto;
+  min-width: 0;
+  max-width: 110px;
+}
+@media (max-width: 700px) {
+  .login-button {
+    padding: 6px 13px;
+    font-size: 0.97rem;
+    border-radius: 8px;
+    max-width: 95px;
+  }
+}
 
+/* ======= LE RESTE INCHANGÉ ======= */
 .chatboat-banner {
   display: flex;
   align-items: center;
@@ -97,10 +182,6 @@
   display: none;
 }
 
-
-
-
-
 /* Centrer la barre de filtres UNIQUEMENT sur desktop */
 @media (min-width: 900px) {
   .filter-bar {
@@ -109,7 +190,6 @@
     margin: 0 auto;
   }
 }
-
 
 .filter-bar {
   background: #fff;
@@ -134,6 +214,10 @@
   min-width: 100vw;
   height: 68px;   /* Barre fine */
 }
+
+/* ...ET TOUT LE RESTE DE TON CSS ICI, INCHANGÉ... */
+/* (Tu n’as qu’à coller la suite comme dans ton fichier d’origine, tout est OK) */
+
 
 
 
@@ -215,6 +299,33 @@
 body, html, .filter-bar {
   overflow: visible !important; /* Pour être certain que rien ne coupe le popup */
 }
+
+.price-inputs input {
+  width: 200px;                /* Encore plus large ! */
+  font-size: 0.98em;           /* Légèrement plus petit */
+  font-family: 'Menlo', 'Consolas', monospace;
+  font-weight: 600;
+  text-align: center;
+  border-radius: 8px;
+  border: 1.3px solid #ffd9b7;
+  padding: 6px 8px;
+  background: #fafafc;
+  outline: none;
+  transition: border 0.13s, box-shadow 0.13s;
+  box-shadow: 0 1px 6px #ffe4d352;
+  color: #232323;
+  min-width: 0;
+  max-width: 98vw;
+  overflow-x: auto;            /* Ajoute le scroll si besoin */
+}
+
+
+
+
+@media (max-width: 700px) {
+  .price-inputs input { width: 90px; font-size: 1.02em; }
+}
+
 
 /* ------------------------------------------------------- */
 
@@ -725,11 +836,14 @@ body, html, .filter-bar {
   text-align: left; font-weight: 400; padding-left: 2px;
 }
 .price-inputs {
-  display: flex; align-items: center; justify-content: center; gap: 7px;
-  margin-bottom: 7px;
+  display: flex;
+   align-items: center; 
+   justify-content: center; 
+   gap: 10px;
+  margin-bottom: 35px;
 }
 .price-inputs input {
-  width: 80px; font-size: 1.09em; text-align: center; font-weight: 600;
+  text-align: center; font-weight: 600;
   border-radius: 8px; border: 1.3px solid #ffd9b7; padding: 6px 3px;
   background: #fafafc; outline: none; transition: border 0.13s, box-shadow 0.13s;
   box-shadow: 0 1px 6px #ffe4d352;
@@ -751,6 +865,11 @@ body, html, .filter-bar {
   font-size: 0.93em; color: #c7c7c7;
   margin: 0 1px 2px 1px; font-weight: 500; letter-spacing: 0.11px;
 }
+
+
+
+
+
 #priceSlider .noUi-base {
   background: #ffe8d6;
   height: 5px;
@@ -777,6 +896,7 @@ body, html, .filter-bar {
   outline: none;
 }
 #priceSlider .noUi-tooltip {
+  margin-bottom: 12px;
   background: #ffad55;
   color: #fff;
   font-size: 0.91em;
@@ -786,6 +906,7 @@ body, html, .filter-bar {
   padding: 3px 10px;
   box-shadow: 0 1px 8px #ffd7b175;
 }
+
 #priceSlider .noUi-horizontal .noUi-handle { top: -7px; }
 .validate-price-btn {
   margin-top: 10px;
@@ -798,6 +919,30 @@ body, html, .filter-bar {
   transition: background 0.16s, box-shadow 0.13s;
   letter-spacing: 0.4px;
 }
+
+
+#priceSlider, #priceSlider .noUi-target {
+  overflow: visible !important;
+  position: relative;
+}
+
+#priceSlider .noUi-tooltip {
+  white-space: nowrap;
+  min-width: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 13px;
+  font-size: 1.08em;
+  font-weight: bold;
+  z-index: 50;
+  /* Garde ta couleur/background si tu veux */
+}
+
+
+
+
+
+
 .validate-price-btn:hover { background: #f18101;}
 body.price-popup-open { overflow: hidden; }
 
@@ -982,12 +1127,23 @@ body.price-popup-open { overflow: hidden; }
   background: #fff;
   border-radius: 22px;
   box-shadow: 0 8px 34px rgba(240,90,0,0.10), 0 2px 8px #ffd6b440;
-  width: 345px; min-width: 240px; max-width: 96vw;
+  width: min(98vw, 540px);
+  min-width: 320px;
+  max-width: 96vw;
   padding: 17px 19px 15px 19px;
-  text-align: left; position: relative;
+  text-align: left;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   animation: popupAppear .22s cubic-bezier(.61,.01,.74,1.05);
   border: 1.3px solid #ffe7cb;
+  z-index: 11060;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
+
 
 .more-filter-header {
   display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;
@@ -1049,6 +1205,34 @@ body.price-popup-open { overflow: hidden; }
 #openMoreFilter:hover {
   background: #ffeaea;
   color: #b83838;
+}
+
+
+
+#moreFilterPopup {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  background: rgba(30,30,34,0.09);
+  align-items: center;
+  justify-content: center;
+}
+#moreFilterPopup.active { display: flex; }
+
+.more-filter-inner {
+  /* CENTRAGE VERTICAL + HORIZONTAL TOUJOURS */
+  position: relative; /* PAS fixed ici ! */
+  left: 0;
+  top: 0;
+  transform: none;
+  margin: 0 auto;
+  /* largeur et max-width = centre naturel */
+  width: min(98vw, 540px);
+  min-width: 320px;
+  max-width: 96vw;
+  /* reste inchangé */
+  /* ... */
 }
 
 
@@ -1149,95 +1333,7 @@ body.price-popup-open { overflow: hidden; }
   /* garde le reste inchangé */
 }
 
-
-
-
-
 @media (max-width: 700px) {
-  .sticky-top-wrapper {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    width: 100vw;
-    min-width: 0;
-    z-index: 12000;
-    background: #fff;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-    display: block;
-    transition: none;
-  }
-
-  .header2 {
-    position: static !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    z-index: 1;
-    background: #fff;
-    height: 60px;
-    border-bottom: 1px solid #f2f2f2;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 0;
-    padding: 0 8px;
-    min-width: 0;
-    max-width: 100vw;
-    width: 100vw;
-  }
-
-  .filter-bar {
-    position: static !important;
-    z-index: 2; /* plus haut que header2 */
-    width: 100vw;
-    background: #fff;
-    flex-direction: column;
-    align-items: stretch;
-    padding: 0;
-    margin: 0;
-    gap: 0;
-    border-bottom: none;
-    box-shadow: none;
-    min-width: 0;
-    max-width: 100vw;
-    overflow-x: visible;
-    overflow-y: visible;
-  }
-
-  /* Menu mobile ouvert EN DESSOUS de la searchbar+filtres */
-  .burger-menu {
-    position: fixed !important;
-    top: 128px !important; /* 60px header2 + 68px filter-bar */
-    left: 0;
-    right: 0;
-    width: 100vw;
-    min-width: 0;
-    z-index: 12010 !important;
-    background: #fff;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.07);
-    border-bottom: 1px solid #ececec;
-    display: flex;
-    flex-direction: column;
-    padding-bottom: 20px;
-  }
-  .burger-menu a {
-    padding: 17px 28px;
-    font-size: 1.15em;
-    font-weight: bold;
-    color: #444;
-    text-align: left;
-    border-bottom: 1px solid #f4f4f4;
-    background: none;
-  }
-  .burger-menu a:last-child {
-    border-bottom: none;
-  }
-
-  .main-content-wrapper {
-    margin: 0;
-    padding-top: 128px; /* header (60px) + filter-bar (~68px) */
-    max-width: 100vw;
-    min-width: 0;
-  }
 
   html, body {
     min-width: 0;
@@ -1248,47 +1344,184 @@ body.price-popup-open { overflow: hidden; }
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Mobile - search bar + filtres */
-  .filter-bar .search-autocomplete-wrapper {
-    width: 100vw;
-    box-sizing: border-box;
-    padding: 10px 10px 0 10px;
+
+  .header2 {
+    position: fixed !important;
+    top: 0; left: 0; right: 0;
+    height: 54px;
+    z-index: 1100;
     background: #fff;
-    border-bottom: 1px solid #eee;
-    margin: 0;
-    max-width: 100vw;
-    min-width: 0;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid #eee;
+    padding: 0;
+    min-width: 0;
+    max-width: 100vw;
+    width: 100vw;
+    gap: 0;
+  }
+  .burger {
+    display: flex !important;
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 38px; height: 38px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+  }
+  .logo {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%,-50%);
+    height: 34px !important;
+    width: auto !important;
+    margin: 0 auto !important;
+    display: block;
     z-index: 1;
   }
-  .filter-bar .search-autocomplete-wrapper input[type="text"] {
+  .profil-block {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    display: flex !important;
+    gap: 0;
+    white-space: nowrap;
+  }
+  .all-button {
+    display: none !important;
+  }
+
+
+
+  /* MENU BURGER ouvert DESSOUS le header2 (fixed) */
+  .burger-menu {
+    display: none;
+    flex-direction: column;
+    width: 100vw;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    position: fixed;
+    top: 54px; /* JUSTE SOUS le header */
+    left: 0; right: 0;
+    z-index: 1099;
+    padding-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .burger-menu.show { display: flex; }
+  .burger-menu a, .burger-menu .burger-menu-link {
+    display: block;
+    font-size: 1.12em;
+    color: #444;
+    padding: 13px 20px 13px 18px;
+    text-decoration: none;
+    font-weight: 600;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    transition: background .13s;
+  }
+  .burger-menu a:hover, .burger-menu .burger-menu-link:hover {
+    background: #faf8f6;
+    color: #e3801c;
+  }
+
+  /* SEARCHBAR toujours sticky SOUS le header (+ menu ouvert) */
+
+  .search-autocomplete-wrapper {
+    position: fixed !important;
+    top: 54px;
+    left: 0; right: 0;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    height: 54px;
+    background: #fff;
+    padding: 0 7px;
+    z-index: 1098;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    box-sizing: border-box;
+    transition: top 0.2s;
+  }
+  .search-autocomplete-wrapper input[type="text"], #search {
     width: 100%;
     box-sizing: border-box;
-    font-size: 1.16em;
+    font-size: 1.15em;
     border-radius: 22px;
     border: 1.5px solid #e6e6e6;
     background: #fff;
     padding: 14px 17px;
     margin: 0;
     display: block;
+    height: 38px;
   }
-  .filter-bar .filter-row-scroll {
+  .filter-bar {
+    position: fixed !important;
+    top: 108px !important; /* 54(header) + 54(search) */
+    left: 0; right: 0;
+    width: 100vw !important;
+    min-width: 0 !important;
+    max-width: 100vw !important;
+    padding: 0 6px;
+    background: #fff;
+    z-index: 1097;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #ececec;
+    height: 46px;
+    overflow-x: auto;
+    box-sizing: border-box;
+    transition: top 0.2s;
+  }
+  .filter-row-scroll {
+    width: 100vw !important;
+    min-width: 0 !important;
+    max-width: 100vw !important;
+    overflow-x: auto;
+    gap: 6px;
+  }
+  .main-content-wrapper {
+    padding-top: 154px !important; /* 54+54+46 */
+    max-width: 100vw;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+
+  /* Quand menu burger ouvert : la filter-bar descend aussi (en JS avec .menu-open sur body) */
+  body.menu-open .filter-bar {
+    top: calc(112px + 42vh); /* Ajuste selon la taille du menu */
+  }
+
+  /* ROW scrollable des filtres */
+  .filter-row-scroll {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    max-height: 48px !important;
+    height: 48px !important;
     display: flex;
     flex-direction: row;
     gap: 8px;
-    overflow-x: auto;
-    padding: 8px 10px 8px 10px;
-    background: #fff;
-    border-bottom: 1px solid #ececec;
     width: 100vw;
     box-sizing: border-box;
     min-width: 0;
     z-index: 1;
+    touch-action: pan-x;
+    overscroll-behavior-y: contain;
   }
-  .filter-bar .filter-row-scroll::-webkit-scrollbar { display: none; }
-  .filter-bar .filter-row-scroll select,
-  .filter-bar .filter-row-scroll button {
+  .filter-row-scroll::-webkit-scrollbar { display: none; }
+  .filter-row-scroll select,
+  .filter-row-scroll button {
     font-size: 1em;
     min-width: 82px;
     max-width: 130px;
@@ -1298,19 +1531,22 @@ body.price-popup-open { overflow: hidden; }
     flex-shrink: 0;
     white-space: nowrap;
   }
-  .buy-hook { display: none; }
-  .chatboat-banner {
-    display: flex !important;
-    margin: 12px 6px 12px 6px !important;
-    max-width: 98vw;
-    padding: 12px 13px;
-    font-size: 1.03em;
-    flex-direction: row;
-    align-items: center;
-    gap: 9px;
-    z-index: 0;
+
+  /* MAIN CONTENT commence APRÈS tout ce qui est sticky (header + searchbar + filtres) */
+  .main-content-wrapper {
+    padding-top: 158px !important; /* 54(header) + 58(searchbar) + 46(filtres) */
+    max-width: 100vw;
+    box-sizing: border-box;
+    margin: 0;
+    min-width: 0;
   }
-  .chatboat-banner i { font-size: 1.23em; color: #ffa600; }
+  /* Décale aussi quand menu ouvert */
+  body.menu-open .main-content-wrapper {
+    padding-top: calc(158px + 42vh) !important;
+  }
+
+  /* Le reste inchangé : cartes, carousels, etc. */
+  .buy-hook { display: none; }
   .property-listing { gap: 16px; max-width: 100vw; padding: 0; }
   .property-card { flex-direction: column; width: 100vw; border-radius: 0; border: none; box-shadow: 0 1px 8px rgba(100,100,120,0.08); margin-bottom: 9px; overflow: hidden; padding: 0;}
   .carousel { width: 100vw; min-width: 100vw; max-width: 100vw; height: 220px; border-radius: 0;}
@@ -1325,77 +1561,113 @@ body.price-popup-open { overflow: hidden; }
   .footer-links, .footer-socials { gap: 7px;}
   .footer-logo { font-size: 18px; }
   #scrollToTopBtn { display: none !important; }
-  #priceFilterPopup, #moreFilterPopup { z-index: 11050 !important; }
-
-
-
-
-
-  .carousel-arrow {
-    display: none !important;
-  }
-
-
-
-.carousel-dots {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  position: absolute;
-  left: 0; right: 0;
-  bottom: 13px; /* Ajuste selon besoin */
-  z-index: 12;
-  pointer-events: none; /* Sauf pour les dots si tu veux le click, enlève cette ligne */
+  #priceFilterPopup, #moreFilterPopup {
+  z-index: 11060 !important;
 }
-.carousel-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #fff;
-  opacity: 0.8;
-  border: 1.5px solid #eee;
-  transition: 0.2s;
-  pointer-events: auto;
-}
-.carousel-dot.active {
-  background: #fff;
-  opacity: 1;
-  border-color: #6b42a0;
-  box-shadow: 0 0 0 2px #6b42a033;
+#searchSuggestions,
+.autocomplete-suggestions {
+  z-index: 11050 !important;
 }
 
+  .carousel-arrow { display: none !important; }
   .carousel-dots {
-    bottom: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     gap: 8px;
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 10px;
+    z-index: 12;
+    pointer-events: none;
   }
   .carousel-dot {
     width: 9px;
     height: 9px;
+    border-radius: 50%;
+    background: #fff;
+    opacity: 0.8;
+    border: 1.5px solid #eee;
+    transition: 0.2s;
+    pointer-events: auto;
+  }
+  .carousel-dot.active {
+    background: #fff;
+    opacity: 1;
+    border-color: #6b42a0;
+    box-shadow: 0 0 0 2px #6b42a033;
   }
 
-  .filter-row-scroll {
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    max-height: 48px !important;
-    height: 48px !important;
-    /* Empêche tout scroll vertical */
-    touch-action: pan-x;
-    overscroll-behavior-y: contain; /* Anti scroll vertical parasite */
+  /* Fix divers pour modales, sliders, etc (inchangé) */
+  .price-popup-inner {
+    position: fixed;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 85vw !important;
+    max-width: 90vw !important;
+    padding: 18px 2vw !important;
+    border-radius: 16px !important;
+    max-height: 88vh !important;
+    overflow-y: auto !important;
+    padding-right: 15px !important;
+    padding-left: 15px !important;
   }
 
-  .carousel, .carousel img {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    min-width: 100vw !important;
+  .slider-main,
+  #priceSlider,
+  .slider-labels {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    width: 100% !important;
     box-sizing: border-box;
-    overflow: hidden !important;
   }
-  .property-card {
-    overflow: hidden !important;
+  .slider-labels > span:first-child,
+  .slider-labels .slider-min-label {
+    margin-left: 0 !important;
+    padding-left: 2px !important;
+    max-width: 96px;
+    overflow: visible !important;
+    left: 0;
+    position: relative;
+    box-sizing: border-box;
   }
-  body, html {
+  .slider-labels > span:last-child,
+  .slider-labels .slider-max-label {
+    margin-right: 0 !important;
+    padding-right: 2px !important;
+    max-width: 96px;
+    overflow: visible !important;
+    right: 0;
+    position: relative;
+    box-sizing: border-box;
+  }
+  .more-filter-inner {
+    position: fixed;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100vw - 30px) !important;
+    min-width: 0 !important;
+    max-width: 420px !important;
+    border-radius: 14px !important;
+    top: 170px !important;
+    max-height: 55vh !important;
+    height: auto !important;
+    overflow-y: auto !important;
     overflow-x: hidden !important;
+    box-sizing: border-box;
+    padding: 18px 12px 18px 12px !important;
+    background: #fff;
+    z-index: 11060 !important;
+  }
+  .more-filter-header {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
+    padding-bottom: 8px;
   }
 }
+
 
