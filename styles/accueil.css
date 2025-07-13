@@ -443,9 +443,10 @@
 .chat-btn:hover, .map-view-btn:hover {
   background-color: #d93400;
   box-shadow: 0 0 20px 4px rgba(255, 115, 0, 0.7);
-  transform: translateY(-3px) scale(1.05);
-  transition: all 0.3s ease;
+  /* Pas de transform ici, donc plus de déplacement ni d’agrandissement */
+  transition: background-color 0.3s, box-shadow 0.3s;
 }
+
 .border-short {
   width: 1000px;
   border-bottom: 1px solid rgb(189, 189, 189);
