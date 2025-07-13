@@ -10,7 +10,19 @@
 <body>
   
 <div class="header2">
+<div class="burger" id="burgerMenu">
+  <span></span>
+  <span></span>
+  <span></span>
+</div>
+
+
+
    <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
+
+
+
+
   <div class="all-button">
     <a href="areaforyou.html" class="chat-button header-btn">Chatgpt</a>
     <a href="buy.html" class="buy-button header-btn">Buy</a>
@@ -24,9 +36,32 @@
   </div>
 </div>
 
+
 <!-- Image de fond + overlay compact centré -->
 <div class="fond-accueil">
   <img src="styles/photo/accueil.png" alt="Dubai" class="fond-image">
+
+  <!-- Only visible on mobile -->
+<div class="mobile-hero-bottom">
+  <div class="tabs">
+    <div class="tab active">Rent</div>
+    <div class="tab">Buy</div>
+    <div class="tab">New Projects</div>
+    <div class="tab">Commercial</div>
+  </div>
+  <div class="mobile-searchbar">
+    <input type="text" placeholder="Location, project or developer" class="search-input" />
+    <button class="search-btn search-btn-icon">
+      <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+    </button>
+  </div>
+
+
+
+
+  
+</div>
+
 
   <div class="overlay">
     <div class="tabs">
@@ -37,6 +72,9 @@
     </div>
     <div class="search-bar">
       <input type="text" placeholder="City, community or building" class="search-input" />
+
+
+      
       <!-- Property Type Dropdown -->
       <div class="dropdown" id="propertyTypeDropdown">
         <button type="button" class="dropdown-btn">
@@ -125,12 +163,10 @@
 <section class="map-section">
 <h2 class="map-title">Maps</h2>
 <p class="map-subtitle">Explore Dubai properties with our interactive map.</p>
-<a href="maps.html">
 <div class="map-container" id="map-container">
   <img src="styles/photo/dubai-map.jpg" alt="Dubai Map" class="map-image" />
   <div class="map-overlay"></div>
   <button class="map-view-btn" id="viewMapsBtn">View Maps</button>
-  </a>
 </div>
 </section>
 
@@ -163,4 +199,5 @@
 <script src="https://unpkg.com/scrollreveal"></script>
 </body>
 </html>
+
 
