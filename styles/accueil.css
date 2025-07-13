@@ -1,166 +1,720 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PropInDubai</title>
-  <link rel="stylesheet" href="styles/accueil.css">
-  <script src="https://unpkg.com/scrollreveal"></script>
-</head>
-<body>
-  
-<div class="header2">
-   <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
-  <div class="all-button">
-    <a href="areaforyou.html" class="chat-button header-btn">Chatgpt</a>
-    <a href="buy.html" class="buy-button header-btn">Buy</a>
-    <a href="rent.html" class="rent-button header-btn">Rent</a>
-    <a href="commercial.html" class="commercial-button header-btn">Commercial</a>
-    <a href="off-plan-search.html" class="project-button header-btn">Off Plan</a>
-    <a href="findagent.html" class="agent-button header-btn">Find agents</a>
-  </div>
-  <div class="profil-block">
-    <a href="login.html" class="login-button header-btn">Login</a>
-  </div>
-</div>
+/* ========== HEADER2 (GLOBAL) ========== */
+.header2 {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  padding: 0 20px;
+  z-index: 10;
+  border-bottom: 1px solid #ddd;
+  gap: 20px;
+}
+.logo {
+  width: 130px;
+  height: auto;
+  margin: 0;
+  display: block;
+}
+.all-button {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 15px;
+  max-width: 1000px;
+}
+.profil-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+.burger { display: none; } /* Cacher le burger en desktop */
 
-<!-- Image de fond + overlay compact centré -->
-<div class="fond-accueil">
-  <img src="styles/photo/accueil.png" alt="Dubai" class="fond-image">
+/* ========== HEADER2 MOBILE (max 700px) ========== */
+@media (max-width: 700px) {
+  .header2 {
+    height: 54px;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 0 8px;
+    gap: 0;
+  }
+  .burger {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+  }
+  .burger span {
+    height: 4px; width: 25px;
+    background: #ff9900;
+    margin: 3.2px 0;
+    border-radius: 5px;
+    display: block;
+    transition: 0.2s;
+  }
+  .logo {
+    margin: 0 auto !important;
+    left: 0; right: 0;
+    position: relative;
+    height: 34px;
+    width: auto;
+    z-index: 1;
+    display: block;
+  }
+  .all-button {
+    display: none;
+    flex-direction: column;
+    background: white;
+    position: absolute;
+    top: 56px; left: 0; width: 100vw;
+    z-index: 20;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.11);
+    padding: 16px 0;
+    gap: 0;
+    justify-content: flex-start;
+    align-items: flex-start;
+    max-width: 100vw;
+  }
+  .all-button.mobile-open { display: flex; }
+  .profil-block {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    gap: 0;
+    white-space: nowrap;
+  }
+}
 
-  <div class="overlay">
-    <div class="tabs">
-      <div class="tab active">Rent</div>
-      <div class="tab">Buy</div>
-      <div class="tab">New Projects</div>
-      <div class="tab">Commercial</div>
-    </div>
-    <div class="search-bar">
-      <input type="text" placeholder="City, community or building" class="search-input" />
-      <!-- Property Type Dropdown -->
-      <div class="dropdown" id="propertyTypeDropdown">
-        <button type="button" class="dropdown-btn">
-          <span class="dropdown-label">Property type</span>
-          <svg class="dropdown-arrow" width="20" height="20"><polyline points="6 8 10 12 14 8" fill="none" stroke="#888" stroke-width="2"/></svg>
-        </button>
-        <div class="dropdown-menu">
-          <div class="dropdown-item">Apartment</div>
-          <div class="dropdown-item">Villa</div>
-          <div class="dropdown-item">Townhouse</div>
-          <div class="dropdown-item">Penthouse</div>
-          <div class="dropdown-item">Compound</div>
-          <div class="dropdown-item">Duplex</div>
-        </div>
-      </div>
-      <!-- Beds & Baths Dropdown -->
-      <div class="dropdown" id="bedsBathsDropdown">
-        <button type="button" class="dropdown-btn">
-          <span class="dropdown-label">Beds & Baths</span>
-          <svg class="dropdown-arrow" width="20" height="20"><polyline points="6 8 10 12 14 8" fill="none" stroke="#888" stroke-width="2"/></svg>
-        </button>
-        <div class="dropdown-menu">
-          <div class="dropdown-subtitle">Bedrooms</div>
-          <div class="dropdown-options" data-type="bedrooms">
-            <div class="dropdown-item">Studio</div>
-            <div class="dropdown-item">1</div>
-            <div class="dropdown-item">2</div>
-            <div class="dropdown-item">3</div>
-            <div class="dropdown-item">4</div>
-            <div class="dropdown-item">5</div>
-            <div class="dropdown-item">6</div>
-            <div class="dropdown-item">7+</div>
-          </div>
-          <div class="dropdown-subtitle">Bathrooms</div>
-          <div class="dropdown-options" data-type="bathrooms">
-            <div class="dropdown-item">1</div>
-            <div class="dropdown-item">2</div>
-            <div class="dropdown-item">3</div>
-            <div class="dropdown-item">4</div>
-            <div class="dropdown-item">5</div>
-            <div class="dropdown-item">6</div>
-            <div class="dropdown-item">7+</div>
-          </div>
-        </div>
-      </div>
-      <button class="search-btn">Search</button>
-    </div>
-  </div>
-</div>
+/* ========== HEADER BUTTONS ========== */
+.all-button button, .header-btn {
+  flex: 1;
+  max-width: 150px;
+  padding: 8px 12px;
+  border: none;
+  background-color: rgb(255, 255, 255);
+  color: rgb(104, 104, 104);
+  cursor: pointer;
+  border-radius: 5px;
+  text-align: center;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: background-color 0.2s, height 0.2s;
+  height: 60px;
+  box-sizing: border-box;
+}
+.header-btn:hover {
+  background-color: rgb(245, 245, 245);
+  height: 60px;
+}
+.login-button {
+  background-color: rgb(255, 255, 255);
+  color: rgb(104, 104, 104);
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 10px;
+  border-color: rgb(255, 153, 0);
+}
 
-<!-- Sections en dessous -->
-<section class="ai-section">
-   <canvas id="particles-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;"></canvas>
-  <h2 class="ai-title">AI Assistance : ChatProperty</h2>
-  <p class="ai-subtitle">
-    Ask anything about properties, locations, prices and more — powered by ChatProperty.
-  </p>
-   <a href="areaforyou.html">
-   <button class="chat-btn">Start Chat</button>
-  </a>
-  <div class="border-short"></div>
-</section>
+/* ========== ACCUEIL & SECTIONS ========== */
+.fond-accueil {
+  position: relative;
+  height: 70vh;
+  border-radius: 80px;
+  margin-top: 70px;
+}
+.fond-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+  border-radius: 50px;
+}
+.content {
+  position: relative;
+  color: white;
+  text-align: center;
+  top: 40%;
+  background-color: white;
+}
+.overlay {
+  position: absolute;
+  top: 74%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto;
+  max-width: 94vw;
+  background: rgba(0,0,0,0.18);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 38px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.16);
+  padding: 25px 80px 25px 80px;
+  color: white;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  z-index: 3;
+}
 
-<section class="offplan-section">
-  <h2 class="offplan-title">AI Assistance : Off Plan</h2>
-  <p class="offplan-subtitle">
-    Ask anything about properties, new projects, prices and more — powered by ChatProperty.
-  </p>
-  <a href="offplan.html">
-  <button class="chat-btn">Start Chat</button>
-  </a>
-  <div class="border-short"></div>
-</section>
+.tabs {
+  margin: 0 auto 18px auto;
+  display: flex;
+  border-radius: 25px;
+  overflow: hidden;
+  background: #eee;
+  color: black;
+  width: 100%;
+  max-width: 550px;
+  justify-content: center;
+}
+.tab {
+  flex: 1;
+  padding: 15px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+  width: 700px;
+}
+.tab.active {
+  background-color: white;
+  color: rgb(255, 145, 0);
+  font-weight: bold;
+}
 
-<section class="roi-section">
-  <h2 class="roi-title">ROI Calculator</h2>
-  <p class="roi-subtitle">
-    Estimate your rental income, property costs, and ROI in just a few clicks.
-  </p>
-   <a href="ROI-calculator-accueil.html">
-   <button class="chat-btn">Let's Calculate</button>
-  </a>
-  <div class="border-short"></div>
-</section>
+.search-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: #fff;
+  width: 100%;
+  max-width: 900px;
+  min-width: 0;
+  border-radius: 30px;
+  box-shadow: 0 6px 32px 0 rgba(0,0,0,0.09);
+  padding: 0 14px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+  height: 56px;
+  box-sizing: border-box;
+}
+.search-bar input.search-input {
+  flex: 3 1 0;
+  min-width: 240px;
+  border: none;
+  outline: none;
+  padding: 0 24px;
+  font-size: 18px;
+  background: transparent;
+  color: #444;
+  font-weight: 400;
+  height: 46px;
+  border-radius: 0;
+}
 
-<section class="map-section">
-<h2 class="map-title">Maps</h2>
-<p class="map-subtitle">Explore Dubai properties with our interactive map.</p>
-<a href="maps.html">
-<div class="map-container" id="map-container">
-  <img src="styles/photo/dubai-map.jpg" alt="Dubai Map" class="map-image" />
-  <div class="map-overlay"></div>
-  <button class="map-view-btn" id="viewMapsBtn">View Maps</button>
-  </a>
-</div>
-</section>
+.dropdown {
+  position: relative;
+  min-width: 150px;
+  max-width: 200px;
+  flex-shrink: 0;
+}
+.dropdown-btn {
+  width: auto;
+  min-width: 0;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  height: 46px;
+  text-align: left;
+  border: none;
+  background: #fff;
+  color: #444;
+  font-size: 17px;
+  padding: 0 16px;
+  border-radius: 13px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: none;
+  transition: box-shadow 0.13s, border 0.13s;
+  border: 1px solid #eee;
+}
+.dropdown-btn:focus, .dropdown.open .dropdown-btn {
+  border: 1.5px solid #ff9900;
+}
+.dropdown-label {
+  color: #222;
+  font-weight: 500;
+  font-size: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  max-width: 110px;
+}
+.dropdown-arrow {
+  margin-left: 12px;
+  transition: transform 0.18s;
+}
+.dropdown.open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 105%;
+  left: 0;
+  min-width: 170px;
+  max-width: 240px;
+  width: max-content;
+  background: #fff;
+  box-shadow: 0 6px 28px 0 rgba(0,0,0,0.13);
+  border-radius: 15px;
+  padding: 16px 10px 12px 10px;
+  z-index: 30;
+  word-break: break-word;
+}
+.dropdown.open .dropdown-menu {
+  display: block;
+  animation: fadeIn 0.19s;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+.dropdown-item {
+  padding: 8px 13px;
+  border-radius: 9px;
+  cursor: pointer;
+  margin-bottom: 3px;
+  font-size: 16px;
+  color: #222;
+  background: transparent;
+  font-weight: 400;
+  transition: background 0.12s, color 0.12s;
+  border: none;
+}
+.dropdown-item.selected,
+.dropdown-item:hover {
+  background: #fff3e1;
+  color: #ff8800;
+  font-weight: 600;
+}
+.dropdown-subtitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin: 8px 0 5px 2px;
+}
+.dropdown-options {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+}
+.search-btn {
+  background-color: #ff7000;
+  color: #fff;
+  padding: 0 35px;
+  height: 46px;
+  border: none;
+  border-radius: 15px;
+  font-size: 19px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 2px;
+  transition: background 0.15s;
+  box-shadow: 0 2px 9px rgba(255, 115, 0, 0.14);
+}
+.search-btn:hover {
+  background-color: #e86300;
+}
 
-<footer class="site-footer">
-  <div class="footer-container">
-    <div class="footer-left">
-      <h3 class="footer-logo">PropInDubai</h3>
-      <p>Connecting you with the best properties in Dubai.</p>
-    </div>
-    <div class="footer-links">
-      <a href="about-us.html">About Us</a>
-      <a href="contact-us.html">Contact us</a>
-      <a href="privacy-policy.html">Privacy Policy</a>
-      <a href="term-condition.html">Terms & Conditions</a>
-      <a href="cookies-policy.html">Cookies policy</a>
-      <a href="disclaimer.html">Disclaimer</a>
-    </div>
-    <div class="footer-socials">
-      <a href="#"><img src="styles/photo/facebook.png" alt="Facebook" /></a>
-      <a href="#"><img src="styles/photo/insta.png" alt="Instagram" /></a>
-      <a href="#"><img src="styles/photo/linkedin.png" alt="LinkedIn" /></a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    © 2025 PropInDubai. All rights reserved.
-  </div>
-</footer>
+/* Responsive pour search-bar et autres éléments */
+@media (max-width: 1100px) {
+  .search-bar { width: 99vw; min-width: 0; }
+}
+@media (max-width: 900px) {
+  .search-bar { width: 99vw; min-width: 0; padding: 0 1vw;}
+}
+@media (max-width: 700px) {
+  .search-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 11px;
+    width: 99vw;
+    min-width: 0;
+    padding: 8px 2vw;
+    height: auto;
+    max-width: 98vw;
+  }
+  .dropdown, .search-bar input.search-input, .search-btn {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: 44px;
+  }
+  .dropdown-menu {
+    left: 0;
+    min-width: 120px;
+    max-width: 95vw;
+    width: 100%;
+  }
+}
 
-<script src="javascript/accueil.js"></script>
-<script src="https://unpkg.com/scrollreveal"></script>
-</body>
-</html>
+/* ========== SECTIONS ACCUEIL ========== */
+.ai-section, .offplan-section, .roi-section, .map-section {
+  background-color: #ffffff;
+  padding: 80px 20px;
+  text-align: center;
+  margin-top: 60px;
+  position: relative;
+  overflow: hidden;
+}
+#particles-canvas {
+  pointer-events: none;
+}
+.ai-section::before, .offplan-section::before, .roi-section::before, .map-section::before {
+  content: "";
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, #ff9900 2px, transparent 3px);
+  background-size: 15px 15px;
+  border-radius: 50%;
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: 0;
+}
+.ai-title, .offplan-title, .roi-title, .map-title {
+  font-size: 60px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+  border-width: 2px;
+}
+.ai-subtitle, .offplan-subtitle, .roi-subtitle, .map-subtitle {
+  font-size: 25px;
+  color: #666;
+  max-width: 700px;
+  margin: 0 auto 30px;
+}
+.chat-btn, .map-view-btn {
+  padding: 20px 40px;
+  background-color: rgb(255, 115, 0);
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.chat-btn:hover, .map-view-btn:hover {
+  background-color: #d93400;
+  box-shadow: 0 0 20px 4px rgba(255, 115, 0, 0.7);
+  transform: translateY(-3px) scale(1.05);
+  transition: all 0.3s ease;
+}
+.border-short {
+  width: 1000px;
+  border-bottom: 1px solid rgb(189, 189, 189);
+  margin: 5px auto;
+  margin-top: 40px;
+}
+.map-container {
+  position: relative;
+  max-width: 1000px;
+  margin: 40px auto;
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+.map-image {
+  width: 100%;
+  display: block;
+  filter: blur(6px);
+  transition: filter 0.3s ease;
+  cursor: pointer;
+  border-radius: 30px;
+}
+.map-container:hover .map-image {
+  filter: blur(3px);
+}
+.map-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 30px;
+  pointer-events: none;
+}
+.map-view-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgb(255, 115, 0);
+  color: white;
+  padding: 20px 45px;
+  font-weight: bold;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(255, 115, 0, 0.6);
+  transition: background-color 0.3s ease;
+  font-size: 22px;
+  z-index: 10;
+}
+.map-view-btn:hover {
+  background-color: #d93400;
+}
+.site-footer {
+  background-color: #f9f9f9;
+  padding: 40px 0 20px 0;
+  border-top: 1px solid #ddd;
+  font-family: Arial, sans-serif;
+  color: #444;
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  box-sizing: border-box;
+}
+.footer-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 1200px;
+  margin: auto;
+}
+.footer-left {
+  max-width: 300px;
+}
+.footer-logo {
+  font-size: 24px;
+  color: #ff9900;
+  margin-bottom: 10px;
+}
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.footer-links a {
+  color: #444;
+  text-decoration: none;
+  font-size: 18px;
+}
+.footer-links a:hover {
+  color: #ff9900;
+}
+.footer-socials {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+.footer-socials img {
+  width: 50px;
+  height: 50px;
+  filter: grayscale(100%);
+  transition: filter 0.3s;
+}
+.footer-socials img:hover {
+  filter: grayscale(0%);
+}
+.footer-bottom {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 12px;
+  color: #999;
+}
 
+/* ============ VERSION MOBILE SECTIONS ONLY ============ */
+@media (max-width: 700px) {
+  html, body { max-width: 100vw; overflow-x: hidden; }
+  .overlay, .fond-accueil .search-bar, .fond-accueil .dropdown, .fond-accueil .dropdown + .dropdown, .fond-accueil .search-btn:not(.search-btn-icon) {
+    display: none !important;
+  }
+  .fond-accueil {
+    width: 100% !important;
+    min-width: 0;
+    margin: 0 !important; padding: 0 !important;
+    height: 400px; min-height: 210px; max-height: 4000px;
+    position: relative; overflow: hidden;
+    border-radius: 0 0 26px 26px;
+    background: #f6f6f6; box-shadow: none;
+    background-size: contain;
+    z-index: 1; top: 56px;
+  }
+  .fond-image {
+    position: absolute; inset: 0;
+    width: 100vw !important; height: 100% !important;
+    object-fit: cover;
+    border-radius: 0 0 26px 26px;
+    z-index: 0;
+  }
+  .mobile-hero-bottom {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    position: absolute; left: 0; top: 60vw;
+    width: 95vw;
+    z-index: 2;
+    gap: 12px;
+    pointer-events: none;
+  }
+  .tabs {
+    width: 92vw; max-width: 340px;
+    margin: 0 auto 4px auto;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.09);
+    font-size: 15px;
+    display: flex; justify-content: center;
+    z-index: 3; position: relative;
+    pointer-events: auto;
+  }
+  .tab {
+    flex: 1 1 0;
+    text-align: center;
+    padding: 13px 0;
+    border: none;
+    color: #222;
+    background: #fff;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 0;
+    transition: color .17s, border .17s;
+    min-width: 0;
+  }
+  .tab.active {
+    color: #ff9900 !important;
+    border-bottom: 2.5px solid #ff9900 !important;
+    background: #fff; font-weight: 700;
+  }
+  .mobile-searchbar {
+    width: 92vw; max-width: 340px;
+    margin: 0 auto;
+    position: relative;
+    display: flex !important; align-items: center;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    padding: 0 12px;
+    height: 39px;
+    z-index: 5;
+    pointer-events: auto;
+    border: none;
+  }
+  .mobile-searchbar input.search-input {
+    border: none; outline: none;
+    flex: 1 1 0;
+    background: transparent;
+    font-size: 15px; color: #444;
+    padding: 0 0 0 2px;
+    height: 31px;
+    border-radius: 0; min-width: 0;
+  }
+  .mobile-searchbar input.search-input::placeholder {
+    color: #aaa; font-size: 15px;
+    letter-spacing: 0.01em;
+  }
+  .mobile-searchbar .search-btn.search-btn-icon {
+    background: #ff9900;
+    border: none; border-radius: 50%;
+    width: 29px; height: 29px; margin-left: 7px;
+    cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+    box-shadow: 0 1px 5px rgba(255,115,0,0.13);
+    transition: background 0.16s;
+    padding: 0;
+  }
+  .mobile-searchbar .search-btn.search-btn-icon svg {
+    width: 18px; height: 18px; stroke: #fff;
+    display: block;
+  }
+  .mobile-searchbar .search-btn.search-btn-icon:active {
+    background: #cc7a00;
+  }
+  .ai-section, .offplan-section, .roi-section, .map-section {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 24px auto 16px auto;
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    background: #fff;
+    padding: 16px 0 14px 0;
+    margin-top: 60px;
+  }
+  .ai-title, .offplan-title, .roi-title, .map-title { font-size: 28px; }
+  .ai-subtitle, .offplan-subtitle, .roi-subtitle, .map-subtitle { font-size: 15px; }
+  .chat-btn, .map-view-btn { font-size: 15px; padding: 14px 0; width: 100%; }
+  .border-short { width: 98vw; }
+  .footer-container { flex-direction: column; align-items: flex-start; gap: 30px; padding: 0 8vw; }
+  .footer-logo { font-size: 18px; }
+  .footer-links a { font-size: 16px; }
+  .footer-socials img { width: 30px; height: 30px; }
+  .site-footer { padding: 22px 0 10px 0; }
+}
+.mobile-hero-bottom { display: none; }
+@media (max-width: 700px) {
+  .mobile-hero-bottom { display: flex !important; }
+}
+
+
+.login-button {
+  padding: 7px 16px;      /* Moins de padding */
+  font-size: 1rem;        /* Taille police classique */
+  height: auto;           /* Laisse le bouton à la bonne taille */
+  min-width: 0;
+  max-width: 110px;       /* Optionnel : limite la largeur max */
+}
+
+/* Encore plus petit en mobile ? */
+@media (max-width: 700px) {
+  .login-button {
+    padding: 6px 13px;
+    font-size: 0.97rem;
+    border-radius: 8px;
+    max-width: 95px;
+  }
+}
