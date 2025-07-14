@@ -1,4 +1,3 @@
-/* ========== HEADER2 (GLOBAL) ========== */
 .header2 {
   height: 60px;
   display: flex;
@@ -1344,7 +1343,6 @@ body.price-popup-open { overflow: hidden; }
     -webkit-overflow-scrolling: touch;
   }
 
-
   .header2 {
     position: fixed !important;
     top: 0; left: 0; right: 0;
@@ -1382,6 +1380,8 @@ body.price-popup-open { overflow: hidden; }
     margin: 0 auto !important;
     display: block;
     z-index: 1;
+    /* CORRECTION : Pour forcer le centrage visuel */
+    right: 0; /* ajoute pour compatibilité iOS */
   }
   .profil-block {
     position: absolute;
@@ -1396,8 +1396,6 @@ body.price-popup-open { overflow: hidden; }
   .all-button {
     display: none !important;
   }
-
-
 
   /* MENU BURGER ouvert DESSOUS le header2 (fixed) */
   .burger-menu {
@@ -1433,7 +1431,6 @@ body.price-popup-open { overflow: hidden; }
   }
 
   /* SEARCHBAR toujours sticky SOUS le header (+ menu ouvert) */
-
   .search-autocomplete-wrapper {
     position: fixed !important;
     top: 54px;
@@ -1443,7 +1440,7 @@ body.price-popup-open { overflow: hidden; }
     min-width: 0 !important;
     height: 54px;
     background: #fff;
-    padding: 0 7px;
+    padding: 0 !important; /* Correction ici */
     z-index: 1098;
     display: flex;
     align-items: center;
@@ -1452,6 +1449,8 @@ body.price-popup-open { overflow: hidden; }
     transition: top 0.2s;
   }
   .search-autocomplete-wrapper input[type="text"], #search {
+    left: 0;
+    right: 0;
     width: 100%;
     box-sizing: border-box;
     font-size: 1.15em;
@@ -1470,7 +1469,7 @@ body.price-popup-open { overflow: hidden; }
     width: 100vw !important;
     min-width: 0 !important;
     max-width: 100vw !important;
-    padding: 0 6px;
+    padding: 0 !important; /* Correction ici */
     background: #fff;
     z-index: 1097;
     display: flex;
@@ -1496,7 +1495,6 @@ body.price-popup-open { overflow: hidden; }
     min-width: 0;
     box-sizing: border-box;
   }
-
 
   /* Quand menu burger ouvert : la filter-bar descend aussi (en JS avec .menu-open sur body) */
   body.menu-open .filter-bar {
@@ -1550,7 +1548,7 @@ body.price-popup-open { overflow: hidden; }
   .property-listing { gap: 16px; max-width: 100vw; padding: 0; }
   .property-card { flex-direction: column; width: 100vw; border-radius: 0; border: none; box-shadow: 0 1px 8px rgba(100,100,120,0.08); margin-bottom: 9px; overflow: hidden; padding: 0;}
   .carousel { width: 100vw; min-width: 100vw; max-width: 100vw; height: 220px; border-radius: 0;}
-  .carousel img { width: 100vw; min-width: 100vw; height: 220px; border-radius: 0; object-fit: cover;}
+  .carousel img { width: 100vw; min-width: 100vw; max-width: 100vw; height: 220px; border-radius: 0; object-fit: cover; display: block; margin: 0 auto;} /* Correction ici */
   .property-info { width: 100vw; padding: 15px 13px 15px 15px; gap: 4px; text-align: left;}
   .property-info h3 { font-size: 1.17em; margin-bottom: 7px;}
   .property-info p, .property-info span { font-size: 1.05em;}
@@ -1668,6 +1666,65 @@ body.price-popup-open { overflow: hidden; }
     z-index: 1;
     padding-bottom: 8px;
   }
+  .carousel {
+  width: 95vw;          /* un peu moins que 100vw pour laisser de l’espace */
+  max-width: 420px;     /* limite sur grands écrans mobiles */
+  margin: 0 auto;       /* centrage horizontal */
+  height: 220px;
+  overflow: hidden;     /* cache ce qui dépasse */
+  border-radius: 0;
+  position: relative;
+  display: block;
 }
+.carousel img {
+  width: 100%;          /* prend toute la largeur du carrousel */
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+  border-radius: 0;
+}
+
+}
+@media (max-width: 700px) {
+  html, body, .main-content-wrapper {
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    width: 100vw !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    background: #faf8f6 !important;
+  }
+  .carousel-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 13px;
+  z-index: 2;
+  pointer-events: none; /* important pour ne pas bloquer les swipes */
+}
+.carousel-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.85;
+  border: 1.5px solid #eee;
+  transition: 0.22s;
+  pointer-events: auto; /* Si tu veux rendre les dots cliquables */
+}
+.carousel-dot.active {
+  background: #fff;
+  opacity: 1;
+  border-color: #6b42a0;
+  box-shadow: 0 0 0 2px #6b42a033;
+}
+
+}
+
 
 
