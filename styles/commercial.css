@@ -66,15 +66,7 @@
     display: block;
     transition: 0.2s;
   }
-  .logo {
-    margin: 0 auto !important;
-    left: 0; right: 0;
-    position: relative;
-    height: 34px;
-    width: auto;
-    z-index: 1;
-    display: block;
-  }
+
   .all-button {
     display: none;
     flex-direction: column;
@@ -1370,8 +1362,8 @@ body.price-popup-open { overflow: hidden; }
 
 .logo {
   position: absolute;
-  left: 140px;   /* Augmente cette valeur pour le pousser à droite */
-  top: -7px ;      /* Diminue cette valeur pour le remonter */
+  left: 54%;   /* Augmente cette valeur pour le pousser à droite */
+  top: 7px ;      /* Diminue cette valeur pour le remonter */
   transform: translateX(-50%);
   height: 34px !important;
   width: auto !important;
