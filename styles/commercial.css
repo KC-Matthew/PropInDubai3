@@ -1371,18 +1371,20 @@ body.price-popup-open { overflow: hidden; }
     cursor: pointer;
     z-index: 2;
   }
+
   .logo {
     position: absolute;
     left: 50%; top: 50%;
     transform: translate(-50%,-50%);
     height: 34px !important;
     width: auto !important;
-    margin: 0 auto !important;
+    margin: 0 !important;
     display: block;
     z-index: 1;
-    /* CORRECTION : Pour forcer le centrage visuel */
-    right: 0; /* ajoute pour compatibilité iOS */
+    right: auto !important; /* Ajoute ça pour éviter que right:0 prenne le dessus */
   }
+
+
   .profil-block {
     position: absolute;
     right: 12px;
@@ -1685,8 +1687,8 @@ body.price-popup-open { overflow: hidden; }
   border-radius: 0;
 }
 
-}
-@media (max-width: 700px) {
+
+
   html, body, .main-content-wrapper {
     max-width: 100vw !important;
     min-width: 0 !important;
