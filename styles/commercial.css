@@ -1370,18 +1370,18 @@ body.price-popup-open { overflow: hidden; }
 
 .logo {
   position: absolute;
-  left: 54%;   /* 52-54% pour le décaler à droite : AJUSTE ici (53% fonctionne souvent parfaitement) */
-  top: 12px;   /* 12px ou 13px pour bien descendre, ajuste si besoin */
+  left: 56.7%;   /* Augmente cette valeur pour le pousser à droite */
+  top: 7px;      /* Diminue cette valeur pour le remonter */
   transform: translateX(-50%);
   height: 34px !important;
   width: auto !important;
   margin: 0 !important;
   display: block !important;
-  box-sizing: content-box !important;
   z-index: 1;
   right: auto !important;
   pointer-events: auto;
 }
+
 .profil-block {
   margin-right: 18px;
   margin-left: auto;
