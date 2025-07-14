@@ -1350,7 +1350,7 @@ body.price-popup-open { overflow: hidden; }
   background: #fff;
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* PAS center, pour placer à la main */
+  justify-content: flex-start; /* PAS center ! */
   border-bottom: 1px solid #eee;
   padding: 0;
   z-index: 1100;
@@ -1358,7 +1358,7 @@ body.price-popup-open { overflow: hidden; }
 
 .burger {
   position: relative;
-  margin-left: 16px; /* Ajuste si besoin */
+  margin-left: 16px; /* Ajuste ici si tu veux rapprocher/éloigner */
   width: 38px;
   height: 38px;
   display: flex;
@@ -1370,19 +1370,20 @@ body.price-popup-open { overflow: hidden; }
 
 .logo {
   position: absolute;
-  /* On décale le logo vers la droite par rapport au centre */
-  left: 54%; /* 50% c'est pile au centre, 52% le pousse un peu à droite, ajuste à 53% ou 54% si tu veux + */
-  top: 15px; /* Descend le logo, ajuste 14px/16px pour le caler parfaitement */
+  left: 54%;   /* 52-54% pour le décaler à droite : AJUSTE ici (53% fonctionne souvent parfaitement) */
+  top: 12px;   /* 12px ou 13px pour bien descendre, ajuste si besoin */
   transform: translateX(-50%);
   height: 34px !important;
   width: auto !important;
   margin: 0 !important;
+  display: block !important;
+  box-sizing: content-box !important;
   z-index: 1;
   right: auto !important;
+  pointer-events: auto;
 }
-
 .profil-block {
-  margin-right: 18px;  /* Espace à droite */
+  margin-right: 18px;
   margin-left: auto;
   display: flex;
   align-items: center;
@@ -1724,4 +1725,10 @@ body.price-popup-open { overflow: hidden; }
 }
 
 
+@media not all and (min-resolution:.001dpcm) { @supports (-webkit-appearance:none) {
+  .logo {
+    left: 56% !important;
+    top: 13px !important;
+  }
+}}
 
