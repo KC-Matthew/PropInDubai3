@@ -1369,13 +1369,16 @@ body.price-popup-open { overflow: hidden; }
 }
 
 .logo {
-  position: relative;
-  height: 36px;   /* Donne-lui la taille de ta maquette, ajuste si besoin */
-  width: auto;
-  margin-left: 28px; /* Espace entre burger et logo */
-  margin-right: auto;
-  margin-top: 6px; /* Pour le DESCENDRE, ajuste en px si besoin (testé 6px c’est parfait sur ta maquette) */
-  display: block;
+  position: absolute;
+  /* On décale le logo vers la droite par rapport au centre */
+  left: 54%; /* 50% c'est pile au centre, 52% le pousse un peu à droite, ajuste à 53% ou 54% si tu veux + */
+  top: 15px; /* Descend le logo, ajuste 14px/16px pour le caler parfaitement */
+  transform: translateX(-50%);
+  height: 34px !important;
+  width: auto !important;
+  margin: 0 !important;
+  z-index: 1;
+  right: auto !important;
 }
 
 .profil-block {
