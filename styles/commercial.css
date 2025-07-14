@@ -1725,10 +1725,4 @@ body.price-popup-open { overflow: hidden; }
 }
 
 
-@media not all and (min-resolution:.001dpcm) { @supports (-webkit-appearance:none) {
-  .logo {
-    left: 56% !important;
-    top: 13px !important;
-  }
-}}
 
