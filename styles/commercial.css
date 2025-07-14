@@ -1309,30 +1309,35 @@ body.price-popup-open { overflow: hidden; }
     display: block;
     transition: 0.2s;
   }
-  .header-logo-center {
-    flex: 1 1 auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-width: 0;
-  }
-  .logo {
-    height: 34px;
-    width: auto;
-    margin: 0;
-    display: block;
-    max-width: 120px;
-  }
-  .profil-block {
-    flex: none;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    min-width: 0;
-    margin-left: 0;
-    white-space: nowrap;
-  }
-  .all-button { display: none; }
+  
+.header-logo-center {
+  flex: 1 1 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  position: relative;
+  text-align: center;
+}
+.logo {
+  display: inline-block;
+  height: 34px;
+  width: auto;
+  max-width: 120px;
+  vertical-align: middle;
+}
+.profil-block {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 50px;
+  margin-left: 0;
+  white-space: nowrap;
+}
+.all-button {
+  display: none;
+}
 
 
 
