@@ -1347,59 +1347,45 @@ body.price-popup-open { overflow: hidden; }
   position: fixed !important;
   top: 0; left: 0; right: 0;
   height: 54px;
-  z-index: 1100;
   background: #fff;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start; /* PAS center, pour placer à la main */
   border-bottom: 1px solid #eee;
   padding: 0;
-  min-width: 0;
-  max-width: 100vw;
-  width: 100vw;
-  gap: 0;
+  z-index: 1100;
 }
 
 .burger {
-  display: flex !important;
-  position: absolute;
-  left: 18px;   /* 18px, comme sur ta capture, et pour matcher le "Property Finder" header */
-  top: 50%;
-  transform: translateY(-50%);
-  width: 38px; height: 38px;
+  position: relative;
+  margin-left: 16px; /* Ajuste si besoin */
+  width: 38px;
+  height: 38px;
+  display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 2;
 }
 
-.profil-block {
-  position: absolute;
-  right: 18px; /* pareil pour équilibrer visuellement */
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 2;
-  display: flex !important;
-  gap: 0;
-  white-space: nowrap;
+.logo {
+  position: relative;
+  height: 36px;   /* Donne-lui la taille de ta maquette, ajuste si besoin */
+  width: auto;
+  margin-left: 28px; /* Espace entre burger et logo */
+  margin-right: auto;
+  margin-top: 6px; /* Pour le DESCENDRE, ajuste en px si besoin (testé 6px c’est parfait sur ta maquette) */
+  display: block;
 }
 
-/* LOGO exactement centré, au pixel près */
-.logo {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  height: 34px !important;
-  width: auto !important;
-  margin: 0 !important;
-  display: block;
-  z-index: 1;
-  right: auto !important;
-  /* Pour la précision, si tu veux vraiment matcher l'espace en haut, tu peux ajuster le top */
-  /* Par exemple si tu veux le remonter d’1 ou 2px : */
-  /* top: calc(50% - 1px); */
+.profil-block {
+  margin-right: 18px;  /* Espace à droite */
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  z-index: 2;
 }
+
 
   .all-button {
     display: none !important;
