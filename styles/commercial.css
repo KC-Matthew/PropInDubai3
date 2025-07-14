@@ -34,64 +34,6 @@
 }
 .burger { display: none; } /* Cacher le burger en desktop */
 
-/* ========== HEADER2 MOBILE (max 700px) ========== */
-@media (max-width: 700px) {
-  .header2 {
-    height: 54px;
-    justify-content: center;
-    align-items: center;
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    padding: 0 8px;
-    gap: 0;
-  }
-  .burger {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 2;
-    display: flex !important;
-    flex-direction: column;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    cursor: pointer;
-  }
-  .burger span {
-    height: 4px; width: 25px;
-    background: #ff9900;
-    margin: 3.2px 0;
-    border-radius: 5px;
-    display: block;
-    transition: 0.2s;
-  }
-
-  .all-button {
-    display: none;
-    flex-direction: column;
-    background: white;
-    position: absolute;
-    top: 56px; left: 0; width: 100vw;
-    z-index: 20;
-    box-shadow: 0 2px 20px rgba(0,0,0,0.11);
-    padding: 16px 0;
-    gap: 0;
-    justify-content: flex-start;
-    align-items: flex-start;
-    max-width: 100vw;
-  }
-  .all-button.mobile-open { display: flex; }
-  .profil-block {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 2;
-    gap: 0;
-    white-space: nowrap;
-  }
-}
 
 /* ========== HEADER BUTTONS ========== */
 .all-button button, .header-btn {
@@ -1335,57 +1277,66 @@ body.price-popup-open { overflow: hidden; }
     -webkit-overflow-scrolling: touch;
   }
 
-.header2 {
-  position: fixed !important;
-  top: 0; left: 0; right: 0;
-  height: 54px;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start; /* PAS center ! */
-  border-bottom: 1px solid #eee;
-  padding: 0;
-  z-index: 1100;
-}
-
-.burger {
-  position: relative;
-  margin-left: 16px; /* Ajuste ici si tu veux rapprocher/éloigner */
-  width: 38px;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 2;
-}
-
-.logo {
-  position: absolute;
-  left: 60%;   /* Augmente cette valeur pour le pousser à droite */
-  top: 13px ;      /* Diminue cette valeur pour le remonter */
-  transform: translateX(-50%);
-  height: 34px !important;
-  width: auto !important;
-  margin: 0 !important;
-  display: block !important;
-  z-index: 1;
-  right: auto !important;
-  pointer-events: auto;
-}
-
-.profil-block {
-  margin-right: 18px;
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  z-index: 2;
-}
-
-
-  .all-button {
-    display: none !important;
+  .header2 {
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background-color: white;
+    padding: 0 8px;
+    z-index: 10;
+    border-bottom: 1px solid #ddd;
   }
+  .burger {
+    flex: none;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    width: 36px;
+    height: 36px;
+    margin-right: 0;
+    cursor: pointer;
+  }
+  .burger span {
+    height: 4px;
+    width: 25px;
+    background: #ff9900;
+    margin: 3.2px 0;
+    border-radius: 5px;
+    display: block;
+    transition: 0.2s;
+  }
+  .header-logo-center {
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 0;
+  }
+  .logo {
+    height: 34px;
+    width: auto;
+    margin: 0;
+    display: block;
+    max-width: 120px;
+  }
+  .profil-block {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 0;
+    margin-left: 0;
+    white-space: nowrap;
+  }
+  .all-button { display: none; }
+
+
+
+
 
   /* MENU BURGER ouvert DESSOUS le header2 (fixed) */
   .burger-menu {
@@ -1428,7 +1379,7 @@ body.price-popup-open { overflow: hidden; }
     width: 100vw !important;
     max-width: 100vw !important;
     min-width: 0 !important;
-    height: 54px;
+    height: 60px;
     background: #fff;
     padding: 0 !important; /* Correction ici */
     z-index: 1098;
@@ -1467,7 +1418,7 @@ body.price-popup-open { overflow: hidden; }
     align-items: center;
     gap: 8px;
     border-bottom: 1px solid #ececec;
-    height: 46px;
+    height: 60px;
     overflow-x: auto;
     box-sizing: border-box;
     transition: top 0.2s;
@@ -1599,6 +1550,7 @@ body.price-popup-open { overflow: hidden; }
     overflow-y: auto !important;
     padding-right: 15px !important;
     padding-left: 15px !important;
+    
   }
 
   .slider-main,
@@ -1610,6 +1562,7 @@ body.price-popup-open { overflow: hidden; }
     padding-right: 16px !important;
     width: 100% !important;
     box-sizing: border-box;
+  
   }
   .slider-labels > span:first-child,
   .slider-labels .slider-min-label {
@@ -1620,6 +1573,7 @@ body.price-popup-open { overflow: hidden; }
     left: 0;
     position: relative;
     box-sizing: border-box;
+        margin-bottom: 60px;
   }
   .slider-labels > span:last-child,
   .slider-labels .slider-max-label {
@@ -1630,7 +1584,14 @@ body.price-popup-open { overflow: hidden; }
     right: 0;
     position: relative;
     box-sizing: border-box;
+    margin-bottom: 60px;
   }
+
+.price-inputs{
+  margin-top: 10px;
+  margin-bottom: 3px;
+}
+
   .more-filter-inner {
     position: fixed;
     left: 50% !important;
@@ -1650,7 +1611,7 @@ body.price-popup-open { overflow: hidden; }
     z-index: 11060 !important;
   }
   .more-filter-header {
-    position: sticky;
+    position: relative;
     top: 0;
     background: #fff;
     z-index: 1;
@@ -1714,7 +1675,7 @@ body.price-popup-open { overflow: hidden; }
   box-shadow: 0 0 0 2px #6b42a033;
 }
 
+  .chatboat-banner {
+  margin-top: 190px;
+  }
 }
-
-
-
