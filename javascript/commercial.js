@@ -319,50 +319,80 @@ function displayProperties(propsArray, page) {
     container.appendChild(card);
 
     // Carousel logic
-    const carousel = card.querySelector(".carousel");
-    const imgs = carousel.querySelectorAll("img");
-    let currentIndex = 0;
+  const carousel = card.querySelector(".carousel");
+const imgs = carousel.querySelectorAll("img");
+let currentIndex = 0;
 
-    // Affichage desktop : flèches visibles et fonctionnelles
-    const prevBtn = carousel.querySelector('.prev');
-    const nextBtn = carousel.querySelector('.next');
-    if (window.innerWidth >= 700) {
-      prevBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        imgs[currentIndex].classList.remove("active");
-        currentIndex = (currentIndex - 1 + imgs.length) % imgs.length;
-        imgs[currentIndex].classList.add("active");
-      });
-      nextBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        imgs[currentIndex].classList.remove("active");
+// Génère les dots sous les images
+const dotsContainer = document.createElement('div');
+dotsContainer.className = "carousel-dots";
+for (let i = 0; i < imgs.length; i++) {
+  const dot = document.createElement("div");
+  dot.className = "carousel-dot" + (i === 0 ? " active" : "");
+  dot.addEventListener('click', (e) => {
+    e.stopPropagation();
+    imgs[currentIndex].classList.remove("active");
+    dotsContainer.children[currentIndex].classList.remove("active");
+    currentIndex = i;
+    imgs[currentIndex].classList.add("active");
+    dotsContainer.children[currentIndex].classList.add("active");
+  });
+  dotsContainer.appendChild(dot);
+}
+carousel.appendChild(dotsContainer);
+
+function updateDots() {
+  [...dotsContainer.children].forEach((dot, i) => {
+    dot.classList.toggle('active', i === currentIndex);
+  });
+}
+
+// Affichage desktop : flèches visibles et fonctionnelles
+const prevBtn = carousel.querySelector('.prev');
+const nextBtn = carousel.querySelector('.next');
+if (window.innerWidth >= 700) {
+  prevBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    imgs[currentIndex].classList.remove("active");
+    currentIndex = (currentIndex - 1 + imgs.length) % imgs.length;
+    imgs[currentIndex].classList.add("active");
+    updateDots();
+  });
+  nextBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    imgs[currentIndex].classList.remove("active");
+    currentIndex = (currentIndex + 1) % imgs.length;
+    imgs[currentIndex].classList.add("active");
+    updateDots();
+  });
+} else {
+  // Mobile : flèches cachées + swipe tactile
+  if (prevBtn) prevBtn.style.display = "none";
+  if (nextBtn) nextBtn.style.display = "none";
+  let startX = null;
+  carousel.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX;
+  });
+  carousel.addEventListener('touchend', (e) => {
+    if (startX === null) return;
+    let endX = e.changedTouches[0].clientX;
+    let dx = endX - startX;
+    if (Math.abs(dx) > 35) { // Seuil swipe
+      imgs[currentIndex].classList.remove("active");
+      dotsContainer.children[currentIndex].classList.remove("active");
+      if (dx < 0) { // swipe gauche : image suivante
         currentIndex = (currentIndex + 1) % imgs.length;
-        imgs[currentIndex].classList.add("active");
-      });
-    } else {
-      // Mobile : flèches cachées + swipe tactile
-      if (prevBtn) prevBtn.style.display = "none";
-      if (nextBtn) nextBtn.style.display = "none";
-      let startX = null;
-      carousel.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-      });
-      carousel.addEventListener('touchend', (e) => {
-        if (startX === null) return;
-        let endX = e.changedTouches[0].clientX;
-        let dx = endX - startX;
-        if (Math.abs(dx) > 35) { // Seuil swipe
-          imgs[currentIndex].classList.remove("active");
-          if (dx < 0) { // swipe gauche : image suivante
-            currentIndex = (currentIndex + 1) % imgs.length;
-          } else { // swipe droite : image précédente
-            currentIndex = (currentIndex - 1 + imgs.length) % imgs.length;
-          }
-          imgs[currentIndex].classList.add("active");
-        }
-        startX = null;
-      });
+      } else { // swipe droite : image précédente
+        currentIndex = (currentIndex - 1 + imgs.length) % imgs.length;
+      }
+      imgs[currentIndex].classList.add("active");
+      dotsContainer.children[currentIndex].classList.add("active");
     }
+    startX = null;
+  });
+}
+
+    
   });
   displayPropertyTypesSummary(propsArray, document.getElementById("propertyType").value);
   updatePagination(pages, page, propsArray);
