@@ -1370,8 +1370,8 @@ body.price-popup-open { overflow: hidden; }
 
 .logo {
   position: absolute;
-  left: 55%;   /* Augmente cette valeur pour le pousser à droite */
-  top: 0 ;      /* Diminue cette valeur pour le remonter */
+  left: 140px;   /* Augmente cette valeur pour le pousser à droite */
+  top: -7px ;      /* Diminue cette valeur pour le remonter */
   transform: translateX(-50%);
   height: 34px !important;
   width: auto !important;
