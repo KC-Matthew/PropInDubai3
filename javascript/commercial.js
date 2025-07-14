@@ -29,62 +29,65 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- MENU MOBILE BURGER (unique, pas de doublon) ---
   const burger = document.getElementById('burgerMenu');
-let mobileMenu = null;
+  let mobileMenu = null;
 
-burger?.addEventListener('click', function (e) {
-  e.stopPropagation();
-  if (mobileMenu && document.body.contains(mobileMenu)) {
-    // Déjà ouvert → ferme !
-    mobileMenu.remove();
-    mobileMenu = null;
-    return;
-  }
-  const allButton = document.querySelector('.all-button');
-  mobileMenu = document.createElement('nav');
-  mobileMenu.className = 'burger-menu';
-  mobileMenu.innerHTML = allButton?.innerHTML || "";
-  Object.assign(mobileMenu.style, {
-    position: 'fixed',
-    top: '54px',
-    left: 0, right: 0,
-    zIndex: 2000,
-    width: '100vw',
-    background: '#fff',
-    boxShadow: '0 4px 24px 2px rgba(0,0,0,0.11)',
-    padding: '14px 0 18px 0',
-    display: 'flex',
-    flexDirection: 'column',
-    overflowY: 'auto',
-    animation: 'popupAppear .22s cubic-bezier(.61,.01,.74,1.05)'
-  });
-  document.body.appendChild(mobileMenu);
-
-  function closeMenu() {
-    if (mobileMenu) {
+  burger?.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (mobileMenu && document.body.contains(mobileMenu)) {
+      // Déjà ouvert → ferme !
       mobileMenu.remove();
       mobileMenu = null;
+      document.body.style.overflow = ''; // réactive le scroll
+      return;
     }
-  }
-  // Ferme au clic dehors
-  setTimeout(() => {
-    document.addEventListener('click', function escBurger(ev) {
-      if (ev.target === mobileMenu) {
+    const allButton = document.querySelector('.all-button');
+    mobileMenu = document.createElement('nav');
+    mobileMenu.className = 'burger-menu';
+    mobileMenu.innerHTML = allButton?.innerHTML || "";
+    Object.assign(mobileMenu.style, {
+      position: 'fixed',
+      top: '54px',
+      left: 0, right: 0,
+      zIndex: 2200,
+      width: '100vw',
+      background: '#fff',
+      boxShadow: '0 4px 24px 2px rgba(0,0,0,0.11)',
+      padding: '14px 0 18px 0',
+      display: 'flex',
+      flexDirection: 'column',
+      overflowY: 'auto',
+      animation: 'popupAppear .22s cubic-bezier(.61,.01,.74,1.05)'
+    });
+    document.body.appendChild(mobileMenu);
+
+    // Bloque le scroll du body derrière le menu mobile
+    document.body.style.overflow = 'hidden';
+
+    function closeMenu() {
+      if (mobileMenu) {
+        mobileMenu.remove();
+        mobileMenu = null;
+        document.body.style.overflow = '';
+      }
+    }
+    // Ferme au clic dehors
+    setTimeout(() => {
+      document.addEventListener('click', function escBurger(ev) {
+        // On ferme aussi si on clique ailleurs sur la page
+        if (mobileMenu && !mobileMenu.contains(ev.target) && ev.target !== burger) {
+          closeMenu();
+          document.removeEventListener('click', escBurger);
+        }
+      });
+    }, 10);
+    // Ferme ESC
+    document.addEventListener('keydown', function escClose(ev) {
+      if (ev.key === 'Escape' && mobileMenu && document.body.contains(mobileMenu)) {
         closeMenu();
-        document.removeEventListener('click', escBurger);
+        document.removeEventListener('keydown', escClose);
       }
     });
-  }, 10);
-  // Ferme ESC
-  document.addEventListener('keydown', function escClose(ev) {
-    if (ev.key === 'Escape' && mobileMenu && document.body.contains(mobileMenu)) {
-      closeMenu();
-      document.removeEventListener('keydown', escClose);
-    }
   });
-});
-
-
-
 
   // --- Responsive : affiche/cacher boutons header selon largeur
   function responsiveHeader() {
@@ -94,6 +97,7 @@ burger?.addEventListener('click', function (e) {
     // Ferme menu si on repasse en desktop
     if (!isMobile && mobileMenu && document.body.contains(mobileMenu)) {
       mobileMenu.remove();
+      mobileMenu = null;
       document.body.style.overflow = '';
     }
   }
@@ -212,7 +216,6 @@ burger?.addEventListener('click', function (e) {
   }
 
   autoPrefillFromParams();
-
 });
 
 
