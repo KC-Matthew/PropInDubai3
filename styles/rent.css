@@ -1158,22 +1158,19 @@ body.price-popup-open { overflow: hidden; }
 #moreFilterPopup.active { display: flex; }
 
 .more-filter-inner {
-  background: #fff;
-  border-radius: 22px;
-  box-shadow: 0 8px 34px rgba(240,90,0,0.10), 0 2px 8px #ffd6b440;
+  /* CENTRAGE VERTICAL + HORIZONTAL TOUJOURS */
+  position: relative; /* PAS fixed ici ! */
+  left: 0;
+  top: 0;
+  transform: none;
+  margin: 0 auto;
+  /* largeur et max-width = centre naturel */
   width: min(98vw, 540px);
   min-width: 320px;
   max-width: 96vw;
-  padding: 17px 19px 15px 19px;
-  text-align: left;
-  /* PAS de position ici ! */
-  border: 1.3px solid #ffe7cb;
-  z-index: 11060;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-sizing: border-box;
+  /* reste inchangé */
+  /* ... */
 }
-
 
 
 
@@ -1232,7 +1229,6 @@ body.price-popup-open { overflow: hidden; }
 }
 
 /* 3. Chaque label est aligné proprement */
-
 .amenities-list label {
   font-weight: 500;
   font-size: 1em;
@@ -1242,13 +1238,10 @@ body.price-popup-open { overflow: hidden; }
   gap: 7px;
   cursor: pointer;
   user-select: none;
-  white-space: normal;   /* <-- Permet le retour à la ligne ! */
-  overflow: visible;     /* <-- Permet l’affichage du texte */
-  text-overflow: unset;
-  word-break: break-word; /* Le texte va à la ligne si besoin */
-  min-width: 0;          /* Très important pour que grid fonctionne */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-
 
 
 
@@ -1625,24 +1618,24 @@ body.price-popup-open { overflow: hidden; }
   margin-bottom: 3px;
 }
 
-.more-filter-inner {
-  background: #fff;
-  border-radius: 22px;
-  box-shadow: 0 8px 34px rgba(240,90,0,0.10), 0 2px 8px #ffd6b440;
-  width: min(98vw, 540px);
-  min-width: 320px;
-  max-width: 96vw;
-  padding: 17px 19px 15px 19px;
-  text-align: left;
-  /* SUPPRIME position: relative/left/top/transform */
-  border: 1.3px solid #ffe7cb;
-  z-index: 11060;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-sizing: border-box;
-}
-
-
+  .more-filter-inner {
+    position: fixed;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100vw - 30px) !important;
+    min-width: 0 !important;
+    max-width: 420px !important;
+    border-radius: 14px !important;
+    top: 170px !important;
+    max-height: 55vh !important;
+    height: auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box;
+    padding: 18px 12px 18px 12px !important;
+    background: #fff;
+    z-index: 11060 !important;
+  }
   .more-filter-header {
     position: relative;
     top: 0;
@@ -1711,14 +1704,5 @@ body.price-popup-open { overflow: hidden; }
   .chatboat-banner {
   margin-top: 190px;
   }
-
-
-  .amenities-list {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-
-  .amenities-list {
-    grid-template-columns: 1fr !important;
-  }
 }
+ 
