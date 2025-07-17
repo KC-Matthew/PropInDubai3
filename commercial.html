@@ -14,6 +14,7 @@
 <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.js"></script>
 
 </head>
+
 <body>
 
 <div class="header2">
@@ -33,9 +34,9 @@
     <a href="rent.html" class="header-btn">Rent</a>
     <a href="commercial.html" class="header-btn">Commercial</a>
     <a href="off-plan-search.html" class="header-btn">Off Plan</a>
-    <a href="findagents.html" class="header-btn">Find agents</a>
+    <a href="findagent.html" class="header-btn">Find agents</a>
   </div>
-  <div class="profil-block">
+  <div class="profil-block"> 
     <a href="login.html" class="login-button header-btn">Login</a>
   </div>
 </div>
@@ -50,15 +51,33 @@
 
   <!-- Ligne filtres scrollable mobile -->
   <div class="filter-row-scroll">
-    <select id="propertyType">
-      <option>Property Type</option>
-      <option>Apartment</option>
-      <option>Villa</option>
-      <option>Townhouse</option>
-      <option>Penthouse</option>
-      <option>Compound</option>
-      <option>Duplex</option>
-    </select>
+
+<select id="commercialType">
+  <option>Commercial Rent</option>
+  <option>Commercial Buy</option>
+</select>
+
+
+  <select id="propertyType">
+  <option>Property Type</option>
+  <option>Office</option>
+  <option>Retail</option>
+  <option>Warehouse</option>
+  <option>Shop</option>
+  <option>Showroom</option>
+  <option>Villa</option>
+  <!-- Ajoute ici les types commerciaux qui t'intéressent -->
+</select>
+
+<select id="licenseType">
+  <option>Licence</option>
+  <option>DED</option>
+  <option>DMCC</option>
+  <option>Tourism</option>
+  <!-- Ajoute les autres types de licence ici -->
+</select>
+
+
     <select id="bedrooms">
       <option>Bedrooms</option>
       <option>1+</option>
@@ -96,6 +115,8 @@
   <!-- POPUP du filtre prix -->
   
 </div>
+
+
 <div id="priceFilterPopup">
     <div class="price-popup-inner">
       <div class="price-popup-header">
@@ -133,24 +154,9 @@
     </div>
 
 <div class="filter-section amenities-section">
-  <label>Amenities</label>
+  <label></label>
   <div class="amenities-list">
-    <label><input type="checkbox" value="Central A/C"> Central A/C</label>
-    <label><input type="checkbox" value="Maids Room"> Maids Room</label>
-    <label><input type="checkbox" value="Balcony"> Balcony</label>
-    <label><input type="checkbox" value="Shared Pool"> Shared Pool</label>
-    <label><input type="checkbox" value="Shared Gym"> Shared Gym</label>
-    <label><input type="checkbox" value="Concierge Service"> Concierge Service</label>
-    <label><input type="checkbox" value="Covered Parking"> Covered Parking</label>
-    <label><input type="checkbox" value="View of Water"> View of Water</label>
-    <label><input type="checkbox" value="View of Landmark"> View of Landmark</label>
-    <label><input type="checkbox" value="Private Garden"> Private Garden</label>
-    <label><input type="checkbox" value="Pets Allowed"> Pets Allowed</label>
-    <label><input type="checkbox" value="Private Pool"> Private Pool</label>
-    <label><input type="checkbox" value="Built in Wardrobes"> Built in Wardrobes</label>
-    <label><input type="checkbox" value="Built in Kitchen Appliances"> Built in Kitchen Appliances</label>
-    <label><input type="checkbox" value="Barbecue Area"> Barbecue Area</label>
-    <!-- Ajoute ici les autres amenities que tu veux -->
+  
   </div>
 </div>
 
@@ -179,7 +185,7 @@
 
 
 <div class="buy-hook">
-  <span>“Find the best commercial properties for sale and rent in Dubai. Invest or launch your business in the right location!”</span>
+  <span>““Find the best commercial properties for sale and rent in Dubai. Invest or launch your business in the right location!”</span>
 </div>
 
 <div class="main-content-wrapper">
@@ -187,7 +193,7 @@
     <div class="property-summary-wrapper">
       <a href="areaforyou.html" target="_blank" class="chatboat-banner">
         <i class="fa-solid fa-robot"></i>
-        Try our AI assistant to help you find the best office for you!
+    Try our AI assistant to help you find the best office for you!
       </a>
       <div class="property-count" id="propertyCount"></div>
       <div class="property-types-summary" id="propertyTypesSummary"></div>
