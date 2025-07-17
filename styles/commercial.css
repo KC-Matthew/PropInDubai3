@@ -147,7 +147,6 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.03);
   border-bottom: 1px solid #e6e6e6;
   position: sticky;
-  top: 60px;
   z-index: 9;
   display: flex;
   flex-direction: row;
@@ -169,7 +168,7 @@
 
 .filter-bar {
   position: sticky;
-  top: 60px; /* ou 0 selon ton header */
+  top: 61px; /* ou 0 selon ton header */
   z-index: 1001;
   width: 100%;
   background: #fff;
@@ -1152,7 +1151,6 @@ body.price-popup-open { overflow: hidden; }
 
 
 
-
 #moreFilterPopup {
   display: none;
   position: fixed;
@@ -1588,6 +1586,10 @@ body.price-popup-open { overflow: hidden; }
     touch-action: pan-x;
     overscroll-behavior-y: contain;
   }
+
+  
+
+
   .filter-row-scroll::-webkit-scrollbar { display: none; }
   .filter-row-scroll select,
   .filter-row-scroll button {
@@ -1990,3 +1992,16 @@ body.price-popup-open { overflow: hidden; }
 }
 
 
+.search-autocomplete-wrapper input,
+.filter-row-scroll > * {
+  border-radius: 32px !important;
+  height: 48px !important;
+}
+
+/* Espace seulement entre les deux */
+.search-autocomplete-wrapper {
+  margin-right: 0 !important; /* Aucun margin ici */
+}
+.filter-row-scroll > *:first-child {
+  margin-left: 14px !important; /* Espace du bouton à droite de la searchbar */
+}
