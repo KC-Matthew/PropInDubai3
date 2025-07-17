@@ -1932,7 +1932,7 @@ body.price-popup-open { overflow: hidden; }
 }
 
 .filter-row-scroll {
-  gap: 7px !important;
+  gap: 16px !important;
 }
 
 
