@@ -415,7 +415,6 @@ if (window.innerWidth >= 700) {
 
 
 
-
 function updatePagination(pages, page, propsArray) {
   const paginationDiv = document.getElementById("pagination");
   paginationDiv.innerHTML = '';
@@ -424,22 +423,42 @@ function updatePagination(pages, page, propsArray) {
   prevBtn.innerHTML = '&laquo;';
   prevBtn.className = 'page-btn';
   prevBtn.disabled = page === 1;
-  prevBtn.addEventListener('click', () => { displayProperties(propsArray, page - 1); });
+  prevBtn.addEventListener('click', () => {
+    scrollToListingTop();
+    displayProperties(propsArray, page - 1);
+  });
   paginationDiv.appendChild(prevBtn);
   for (let i = 1; i <= pages; i++) {
     const btn = document.createElement('button');
     btn.className = 'page-btn' + (i === page ? ' active' : '');
     btn.textContent = fmt(i);
-    btn.addEventListener('click', () => { displayProperties(propsArray, i); });
+    btn.addEventListener('click', () => {
+      scrollToListingTop();
+      displayProperties(propsArray, i);
+    });
     paginationDiv.appendChild(btn);
   }
   const nextBtn = document.createElement('button');
   nextBtn.innerHTML = '&raquo;';
   nextBtn.className = 'page-btn';
   nextBtn.disabled = page === pages;
-  nextBtn.addEventListener('click', () => { displayProperties(propsArray, page + 1); });
+  nextBtn.addEventListener('click', () => {
+    scrollToListingTop();
+    displayProperties(propsArray, page + 1);
+  });
   paginationDiv.appendChild(nextBtn);
 }
+
+// Petite fonction qui scroll proprement au-dessus du listing (tu peux l’ajuster)
+function scrollToListingTop() {
+  // Met ici l’id de l’élément en haut du listing (ex: propertyCount ou propertyResults)
+  const topElem = document.getElementById("propertyCount") || document.getElementById("propertyResults");
+  if (topElem) {
+    topElem.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Si tu veux vraiment tout en haut : window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
 
 // --- Résumé types de biens (affichage au-dessus listings) ---
 function displayPropertyTypesSummary(propsArray, filterType) {
