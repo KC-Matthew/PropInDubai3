@@ -202,6 +202,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("propertyType").addEventListener("change", handleSearchOrFilter);
   document.getElementById("bedrooms").addEventListener("change", handleSearchOrFilter);
   document.getElementById("bathrooms").addEventListener("change", handleSearchOrFilter);
+  document.getElementById("commercialType").addEventListener("change", handleSearchOrFilter);
+  document.getElementById("licenseType").addEventListener("change", handleSearchOrFilter);
+
 
   // --- Scroll To Top BTN ---
   const scrollToTopBtn = document.getElementById("scrollToTopBtn");
@@ -238,19 +241,26 @@ function closePricePopup() {
 
 // --- DUMMY DATA À VIRER/REMPLACER PAR TES DATA BDD ---
 function getDummyProperties() {
+  const titles = ["Office", "Retail", "Warehouse", "Shop", "Showroom", "Villa"];
+  const commercialTypes = ["Commercial Buy", "Commercial Rent"];
+  const licenseTypes = ["DED", "DMCC", "Tourism"];
   let arr = [];
   for (let i = 0; i < 47; i++) {
     arr.push({
-      title: ["Apartment", "Villa", "Townhouse", "Penthouse"][i % 4],
-      price: `${2_000_000 + i * 120_000} AED`,
-      location: ["Downtown Dubai", "Palm Jumeirah", "Dubai South", "JVC"][i % 4],
-      bedrooms: 2 + (i % 5),
-      bathrooms: 1 + (i % 4),
-      size: 1100 + (i * 13) % 900,
-      amenities: ["Central A/C", "Balcony", "Shared Pool", "View of Water"],
+      title: titles[i % titles.length],
+      price: `${100_000 + i * 20_000} AED`,
+      location: ["Business Bay", "JLT", "Deira", "Al Quoz", "Dubai Silicon Oasis"][i % 5],
+      bedrooms: 0, // Les bureaux n’ont pas forcément de chambres mais laisse-le pour compatibilité
+      bathrooms: 1 + (i % 3),
+      size: 800 + (i * 33) % 1800,
+      commercialType: commercialTypes[i % 2],
+      propertyType: titles[i % titles.length],
+      licenseType: licenseTypes[i % licenseTypes.length],
+      furnished: i % 3 === 0,
+      amenities: ["Central A/C", "Fitted", "Parking", "Pantry", "Elevator"].filter((_, idx) => idx <= i % 4),
       images: [
-        "styles/photo/dubai-map.jpg",
-        "styles/photo/fond.jpg"
+        "styles/photo/office1.jpg",
+        "styles/photo/office2.jpg"
       ],
       agent: {
         name: ["John Doe", "Jane Smith", "Omar Khalid", "Sara Hamed"][i % 4],
@@ -260,6 +270,7 @@ function getDummyProperties() {
   }
   return arr;
 }
+
 
 // --- AFFICHAGE DES PROPRIÉTÉS + PAGINATION ---
 function paginate(arr, page) {
@@ -463,71 +474,79 @@ function displayPropertyTypesSummary(propsArray, filterType) {
 // --- FILTRE (recherche + sliders + autres selects) ---
 function handleSearchOrFilter() {
   let arr = properties.slice();
+
+  // --- 1. Récupération des filtres principaux ---
   const search = document.getElementById("search").value.trim().toLowerCase();
+  const commercialType = document.getElementById("commercialType").value; // "Commercial Rent" ou "Commercial Buy"
   const propertyType = document.getElementById("propertyType").value;
+  const licenseType = document.getElementById("licenseType").value;
   const bedrooms = document.getElementById("bedrooms").value;
   const bathrooms = document.getElementById("bathrooms").value;
   const priceMin = parseInt(document.getElementById('priceMin').value) || 0;
   const priceMax = parseInt(document.getElementById('priceMax').value) || Infinity;
   const keywordInput = document.getElementById('keywordInput');
   const keywords = keywordInput ? keywordInput.value.trim().toLowerCase().split(',').map(k => k.trim()).filter(Boolean) : [];
-  
-  // --- Ajout filtres avancés More Filters ---
-  // Area filters
+
+  // --- 2. Filtres avancés ---
   const minArea = parseInt(document.getElementById('minAreaInput')?.value) || 0;
   const maxArea = parseInt(document.getElementById('maxAreaInput')?.value) || Infinity;
-  // Furnished filter
   const isFurnished = document.getElementById('furnishingFilter')?.checked;
-  
-  // Récupérer les amenities sélectionnés
+
+  // --- 3. Amenities cochées ---
   const checkedAmenities = Array.from(document.querySelectorAll('.amenities-list input[type="checkbox"]:checked')).map(cb => cb.value);
 
-  // -- Filtre par amenities --
-  if (checkedAmenities.length) {
-    arr = arr.filter(p => {
-      if (!p.amenities) return false;
-      // Il faut que chaque amenity choisie soit présente dans la propriété (tous cochés)
-      return checkedAmenities.every(a => p.amenities.includes(a));
-    });
+  // --- 4. Filtres spécifiques commerciaux ---
+  // Commercial Rent / Buy
+  if (commercialType === "Commercial Rent" || commercialType === "Commercial Buy") {
+    arr = arr.filter(p => p.commercialType === commercialType);
+  }
+  // Licence (DED, DMCC, etc)
+  if (licenseType && licenseType !== "Licence") {
+    arr = arr.filter(p => p.licenseType === licenseType);
   }
 
-  // -- Filtre par mots-clés (déjà dans ton code) --
+  // --- 5. Autres Filtres Généraux ---
+  // Amenities (toutes cochées doivent être présentes)
+  if (checkedAmenities.length) {
+    arr = arr.filter(p => (p.amenities || []).length && checkedAmenities.every(a => p.amenities.includes(a)));
+  }
+
+  // Mots-clés
   if (keywords.length > 0) {
     arr = arr.filter(p => {
       const allText = [
-        p.title, p.location, (p.description || ''), 
-        ...(p.amenities || []) // si tu ajoutes un champ amenities (array)
+        p.title, p.location, (p.description || ''), ...(p.amenities || [])
       ].join(' ').toLowerCase();
       return keywords.every(k => allText.includes(k));
     });
   }
 
-  // -- Filtre recherche générale (search) --
+  // Recherche générale
   if (search) {
     arr = arr.filter(p =>
-      p.title.toLowerCase().includes(search) ||
-      p.location.toLowerCase().includes(search)
+      (p.title && p.title.toLowerCase().includes(search)) ||
+      (p.location && p.location.toLowerCase().includes(search))
     );
   }
 
-  // -- Filtre par type de propriété --
-  if (propertyType !== "Property Type") {
+  // Type de propriété
+  if (propertyType && propertyType !== "Property Type") {
     arr = arr.filter(p => p.title === propertyType);
   }
 
-  // -- Filtre par nombre de chambres --
-  if (bedrooms !== "Bedrooms") {
+  // Chambres
+  if (bedrooms && bedrooms !== "Bedrooms") {
     const min = parseInt(bedrooms);
-    arr = arr.filter(p => p.bedrooms >= min);
+    arr = arr.filter(p => (p.bedrooms || 0) >= min);
   }
 
-  // -- Filtre par nombre de salles de bains --
-  if (bathrooms !== "Bathrooms") {
+  // Salles de bains
+  if (bathrooms && bathrooms !== "Bathrooms") {
     const min = parseInt(bathrooms);
-    arr = arr.filter(p => p.bathrooms >= min);
+    arr = arr.filter(p => (p.bathrooms || 0) >= min);
   }
 
-  // -- Filtre par surface (area) --
+  // Surface min/max
   if (minArea > 0) {
     arr = arr.filter(p => (p.size || 0) >= minArea);
   }
@@ -535,21 +554,25 @@ function handleSearchOrFilter() {
     arr = arr.filter(p => (p.size || 0) <= maxArea);
   }
 
-  // -- Filtre furnished --
+  // Meublé
   if (isFurnished) {
     arr = arr.filter(p => p.furnished === true);
   }
 
-  // -- Filtre par prix --
+  // Prix min/max
   arr = arr.filter(p => {
     const price = parseInt(String(p.price).replace(/[^\d]/g, ""));
     return price >= priceMin && price <= priceMax;
   });
 
+  // --- 6. Affichage ---
   filteredProperties = arr;
   displayProperties(filteredProperties, 1);
-  updatePriceSliderAndHistogram(properties); // <= TOUJOURS TOUTES LES PROPRIÉTÉS
+  updatePriceSliderAndHistogram(properties); // Toujours sur la liste complète
 }
+
+
+
 
 function handleClearFilters() {
   // 1. Réinitialise la filter-bar
