@@ -1,3 +1,15 @@
+
+:root {
+  --filter-bg: #f0f4fa; /* bleu pâle extrait du premier screenshot */
+  --filter-active-bg: #e0ebff; /* optionnel : bleu plus marqué pour bouton actif */
+  --filter-text: #232b38; /* couleur texte principale */
+  --filter-border: transparent; /* pas de bordure */
+  --filter-radius: 1.6rem; /* coins très arrondis */
+  --filter-padding: 0.35em 1.1em; /* padding compact et élégant */
+  --filter-font: 'Inter', 'Segoe UI', Arial, sans-serif; /* police très minimaliste */
+}
+
+
 /* ========== HEADER2 (GLOBAL) ========== */
 .header2 {
   height: 60px;
@@ -1900,4 +1912,25 @@ body.price-popup-open { overflow: hidden; }
 /* Pour éviter le bug border */
 .search-autocomplete-wrapper input:focus, .filter-row-scroll > *:first-child:focus {
   z-index: 10;
+}
+
+.filters-container {
+  display: flex;
+  align-items: center;
+  gap: 20px; /* Ajuste la valeur pour avoir le même espacement que sur la 3e image */
+  /* overflow-x: auto;  <-- si tu veux le scroll horizontal sur mobile ou petit écran */
+  /* padding-bottom: 10px; <-- optionnel si besoin */
+  background: transparent; /* ou la couleur de fond, si nécessaire */
+}
+
+
+
+.filters-container {
+  display: flex;
+  align-items: center;
+  gap: 20px; /* adapte la valeur à ton besoin visuel */
+}
+
+.filter-row-scroll {
+  gap: 7px !important;
 }
