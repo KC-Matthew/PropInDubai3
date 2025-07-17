@@ -1535,7 +1535,7 @@ body.price-popup-open { overflow: hidden; }
   }
   .filter-bar {
     position: fixed !important;
-    top: 94px !important; /* 54(header) + 54(search) */
+    top: 98px !important; /* 54(header) + 54(search) */
     left: 0; right: 0;
     width: 100vw !important;
     min-width: 0 !important;
@@ -1546,7 +1546,7 @@ body.price-popup-open { overflow: hidden; }
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     border-bottom: 1px solid #ececec;
     height: 60px;
     overflow-x: auto;
@@ -1989,24 +1989,4 @@ body.price-popup-open { overflow: hidden; }
   }
 }
 
-@media (max-width: 700px) {
-  .filter-row-scroll,
-  .filter-bar {
-    gap: 0 !important;     /* Supprime l'espace entre boutons */
-  }
-  .filter-row-scroll > *,
-  .filter-bar > * {
-    margin: 0 !important;   /* Annule tout margin sur enfants */
-    border-right: none !important; /* Pas de séparation */
-  }
-  /* Pour éviter qu'il y ait un petit espace à cause du border-radius,
-     tu peux aussi affiner le border-radius (optionnel) : */
-  .filter-row-scroll button,
-  .filter-row-scroll select,
-  .filter-bar button,
-  .filter-bar select {
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    border-radius: 25px !important;  /* ou 20px pour effet + carré */
-  }
-}
+
