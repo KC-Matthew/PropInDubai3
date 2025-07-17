@@ -910,7 +910,7 @@ body.price-popup-open { overflow: hidden; }
 
 
 #search:focus {
-  border: 1.5px solid #ff902b;
+  border: 1.5px solid #e84242;
 }
 .autocomplete-suggestions {
   position: absolute;
