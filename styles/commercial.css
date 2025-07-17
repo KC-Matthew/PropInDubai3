@@ -1868,17 +1868,17 @@ body.price-popup-open { overflow: hidden; }
 /* Search arrondi à gauche, bordure droite = none */
 .search-autocomplete-wrapper input, #search {
   border-radius: 32px 0 0 32px !important;
-  border-right: none !important;
+  
   height: 48px !important;
   background: #fff !important;
-  border: 2px solid #e84242 !important;
+  border: 2px solid #e5e5e5 !important;
   font-size: 1.14em;
 }
 
 /* Premier bouton : arrondi à droite, border-left none, chevauche la searchbar */
 .filter-row-scroll > *:first-child {
-  border-radius: 0 32px 32px 0 !important;
-  border-left: none !important;
+  border-radius: 32px 32px 32px 32px !important;
+  
   margin-left: -2px !important;
   height: 48px !important;
   border: 2px solid #e84242 !important;
