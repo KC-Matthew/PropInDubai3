@@ -1816,7 +1816,7 @@ body.price-popup-open { overflow: hidden; }
 /* Fait en sorte que chaque filtre garde toute sa largeur sur desktop et mobile */
 .filter-row-scroll select,
 .filter-row-scroll button {
-  min-width: 110px !important;   /* Ajuste la valeur ici si besoin */
+  min-width: 90px !important;   /* Ajuste la valeur ici si besoin */
   width: auto !important;
   max-width: none !important;
   white-space: nowrap !important;
@@ -1834,7 +1834,6 @@ body.price-popup-open { overflow: hidden; }
 .filter-row-scroll #openPriceFilter,
 .filter-row-scroll #searchBtn,
 .filter-row-scroll #clearBtn {
-  min-width: 140px !important;
   width: auto !important;
   max-width: none !important;
   flex-shrink: 0 !important;
@@ -1843,9 +1842,7 @@ body.price-popup-open { overflow: hidden; }
 
 /* La row de filtres prend toute la largeur, scrolle si besoin */
 .filter-row-scroll {
-  width: 100vw !important;
-  min-width: 0 !important;
-  max-width: 100vw !important;
+  width: auto !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
   white-space: nowrap !important;
@@ -1856,8 +1853,7 @@ body.price-popup-open { overflow: hidden; }
 
 .filter-bar,
 .filter-bar-inner {
-  width: 100vw !important;
-  min-width: 100vw !important;
+  
   max-width: 100vw !important;
   margin: 0 !important;
   border-radius: 0 !important;
@@ -2002,6 +1998,7 @@ body.price-popup-open { overflow: hidden; }
 /* Espace seulement entre les deux */
 .search-autocomplete-wrapper {
   margin-right: 0 !important; /* Aucun margin ici */
+
 }
 .filter-row-scroll > *:first-child {
   margin-left: 14px !important; /* Espace du bouton à droite de la searchbar */
@@ -2013,24 +2010,27 @@ body.price-popup-open { overflow: hidden; }
 .filter-bar .active,
 #openMoreFilter,
 #openPriceFilter {
-    border-width: 1px !important;
+    border-width: 1.7px !important;
     border-color: #e84242 !important;
     box-sizing: border-box;
 }
 
 .filter-bar .btn.active {
-  border-width: 1px !important;
+  border-width: 1.7px !important;
   border-color: #e84242 !important;
+    font-weight: 580 !important;
 }
 
 .filter-bar select,
 .filter-bar button {
-  border-width: 1px !important;
+  border-width: 1.7px !important;
   border-style: solid !important;
   border-color: #e84242 !important;
   border-radius: 42px !important;
-  font-weight: 550 !important;
+  font-weight: 600!important;
   min-width: 160px;
   display: flex;
   align-items: center;
 }
+
+
