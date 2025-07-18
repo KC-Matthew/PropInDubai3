@@ -737,9 +737,26 @@ function applyPriceFilter() {
 
 // --- Open / close more filter popup (nouvelle version, scroll bloqué propre) ---
 document.getElementById("openMoreFilter").addEventListener("click", function(){
-  document.getElementById("moreFilterPopup").classList.add('active');
+  const popup = document.getElementById("moreFilterPopup");
+  const inner = popup.querySelector(".more-filter-inner");
+
+  popup.classList.add('active');
   document.body.classList.add('more-filters-open');
+  
+  // --- PATCH BUG MOBILE : reset styles ---
+  if(window.innerWidth < 700) {
+    // Enlève tout transform Y restant
+    inner.style.transform = "translateX(-50%)";
+    inner.style.top = "170px";
+    inner.style.left = "50%";
+  } else {
+    // Desktop : recentre bien
+    inner.style.transform = "translate(-50%, -50%)";
+    inner.style.top = "50%";
+    inner.style.left = "50%";
+  }
 });
+
 
 document.getElementById("closeMoreFilter").addEventListener("click", function(){
   document.getElementById("moreFilterPopup").classList.remove('active');
@@ -774,3 +791,47 @@ document.getElementById("applyMoreFiltersBtn").addEventListener("click", functio
   // --> Ajoute ici la logique pour filtrer tes propriétés avec ces valeurs
   handleSearchOrFilter(); // Si tu veux relancer le filtrage après changement
 });
+
+function updatePagination(pages, page, propsArray) {
+  const paginationDiv = document.getElementById("pagination");
+  paginationDiv.innerHTML = '';
+  if (pages <= 1) return;
+  const prevBtn = document.createElement('button');
+  prevBtn.innerHTML = '&laquo;';
+  prevBtn.className = 'page-btn';
+  prevBtn.disabled = page === 1;
+  prevBtn.addEventListener('click', () => {
+    scrollToListingTop();
+    displayProperties(propsArray, page - 1);
+  });
+  paginationDiv.appendChild(prevBtn);
+  for (let i = 1; i <= pages; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'page-btn' + (i === page ? ' active' : '');
+    btn.textContent = fmt(i);
+    btn.addEventListener('click', () => {
+      scrollToListingTop();
+      displayProperties(propsArray, i);
+    });
+    paginationDiv.appendChild(btn);
+  }
+  const nextBtn = document.createElement('button');
+  nextBtn.innerHTML = '&raquo;';
+  nextBtn.className = 'page-btn';
+  nextBtn.disabled = page === pages;
+  nextBtn.addEventListener('click', () => {
+    scrollToListingTop();
+    displayProperties(propsArray, page + 1);
+  });
+  paginationDiv.appendChild(nextBtn);
+}
+
+// Petite fonction qui scroll proprement au-dessus du listing (tu peux l’ajuster)
+function scrollToListingTop() {
+  // Met ici l’id de l’élément en haut du listing (ex: propertyCount ou propertyResults)
+  const topElem = document.getElementById("propertyCount") || document.getElementById("propertyResults");
+  if (topElem) {
+    topElem.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Si tu veux vraiment tout en haut : window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
