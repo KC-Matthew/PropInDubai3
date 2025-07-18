@@ -999,18 +999,42 @@ body.price-popup-open { overflow: hidden; }
 
 
 /* --- Searchbar harmonisée (copie/colle tout ça en bas de ton CSS) --- */
+.filter-bar {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  overflow-x: auto;
+  white-space: nowrap;
+  width: 100vw;
+  min-width: 100vw;
+}
+
+.filter-bar {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100vw;
+       /* <- important pour éviter le débordement */
+}
+.filter-bar > * {
+  flex-shrink: 1;       /* pas 0 sinon ça ne rapetisse jamais ! */
+  min-width: 0;
+}
+
 .search-autocomplete-wrapper {
   position: relative;
+  flex-shrink: 0;
+  min-width: 180px;    /* ou 120px si tu veux */
+  max-width: 350px;
+  width: 100%;         /* pour qu’elle rapetisse mais reste visible */
+  margin-right: 2px;
   display: flex;
   align-items: center;
-  height: 48px;           /* Même hauteur que filtres */
-  width: 270px;           /* Largeur desktop raisonnable */
-  min-width: 200px;
-  max-width: 320px;
-  margin-right: 4px;
-  z-index: 1101 !important;
-  flex-shrink: 0;
+  height: 48px;
 }
+
 
 #search {
   width: 100%;
@@ -1705,7 +1729,6 @@ body.price-popup-open { overflow: hidden; }
   margin-top: 190px;
   }
 }
-
 
 
 
