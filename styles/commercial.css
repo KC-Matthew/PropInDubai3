@@ -142,7 +142,6 @@
 
 .filter-bar {
   background: #fff;
-  padding: 12px 14px 12px 14px;  /* Moins de padding en haut/bas */
   margin-top: 30px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.03);
   border-bottom: 1px solid #e6e6e6;
@@ -175,11 +174,12 @@
   display: flex;
   align-items: center;
   gap: 0; /* important, pas de gap ici sinon le scroll horizontal bouge toute la barre */
-  overflow: hidden; /* clé : cache le débordement */
-  border-bottom: 1px solid #eee;
+  overflow: auto; /* clé : cache le débordement */
   min-width: 0;
-  height: 60px;
   box-sizing: border-box;
+  height: 93px;
+  
+
 }
 
 /* Search bar à GAUCHE, largeur fixe/mobile-friendly */
@@ -1865,7 +1865,7 @@ body.price-popup-open { overflow: hidden; }
   right: 0 !important;
   box-shadow: none !important;     /* Optionnel */
   background: #fff !important;     /* Assure que le fond est bien blanc partout */
-  border: none !important;         /* Optionnel */
+    
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
@@ -1992,11 +1992,12 @@ body.price-popup-open { overflow: hidden; }
 }
 
 
-.search-autocomplete-wrapper input,
-.filter-row-scroll > * {
-  border-radius: 32px !important;
-  height: 48px !important;
-}
+
+
+
+
+
+
 
 /* Espace seulement entre les deux */
 .search-autocomplete-wrapper {
@@ -2004,4 +2005,32 @@ body.price-popup-open { overflow: hidden; }
 }
 .filter-row-scroll > *:first-child {
   margin-left: 14px !important; /* Espace du bouton à droite de la searchbar */
+}
+/* Corrige toutes les bordures de boutons filtres */
+.filter-bar button,
+.filter-bar select,
+.filter-bar .header-btn,
+.filter-bar .active,
+#openMoreFilter,
+#openPriceFilter {
+    border-width: 1px !important;
+    border-color: #e84242 !important;
+    box-sizing: border-box;
+}
+
+.filter-bar .btn.active {
+  border-width: 1px !important;
+  border-color: #e84242 !important;
+}
+
+.filter-bar select,
+.filter-bar button {
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color: #e84242 !important;
+  border-radius: 42px !important;
+  font-weight: 550 !important;
+  min-width: 160px;
+  display: flex;
+  align-items: center;
 }
