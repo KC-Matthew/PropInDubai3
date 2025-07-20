@@ -3,37 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Area For You</title>
-  <link rel="stylesheet" href="styles/header.css">
-  <link rel="stylesheet" href="styles/sidebar.css">
-  <link rel="stylesheet" href="styles/general.css">
+  <title>Area For You - Multi Chat</title>
   <link rel="stylesheet" href="styles/areaforyou.css">
   <link rel="stylesheet" href="styles/accueil.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
-
 </head>
 <body>
 
-  <div class="side-bar">
-    <div class="hight-sidebar">
-      <button class="button-helps">HELPS</button>
-    </div>
-    <div class="middle-sidebar">
-      <a href="#" class="area-button active">AREA FOR YOU</a>
-      <a href="offplan.html" class="prediction-button">OFF PLAN</a>
-      <a href="ROI-calculator-accueil.html" class="ROI-button">ROI-CALCULATOR</a>
-      <a href="maps.html" class="maps-button">MAPS</a>
-    </div>
-    <div class="low-sidebar">
-      <button class="button-how-it-works">HOW IT WORKS</button>
-    </div>
-  </div>
-  
-
 <div class="header2">
-   <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
+  <div class="burger" id="burger-menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+  <a href="accueil.html">
+    <img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo">
+  </a>
   <div class="all-button">
-    <a href="areaforyou.html" class="chat-button header-btn active">Chatgpt</a>
+    <a href="areaforyou.html" class="chat-button header-btn">Chatgpt</a>
     <a href="buy.html" class="buy-button header-btn">Buy</a>
     <a href="rent.html" class="rent-button header-btn">Rent</a>
     <a href="commercial.html" class="commercial-button header-btn">Commercial</a>
@@ -41,44 +28,54 @@
     <a href="findagent.html" class="agent-button header-btn">Find agents</a>
   </div>
   <div class="profil-block">
+    <div class="mobile-sidebar-overlay" id="sidebar-overlay"></div>
     <a href="login.html" class="login-button header-btn">Login</a>
   </div>
 </div>
 
-
-  <div class="hero-section">
-  <!-- Tu peux mettre du contenu ici -->
-</div>
-
-  <!-- Contenu principal -->
-<div class="main-content">
-  <!-- Section Chat -->
- <div class="chat-section">
-
-  <div class="chat-messages" id="chat-messages">
-    <!-- Les messages s’afficheront ici -->
-  </div>
-
-  <form class="chat-input-area" id="chat-form">
-    <input type="text" id="user-input" placeholder="Enter your criteria..." autocomplete="off">
-    <button id="send-button" type="submit">➤</button>
-    </form>
-    <div class="reset-button-container">
-    <button id="reset-chat-button">Reset Chat</button>
+<div class="main-layout">
+  <div class="multi-sidebar">
+    <div class="multi-logo">
+      <i class="fa fa-comments"></i>
     </div>
-
-</div>
-
-  <!-- Section Affichage des biens -->
-  <div class="properties-display" id="properties-display">
-    <div id="property-cards-container"></div>
-
+    <button class="multi-new-chat-btn" id="new-chat-btn">
+      <i class="fa fa-plus"></i> New chat
+    </button>
+    <div id="chat-list" class="multi-chat-list"></div>
+    <div class="multi-shortcuts">
+      <button class="sidebar-btn active"><i class="fa fa-home"></i></button>
+      <button class="sidebar-btn"><i class="fa fa-heart"></i></button>
+    </div>
+  </div>
+  <div class="main-content-v2">
+    <div class="content-card-wrap" id="split-mobile-container">
+      <div class="chat-col-v2" id="chat-col-v2">
+        <div class="multi-header">
+          <span id="current-chat-title">Chat</span>
+          <button id="reset-chat-btn" class="multi-reset-btn" title="Reset chat">
+            <i class="fa fa-rotate-left"></i>
+          </button>
+        </div>
+        <div class="chat-messages-scroll" id="chat-messages-scroll">
+          <div id="chat-messages-container"></div>
+        </div>
+        <form class="chat-input-form-v2" id="chat-form" autocomplete="off">
+          <input type="text" id="user-input" placeholder="Enter a message..." autocomplete="off">
+          <button id="send-button" type="submit"><i class="fa fa-arrow-right"></i></button>
+        </form>
+        <div class="chat-input-btns-row" id="chat-dragger">
+          <button class="chat-pick-btn-v2" data-type="rent">Rent</button>
+          <button class="chat-pick-btn-v2" data-type="buy">Buy</button>
+          <button class="chat-pick-btn-v2" data-type="new">Off Plan</button>
+        </div>
+      </div>
+      <div class="splitter-bar" id="splitterBar"></div>
+      <div class="properties-col-v2" id="properties-col">
+        <div id="property-cards-container"></div>
+      </div>
+    </div>
   </div>
 </div>
-</div>
-
-
-
-  <script src="javascript/areaforyou.js"></script>
+<script src="javascript/areaforyou.js"></script>
 </body>
 </html>
