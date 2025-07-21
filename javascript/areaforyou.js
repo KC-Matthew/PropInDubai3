@@ -1,4 +1,4 @@
-// ==================== Multi-chat & propriétés ====================
+// ========= UTILS & DONNÉES =========
 function uuid() { return '_' + Math.random().toString(36).substr(2, 9); }
 function getChats() { return JSON.parse(localStorage.getItem('multiChatHistory') || '[]'); }
 function saveChats(chats) { localStorage.setItem('multiChatHistory', JSON.stringify(chats)); }
@@ -25,6 +25,7 @@ let propertiesData = [
   }
 ];
 
+// ========= RENDUS =========
 function renderProperties(list) {
   const container = document.getElementById("property-cards-container");
   container.innerHTML = "";
@@ -58,7 +59,7 @@ function renderChatList(selectedId) {
   const list = document.getElementById('chat-list');
   const chats = getChats();
   list.innerHTML = '';
-  chats.forEach((chat, idx) => {
+  chats.forEach(chat => {
     const item = document.createElement('div');
     item.className = 'multi-chat-list-item' + (chat.id === selectedId ? ' active' : '');
     let chatName = chat.title || "New chat";
@@ -71,7 +72,7 @@ function renderChatList(selectedId) {
       </button>
     `;
     item.onclick = (e) => {
-      if(e.target.closest('.delete-chat-btn')) return;
+      if (e.target.closest('.delete-chat-btn')) return;
       selectChat(chat.id);
     };
     list.appendChild(item);
@@ -79,22 +80,11 @@ function renderChatList(selectedId) {
   list.querySelectorAll('.delete-chat-btn').forEach(btn => {
     btn.onclick = (e) => {
       e.stopPropagation();
-      const chatId = btn.dataset.id;
-      deleteChat(chatId);
+      deleteChat(btn.dataset.id);
     };
   });
 }
-function deleteChat(chatId) {
-  let chats = getChats();
-  const idx = chats.findIndex(c => c.id === chatId);
-  if (idx === -1) return;
-  chats.splice(idx, 1);
-  saveChats(chats);
-  let newId = (chats[idx] && chats[idx].id) || (chats[idx-1] && chats[idx-1].id) || (chats[0] && chats[0].id);
-  if(!newId) { addNewChat(true); return; }
-  localStorage.setItem('multiCurrentChatId', newId);
-  renderAll();
-}
+
 function renderChat(chat) {
   const container = document.getElementById('chat-messages-container');
   const scroll = document.getElementById('chat-messages-scroll');
@@ -109,6 +99,17 @@ function renderChat(chat) {
   });
   setTimeout(() => { scroll.scrollTop = scroll.scrollHeight; }, 50);
 }
+
+function renderAll() {
+  let chats = getChats();
+  let current = getCurrentChat();
+  if (!chats.length) { addNewChat(); chats = getChats(); current = getCurrentChat(); }
+  renderChatList(current ? current.id : null);
+  renderChat(current);
+  renderProperties(propertiesData);
+}
+
+// ========= CHAT LOGIQUE =========
 function selectChat(id) { localStorage.setItem('multiCurrentChatId', id); renderAll(); }
 function getCurrentChat() {
   const chats = getChats();
@@ -120,10 +121,10 @@ function addMessageToCurrentChat(type, text) {
   const id = localStorage.getItem('multiCurrentChatId');
   let chat = chats.find(chat => chat.id === id);
   if (!chat) return;
-  chat.messages.push({type, text});
+  chat.messages.push({ type, text });
   if (type === 'user' && chat.messages.filter(m => m.type === 'user').length === 1) {
-    let title = text.trim().split(/\s+/).slice(0,7).join(' ');
-    if(title.length > 34) title = title.slice(0, 34) + '...';
+    let title = text.trim().split(/\s+/).slice(0, 7).join(' ');
+    if (title.length > 34) title = title.slice(0, 34) + '...';
     chat.title = title || "New chat";
   }
   saveChats(chats);
@@ -154,9 +155,22 @@ function addNewChat(selectIt = true) {
   if (selectIt) localStorage.setItem('multiCurrentChatId', newId);
   renderAll();
 }
+function deleteChat(chatId) {
+  let chats = getChats();
+  const idx = chats.findIndex(c => c.id === chatId);
+  if (idx === -1) return;
+  chats.splice(idx, 1);
+  saveChats(chats);
+  let newId = (chats[idx] && chats[idx].id) || (chats[idx - 1] && chats[idx - 1].id) || (chats[0] && chats[0].id);
+  if (!newId) { addNewChat(true); return; }
+  localStorage.setItem('multiCurrentChatId', newId);
+  renderAll();
+}
+
+// ========= FILTRES CHAT =========
 function setupFilters() {
   document.querySelectorAll('.chat-pick-btn-v2').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', function () {
       document.querySelectorAll('.chat-pick-btn-v2').forEach(b => b.classList.remove('active'));
       this.classList.add('active');
       if (this.dataset.type === "rent") {
@@ -171,22 +185,95 @@ function setupFilters() {
     });
   });
 }
-function renderAll() {
-  let chats = getChats();
-  let current = getCurrentChat();
-  if (!chats.length) { addNewChat(); chats = getChats(); current = getCurrentChat(); }
-  renderChatList(current ? current.id : null);
-  renderChat(current);
-  renderProperties(propertiesData);
+
+// ========= BURGER SIDEBAR MOBILE =========
+function setupMobileSidebar() {
+  const burger = document.getElementById("burger-menu");
+  const sidebar = document.querySelector(".multi-sidebar");
+  const overlay = document.getElementById("sidebar-overlay");
+  function closeSidebar() {
+    sidebar.classList.remove("open");
+    overlay.classList.remove("active");
+  }
+  if (burger && sidebar && overlay) {
+    burger.addEventListener("click", function (e) {
+      e.stopPropagation();
+      sidebar.classList.add("open");
+      overlay.classList.add("active");
+    });
+    overlay.addEventListener("click", closeSidebar);
+    window.addEventListener("resize", closeSidebar);
+  }
 }
 
-// ========== DOMContentLoaded général ==========
+// ========= SPLITBAR MOBILE DRAG (CORRECTIF) =========
+function initMobileSplit() {
+  if (window.innerWidth > 800) return;
+  const header = document.querySelector('.header2');
+  const chatCol = document.getElementById('chat-col-v2');
+  const propsCol = document.getElementById('properties-col');
+  const splitter = document.getElementById('splitterBar');
+  if (!chatCol || !propsCol || !splitter || !header) return;
+
+  let dragging = false, startY = 0, startChatHeight = 0;
+
+  splitter.addEventListener("mousedown", startDrag, false);
+  splitter.addEventListener("touchstart", startDrag, false);
+
+  function startDrag(e) {
+    dragging = true;
+    startY = (e.touches ? e.touches[0].clientY : e.clientY);
+    startChatHeight = chatCol.offsetHeight;
+    document.body.style.userSelect = "none";
+    document.body.style.touchAction = "none";
+    document.addEventListener("mousemove", moveDrag, false);
+    document.addEventListener("touchmove", moveDrag, false);
+    document.addEventListener("mouseup", endDrag, false);
+    document.addEventListener("touchend", endDrag, false);
+  }
+  function moveDrag(e) {
+    if (!dragging) return;
+    const y = (e.touches ? e.touches[0].clientY : e.clientY);
+    const delta = y - startY;
+
+    // Hauteur totale dispo (viewport - header - barre)
+    const headerH = header.offsetHeight;
+    const totalH = window.innerHeight - headerH - splitter.offsetHeight;
+
+    // Limites min/max
+    const minChat = 100, minProps = 100;
+    let newChatH = Math.max(minChat, Math.min(totalH - minProps, startChatHeight + delta));
+    let newPropsH = totalH - newChatH;
+
+    chatCol.style.height = newChatH + "px";
+    propsCol.style.height = newPropsH + "px";
+    if (e.cancelable) e.preventDefault();
+  }
+  function endDrag() {
+    dragging = false;
+    document.body.style.userSelect = "";
+    document.body.style.touchAction = "";
+    document.removeEventListener("mousemove", moveDrag, false);
+    document.removeEventListener("touchmove", moveDrag, false);
+    document.removeEventListener("mouseup", endDrag, false);
+    document.removeEventListener("touchend", endDrag, false);
+  }
+}
+
+// ========= DOM READY =========
 document.addEventListener('DOMContentLoaded', () => {
+  // Sidebar navigation
   document.querySelectorAll('.sidebar-btn').forEach((btn, i) => {
-    if(i === 0) btn.onclick = () => { window.location.href = "accueil.html"; };
+    if (i === 0) btn.onclick = () => { window.location.href = "accueil.html"; };
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
   });
+  // New chat
   document.getElementById('new-chat-btn').onclick = () => addNewChat(true);
-  document.getElementById('chat-form').onsubmit = function(e) {
+  // Chat submit
+  document.getElementById('chat-form').onsubmit = function (e) {
     e.preventDefault();
     const input = document.getElementById('user-input');
     const msg = input.value.trim();
@@ -198,83 +285,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 700);
   };
   document.getElementById('reset-chat-btn').onclick = () => resetCurrentChat();
-  document.querySelectorAll('.sidebar-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-    });
-  });
+
   setupFilters();
+  setupMobileSidebar();
+  initMobileSplit();
   renderAll();
 });
 
-// ========== Sidebar Burger mobile ==========
-document.addEventListener("DOMContentLoaded", function() {
-  const burger = document.getElementById("burger-menu");
-  const sidebar = document.querySelector(".multi-sidebar");
-  const overlay = document.getElementById("sidebar-overlay");
-  function closeSidebar() {
-    sidebar.classList.remove("open");
-    overlay.classList.remove("active");
-  }
-  if(burger && sidebar && overlay) {
-    burger.addEventListener("click", function(e) {
-      e.stopPropagation();
-      sidebar.classList.add("open");
-      overlay.classList.add("active");
-    });
-    overlay.addEventListener("click", closeSidebar);
-    window.addEventListener("resize", closeSidebar);
-  }
-});
 
-// ========== Splitter Drag Mobile FONCTIONNEL & ROBUSTE ==========
-function initMobileSplit() {
+
+
+
+
+document.addEventListener("DOMContentLoaded", function() {
   if (window.innerWidth > 800) return;
-  const header = document.querySelector('.header2');
   const chatCol = document.getElementById('chat-col-v2');
   const propsCol = document.getElementById('properties-col');
   const splitter = document.getElementById('splitterBar');
-  if (!chatCol || !propsCol || !splitter || !header) return;
+  if (!chatCol || !propsCol || !splitter) return;
 
-  // Valeurs min/max
-  function getHeights() {
-    const headerH = header.offsetHeight;
-    const total = window.innerHeight - headerH;
-    const chatInput = document.querySelector('.chat-input-form-v2');
-    const chatBtns = document.querySelector('.chat-input-btns-row');
-    const chatHeader = document.querySelector('.multi-header');
-    let minChat = 0;
-    if (chatHeader) minChat += chatHeader.offsetHeight;
-    if (chatInput) minChat += chatInput.offsetHeight;
-    if (chatBtns) minChat += chatBtns.offsetHeight;
-    minChat += 16; // petit buffer
-    const minProps = 70; // px minimum visible pour les biens
-    return { total, minChat, minProps };
-  }
+  let dragging = false, startY = 0, startChatHeight = 0;
 
-  function setSplit(chatH) {
-    const splitterH = splitter.offsetHeight;
-    const { total, minChat, minProps } = getHeights();
-    // Clamp chatH
-    if (chatH < minChat) chatH = minChat;
-    if (chatH > total - minProps - splitterH) chatH = total - minProps - splitterH;
-    chatCol.style.height = chatH + "px";
-    let propsH = total - chatH - splitterH;
-    if (propsH < minProps) propsH = minProps;
-    propsCol.style.height = propsH + "px";
-    propsCol.style.overflowY = "auto";
-  }
-
-  function initSplit() {
-    const { total, minChat, minProps } = getHeights();
-    let defaultChatH = Math.max(minChat + 100, Math.round(total * 0.5));
-    setSplit(defaultChatH);
-  }
-
-  let dragging = false;
-  let startY = 0;
-  let startChatHeight = 0;
+  splitter.addEventListener("mousedown", startDrag, false);
+  splitter.addEventListener("touchstart", startDrag, false);
 
   function startDrag(e) {
     dragging = true;
@@ -282,32 +315,33 @@ function initMobileSplit() {
     startChatHeight = chatCol.offsetHeight;
     document.body.style.userSelect = "none";
     document.body.style.touchAction = "none";
-    document.addEventListener("mousemove", moveDrag, {passive:false});
-    document.addEventListener("touchmove", moveDrag, {passive:false});
-    document.addEventListener("mouseup", endDrag, {once:true});
-    document.addEventListener("touchend", endDrag, {once:true});
+    document.addEventListener("mousemove", moveDrag, false);
+    document.addEventListener("touchmove", moveDrag, false);
+    document.addEventListener("mouseup", endDrag, false);
+    document.addEventListener("touchend", endDrag, false);
+    // debug
+    console.log('DRAG START', startChatHeight);
   }
   function moveDrag(e) {
     if (!dragging) return;
     const y = (e.touches ? e.touches[0].clientY : e.clientY);
     const delta = y - startY;
-    let newChatH = startChatHeight + delta;
-    setSplit(newChatH);
+    let newChatH = Math.max(50, startChatHeight + delta);
+    chatCol.style.height = newChatH + "px";
+    propsCol.style.height = "calc(100dvh - 54px - 32px - " + newChatH + "px)";
     if (e.cancelable) e.preventDefault();
+    // debug
+    console.log('DRAG MOVE', newChatH);
   }
   function endDrag() {
     dragging = false;
     document.body.style.userSelect = "";
     document.body.style.touchAction = "";
-    document.removeEventListener("mousemove", moveDrag, {passive:false});
-    document.removeEventListener("touchmove", moveDrag, {passive:false});
+    document.removeEventListener("mousemove", moveDrag, false);
+    document.removeEventListener("touchmove", moveDrag, false);
+    document.removeEventListener("mouseup", endDrag, false);
+    document.removeEventListener("touchend", endDrag, false);
+    // debug
+    console.log('DRAG END');
   }
-  splitter.addEventListener("mousedown", startDrag);
-  splitter.addEventListener("touchstart", startDrag, {passive:false});
-  window.addEventListener('resize', initSplit);
-
-  setTimeout(initSplit, 100);
-}
-document.addEventListener("DOMContentLoaded", function() {
-  initMobileSplit();
 });
