@@ -654,3 +654,35 @@ html, body {
   .burger, .mobile-sidebar-overlay { display: none !important; }
   .multi-sidebar { left: 0 !important; position: relative !important; }
 }
+
+
+.fav-btn {
+  position: absolute;
+  top: 16px;
+  right: 22px;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  z-index: 10;
+  font-size: 1.7rem;
+  padding: 0;
+  transition: transform 0.1s;
+}
+.fav-btn:active { transform: scale(0.88);}
+.fav-btn .fa-heart {
+  color: #fff;
+  text-shadow: 0 2px 6px #999, 0 0px 1px #ccc;
+  transition: color 0.2s;
+  stroke: #ff9100;
+  stroke-width: 24;
+}
+.fav-btn.fav-active .fa-heart {
+  color: #ff9100;
+  text-shadow: 0 3px 12px #ffd8a7, 0 1px 1px #fff5e5;
+}
+.property-card-ui-v2 {
+  position: relative;
+}
+
+
