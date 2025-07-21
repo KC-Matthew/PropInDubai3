@@ -3,8 +3,18 @@ function uuid() { return '_' + Math.random().toString(36).substr(2, 9); }
 function getChats() { return JSON.parse(localStorage.getItem('multiChatHistory') || '[]'); }
 function saveChats(chats) { localStorage.setItem('multiChatHistory', JSON.stringify(chats)); }
 
+// ---- FAVORIS ----
+function getFavs() {
+  return JSON.parse(localStorage.getItem('favorites') || '[]');
+}
+function saveFavs(arr) {
+  localStorage.setItem('favorites', JSON.stringify(arr));
+}
+
+// ========= DONNÉES TEST =========
 let propertiesData = [
   {
+    id: "p1",
     title: "Modern 2BR Apartment in Downtown",
     location: "Downtown Dubai",
     bedrooms: 2, bathrooms: 2, size: 1100,
@@ -12,12 +22,14 @@ let propertiesData = [
     price: "AED 2,400,000", images: ["styles/photo/insta.png"],
   },
   {
+    id: "p2",
     title: "Studio in Business Bay", location: "Business Bay",
     bedrooms: 1, bathrooms: 1, size: 520,
     description: "Perfect for investment with high ROI.",
     price: "AED 850,000", images: ["styles/photo/dubai-map.jpg"],
   },
   {
+    id: "p3",
     title: "Luxury 3BR in Palm Jumeirah", location: "Palm Jumeirah",
     bedrooms: 3, bathrooms: 3, size: 1830,
     description: "Beach access and private pool included.",
@@ -29,12 +41,23 @@ let propertiesData = [
 function renderProperties(list) {
   const container = document.getElementById("property-cards-container");
   container.innerHTML = "";
+  const favs = getFavs();
   list.forEach(property => {
     const card = document.createElement("div");
     card.className = "property-card-ui-v2";
     card.style.cursor = "pointer";
-    card.addEventListener("click", () => { window.location.href = "bien.html"; });
+    card.style.position = "relative"; // important pour le cœur positionné
+
+    // Coeur favori
+    const isFav = favs.includes(property.id);
+    const favBtn = `
+      <button class="fav-btn${isFav ? " fav-active" : ""}" data-id="${property.id}" aria-label="Ajouter aux favoris">
+        <i class="fa fa-heart"></i>
+      </button>
+    `;
+
     card.innerHTML = `
+      ${favBtn}
       <img src="${property.images[0]}" class="property-img-v2" alt="${property.title}">
       <div class="property-title-ui-v2">${property.title}</div>
       <div class="property-loc-ui-v2"><i class="fas fa-map-marker-alt"></i> ${property.location}</div>
@@ -51,7 +74,27 @@ function renderProperties(list) {
         <button type="button" onclick="event.stopPropagation();window.open('https://wa.me/', '_blank');">WhatsApp</button>
       </div>
     `;
+    card.addEventListener("click", () => { window.location.href = "bien.html"; });
     container.appendChild(card);
+  });
+  setupFavBtns();
+}
+
+function setupFavBtns() {
+  document.querySelectorAll('.fav-btn').forEach(btn => {
+    const id = btn.dataset.id;
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      let favs = getFavs();
+      if (favs.includes(id)) {
+        favs = favs.filter(x => x !== id);
+        btn.classList.remove('fav-active');
+      } else {
+        favs.push(id);
+        btn.classList.add('fav-active');
+      }
+      saveFavs(favs);
+    };
   });
 }
 
@@ -206,7 +249,7 @@ function setupMobileSidebar() {
   }
 }
 
-// ========= SPLITBAR MOBILE DRAG (CORRECTIF) =========
+// ========= SPLITBAR MOBILE DRAG =========
 function initMobileSplit() {
   if (window.innerWidth > 800) return;
   const header = document.querySelector('.header2');
@@ -235,16 +278,11 @@ function initMobileSplit() {
     if (!dragging) return;
     const y = (e.touches ? e.touches[0].clientY : e.clientY);
     const delta = y - startY;
-
-    // Hauteur totale dispo (viewport - header - barre)
     const headerH = header.offsetHeight;
     const totalH = window.innerHeight - headerH - splitter.offsetHeight;
-
-    // Limites min/max
     const minChat = 100, minProps = 100;
     let newChatH = Math.max(minChat, Math.min(totalH - minProps, startChatHeight + delta));
     let newPropsH = totalH - newChatH;
-
     chatCol.style.height = newChatH + "px";
     propsCol.style.height = newPropsH + "px";
     if (e.cancelable) e.preventDefault();
@@ -262,7 +300,6 @@ function initMobileSplit() {
 
 // ========= DOM READY =========
 document.addEventListener('DOMContentLoaded', () => {
-  // Sidebar navigation
   document.querySelectorAll('.sidebar-btn').forEach((btn, i) => {
     if (i === 0) btn.onclick = () => { window.location.href = "accueil.html"; };
     btn.addEventListener('click', function () {
@@ -270,9 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
       this.classList.add('active');
     });
   });
-  // New chat
   document.getElementById('new-chat-btn').onclick = () => addNewChat(true);
-  // Chat submit
   document.getElementById('chat-form').onsubmit = function (e) {
     e.preventDefault();
     const input = document.getElementById('user-input');
@@ -290,58 +325,4 @@ document.addEventListener('DOMContentLoaded', () => {
   setupMobileSidebar();
   initMobileSplit();
   renderAll();
-});
-
-
-
-
-
-
-document.addEventListener("DOMContentLoaded", function() {
-  if (window.innerWidth > 800) return;
-  const chatCol = document.getElementById('chat-col-v2');
-  const propsCol = document.getElementById('properties-col');
-  const splitter = document.getElementById('splitterBar');
-  if (!chatCol || !propsCol || !splitter) return;
-
-  let dragging = false, startY = 0, startChatHeight = 0;
-
-  splitter.addEventListener("mousedown", startDrag, false);
-  splitter.addEventListener("touchstart", startDrag, false);
-
-  function startDrag(e) {
-    dragging = true;
-    startY = (e.touches ? e.touches[0].clientY : e.clientY);
-    startChatHeight = chatCol.offsetHeight;
-    document.body.style.userSelect = "none";
-    document.body.style.touchAction = "none";
-    document.addEventListener("mousemove", moveDrag, false);
-    document.addEventListener("touchmove", moveDrag, false);
-    document.addEventListener("mouseup", endDrag, false);
-    document.addEventListener("touchend", endDrag, false);
-    // debug
-    console.log('DRAG START', startChatHeight);
-  }
-  function moveDrag(e) {
-    if (!dragging) return;
-    const y = (e.touches ? e.touches[0].clientY : e.clientY);
-    const delta = y - startY;
-    let newChatH = Math.max(50, startChatHeight + delta);
-    chatCol.style.height = newChatH + "px";
-    propsCol.style.height = "calc(100dvh - 54px - 32px - " + newChatH + "px)";
-    if (e.cancelable) e.preventDefault();
-    // debug
-    console.log('DRAG MOVE', newChatH);
-  }
-  function endDrag() {
-    dragging = false;
-    document.body.style.userSelect = "";
-    document.body.style.touchAction = "";
-    document.removeEventListener("mousemove", moveDrag, false);
-    document.removeEventListener("touchmove", moveDrag, false);
-    document.removeEventListener("mouseup", endDrag, false);
-    document.removeEventListener("touchend", endDrag, false);
-    // debug
-    console.log('DRAG END');
-  }
 });
