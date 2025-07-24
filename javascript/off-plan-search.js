@@ -328,6 +328,7 @@ function displayFlatProjects(array) {
 }
 
 // ===================== FILTRAGE + PAGINATION =====================
+// ===================== FILTRAGE + PAGINATION =====================
 function filterAndDisplayProjects(page = 1) {
   const query = document.getElementById('search')?.value.trim().toLowerCase() || '';
   const propertyType = document.getElementById('propertyType')?.value || '';
@@ -374,6 +375,68 @@ function filterAndDisplayProjects(page = 1) {
 
   displayPaginatedProjects(arr, page);
 }
+
+// ============== PAGINATION UTILS ===================
+function displayPaginatedProjects(arr, page = 1) {
+  const {slice, total, pages} = paginate(arr, page);
+  displayFlatProjects(slice);
+  updatePagination(pages, page, arr);
+  if (document.getElementById('propertyCount')) document.getElementById('propertyCount').textContent = `${total} projects found`;
+  currentPage = page;
+
+  // --------- SCROLL EN HAUT POUR TOUS LES APPAREILS ---------
+  setTimeout(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    // // !!! NE PAS blur() : sinon perte focus searchbar
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+  }, 80);
+}
+
+// ===================== INIT PATCHÉ =====================
+document.addEventListener('DOMContentLoaded', function() {
+  setupDeliveryDateButtons();
+  setupPriceFilter(projects);
+
+  // Les filtres déroulants filtrent en 'change'
+  ["propertyType", "bedrooms", "bathrooms"].forEach(id => {
+    if (document.getElementById(id)) {
+      document.getElementById(id).addEventListener('change', () => filterAndDisplayProjects(1));
+    }
+  });
+
+  // Searchbar : PAS de filtre sur 'input' !!
+  const searchInput = document.getElementById('search');
+  if (searchInput) {
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === "Enter") filterAndDisplayProjects(1);
+    });
+  }
+
+  if (document.getElementById("searchBtn"))
+    document.getElementById("searchBtn").addEventListener('click', () => filterAndDisplayProjects(1));
+
+  if (document.getElementById("clearBtn"))
+    document.getElementById("clearBtn").addEventListener('click', function() {
+      document.querySelectorAll("input, select").forEach(el => {
+        if (el.tagName === "SELECT") el.selectedIndex = 0;
+        else el.value = "";
+      });
+      document.querySelectorAll("#moreFilterPopup input[type='checkbox']").forEach(cb => { cb.checked = false; });
+      if (document.getElementById("priceMin")) document.getElementById("priceMin").value = globalMinPrice;
+      if (document.getElementById("priceMax")) document.getElementById("priceMax").value = globalMaxPrice;
+      selectedDeliveryDates = [];
+      document.querySelectorAll('.delivery-date-btn').forEach(b => b.classList.remove('selected'));
+      if (document.querySelector('.delivery-date-btn[data-value="all"]')) document.querySelector('.delivery-date-btn[data-value="all"]').classList.add('selected');
+      filterAndDisplayProjects(1);
+      closePricePopup();
+      closeMoreFilterPopup();
+    });
+
+  // Appel initial
+  filterAndDisplayProjects(1);
+});
+
 
 // ============== PAGINATION UTILS ===================
 function paginate(arr, page) {
@@ -469,6 +532,7 @@ function setupDeliveryDateButtons() {
 let priceSlider = null;
 const PRICE_STEP = 10000;
 let globalMinPrice = 0, globalMaxPrice = 0;
+
 function getAllPrices(arr) {
   return arr.map(p => parseInt(p.price)).filter(n => !isNaN(n));
 }
@@ -610,18 +674,115 @@ function closePricePopup() {
   document.body.classList.remove('price-popup-open');
 }
 
+
+
+
+
+// ------ AUTOCOMPLETE SUGGESTIONS (VERSION SAFE, PAS DE BLOCAGE DE LA SAISIE) ------
+document.addEventListener('DOMContentLoaded', function () { 
+  const searchInput = document.getElementById('search');
+  const suggestionsDiv = document.getElementById('searchSuggestions');
+
+  if (!searchInput || !suggestionsDiv) return;
+
+  // Suggestions list
+  function getSuggestions(query) {
+    if (!query) return [];
+    const q = query.trim().toLowerCase();
+    let matches = [];
+    projects.forEach(p => {
+      if (p.title.toLowerCase().includes(q))  
+        matches.push({label: p.title, icon: "fa-building"});
+      if (p.location.toLowerCase().includes(q))
+        matches.push({label: p.location, icon: "fa-map-marker-alt"});
+      if (p.developer && p.developer.toLowerCase().includes(q))
+        matches.push({label: p.developer, icon: "fa-user-tie"});
+    });
+    // Remove duplicates
+    return Array.from(new Map(matches.map(s => [s.label, s])).values()).slice(0, 8);
+  }
+
+  function renderSuggestions(suggestions) {
+    if (!suggestions.length) {
+      suggestionsDiv.classList.remove("visible");
+      suggestionsDiv.innerHTML = "";
+      return;
+    }
+    suggestionsDiv.innerHTML = suggestions.map(s =>
+      `<div class="suggestion" tabindex="0">
+        <span class="suggestion-icon"><i class="fa ${s.icon}"></i></span>
+        <span class="suggestion-label">${s.label}</span>
+      </div>`
+    ).join("");
+    suggestionsDiv.classList.add("visible");
+  }
+
+  // --- Saisie dans l'input : suggestions affichées, PAS DE MODIF DOM sur l'input lui-même
+  searchInput.addEventListener('input', function () {
+    const val = this.value;
+    if (!val) {
+      suggestionsDiv.classList.remove("visible");
+      suggestionsDiv.innerHTML = "";
+      return;
+    }
+    const sugg = getSuggestions(val);
+    renderSuggestions(sugg);
+  });
+
+  // --- Sélection d'une suggestion à la souris
+  suggestionsDiv.addEventListener('mousedown', function (e) {
+    const item = e.target.closest('.suggestion');
+    if (!item) return;
+    const label = item.querySelector('.suggestion-label').textContent;
+    searchInput.value = label;
+    suggestionsDiv.classList.remove("visible");
+    filterAndDisplayProjects(1);
+    // Attention : pas de blur ici !
+  });
+
+  // --- Sélection via Enter quand suggestions visibles
+  searchInput.addEventListener('keydown', function (e) {
+    if (e.key === "Enter" && suggestionsDiv.classList.contains("visible")) {
+      const first = suggestionsDiv.querySelector('.suggestion');
+      if (first) {
+        searchInput.value = first.querySelector('.suggestion-label').textContent;
+        suggestionsDiv.classList.remove("visible");
+        filterAndDisplayProjects(1);
+        e.preventDefault();
+      }
+    }
+  });
+
+  // --- Disparition des suggestions si clic en dehors
+  document.addEventListener('mousedown', function(e) {
+    if (!suggestionsDiv.contains(e.target) && e.target !== searchInput) {
+      suggestionsDiv.classList.remove("visible");
+    }
+  });
+});
+
+
+
+
+
+
+
+
+
 // ===================== INIT =====================
 document.addEventListener('DOMContentLoaded', function() {
   setupDeliveryDateButtons();
   setupPriceFilter(projects);
 
-  // Filtres principaux
-  ["search", "propertyType", "bedrooms", "bathrooms"].forEach(id => {
-    if (document.getElementById(id)) {
-      document.getElementById(id).addEventListener('input', () => filterAndDisplayProjects(1));
-      document.getElementById(id).addEventListener('change', () => filterAndDisplayProjects(1));
-    }
-  });
+
+// La recherche ne déclenche le filtre QUE sur 'Enter' ou sur bouton.
+["propertyType", "bedrooms", "bathrooms"].forEach(id => {
+  if (document.getElementById(id)) {
+    document.getElementById(id).addEventListener('change', () => filterAndDisplayProjects(1));
+  }
+});
+// PAS D'ÉCOUTEUR 'input' sur search ! (ça bug sinon)
+
   if (document.getElementById("searchBtn"))
     document.getElementById("searchBtn").addEventListener('click', () => filterAndDisplayProjects(1));
 
