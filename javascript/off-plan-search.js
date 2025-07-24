@@ -408,6 +408,7 @@ function displayPaginatedProjects(arr, page = 1) {
 
 
 
+
 function updatePagination(pages, page, arr) {
   const paginationDiv = document.getElementById("pagination");
   paginationDiv.innerHTML = '';
@@ -697,4 +698,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+(function() {
+  // Fonction pour gérer le scroll
+  var lastScrollY = window.scrollY;
+  var tabsHeight = 48; // hauteur tabs mobile (ajuste selon ton design)
+  var headerHeight = 54; // hauteur header mobile
+
+  function checkStickyTabs() {
+    var tabs = document.querySelector('.top-tabs-filters');
+    var threshold = 0;
+    if (tabs) {
+      // Position verticale de tabs relative au viewport
+      var rect = tabs.getBoundingClientRect();
+      threshold = rect.bottom;
+    }
+    // Si tabs sont sortis du viewport vers le haut, on colle
+    if (threshold < headerHeight + 2) {
+      document.body.classList.add('tabs-gone');
+    } else {
+      document.body.classList.remove('tabs-gone');
+    }
+  }
+
+  window.addEventListener('scroll', checkStickyTabs, { passive: true });
+  window.addEventListener('resize', checkStickyTabs);
+
+  // Appel initial au chargement
+  document.addEventListener('DOMContentLoaded', checkStickyTabs);
+})();
 
