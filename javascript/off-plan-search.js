@@ -1,406 +1,699 @@
-// --- SUGGESTIONS dynamiques, pas dans le HTML ---
 const projects = [
   {
-    title: "Ocean House",
-    location: "Palm Jumeirah",
+    title: "330 Riverside Crescent",
+    location: "Sobha Hartand II - SOBHA",
+    developer: "SOBHA",
     type: "Apartment",
-    developer: "Ellington",
-    price: 6500000,
-    handover: 2025,
-    status: "Launch",
-    description: "Luxury beachfront apartment with full Palm views.",
-    highlights: ["20% on booking", "80% during construction", "20% on handover"],
-    images: ["styles/appart1.jpg","styles/photo/fond.jpg"],
+    bedrooms: 2,
+    bathrooms: 3,
+    badge: { label: "Best ROI", color: "red" },
+    price: 1490000,
+    priceLabel: "From AED 1,490,000",
+    tag: "1% monthly",
+    img: "styles/photo/330riverside.jpg",
+    action: "Affordable Projects",
+    actionColor: "orange",
+    delivery: "Q3 2025"
   },
   {
-    title: "Creek Beach Lotus",
-    location: "Creek Beach",
-    type: "Apartment",
-    developer: "Emaar",
-    price: 700000,
-    handover: 2025,
-    status: "Handover Soon",
-    description: "Family-friendly, apartments steps Creek Beach.",
-    highlights: ["From 700,000 AED", "Golf-view apartments"],
-    images: ["styles/photo/dubai-map.jpg", "styles/photo/fond.jpg"],
+    title: "The Sanctuary",
+    location: "Mohammed Bin Rash City - ELLINGTON",
+    developer: "ELLINGTON",
+    type: "Villa",
+    bedrooms: 4,
+    bathrooms: 5,
+    badge: { label: "Handover Soon", color: "orange" },
+    price: 4100000,
+    priceLabel: "From AED 4,100,000",
+    tag: "Gated community",
+    img: "styles/photo/sanctuary.jpg",
+    action: "Gaper project",
+    actionColor: "orange",
+    delivery: "2026"
   },
   {
-    title: "Creek Beach Lotus",
-    location: "Creek Beach",
+    title: "Emaar Beachfront",
+    location: "Dubai Marina – EMAAR",
+    developer: "EMAAR",
     type: "Apartment",
-    developer: "Emaar",
-    price: 700000,
-    handover: 2025,
-    status: "Handover Soon",
-    description: "Family-friendly, apartments steps Creek Beach.",
-    highlights: ["From 700,000 AED", "Golf-view apartments"],
-    images: ["styles/photo/dubai-map.jpg", "styles/photo/fond.jpg"],
+    bedrooms: 3,
+    bathrooms: 3,
+    badge: { label: "Sea View", color: "green" },
+    price: 2200000,
+    priceLabel: "From AED 2,200,000",
+    tag: "Sea View",
+    img: "styles/photo/beachfront.jpg",
+    action: "View Project",
+    actionColor: "orange",
+    delivery: "2027"
   },
   {
-    title: "Creek Beach Lotus",
-    location: "Creek Beach",
+    title: "Sobha One",
+    location: "Ras Al Khor - SOBHA",
+    developer: "SOBHA",
     type: "Apartment",
-    developer: "Emaar",
-    price: 700000,
-    handover: 2025,
-    status: "Handover Soon",
-    description: "Family-friendly, apartments steps Creek Beach.",
-    highlights: ["From 700,000 AED", "Golf-view apartments"],
-    images: ["styles/photo/dubai-map.jpg", "styles/photo/fond.jpg"],
+    bedrooms: 1,
+    bathrooms: 2,
+    badge: { label: "Investor Deal", color: "blue" },
+    price: 980000,
+    priceLabel: "From AED 980,000",
+    tag: "Golf Course View",
+    img: "styles/photo/sobhaone.jpg",
+    action: "Invest Now",
+    actionColor: "blue",
+    delivery: "Q4 2026"
   },
   {
-    title: "Creek Beach Lotus",
-    location: "Creek Beach",
+    title: "Ellington House",
+    location: "Dubai Hills - ELLINGTON",
+    developer: "ELLINGTON",
     type: "Apartment",
-    developer: "Emaar",
-    price: 700000,
-    handover: 2025,
-    status: "Handover Soon",
-    description: "Family-friendly, apartments steps Creek Beach.",
-    highlights: ["From 700,000 AED", "Golf-view apartments"],
-    images: ["styles/photo/dubai-map.jpg", "styles/photo/fond.jpg"],
+    bedrooms: 2,
+    bathrooms: 2,
+    badge: { label: "Best Seller", color: "red" },
+    price: 1950000,
+    priceLabel: "From AED 1,950,000",
+    tag: "Park View",
+    img: "styles/photo/ellingtonhouse.jpg",
+    action: "Discover Project",
+    actionColor: "red",
+    delivery: "Q2 2025"
   },
   {
-    title: "Creek Beach Lotus",
-    location: "Creek Beach",
+    title: "Waves Grande",
+    location: "Sobha Hartland - SOBHA",
+    developer: "SOBHA",
     type: "Apartment",
-    developer: "Emaar",
-    price: 700000,
-    handover: 2025,
-    status: "Handover Soon",
-    description: "Family-friendly, apartments steps Creek Beach.",
-    highlights: ["From 700,000 AED", "Golf-view apartments"],
-    images: ["styles/photo/dubai-map.jpg", "styles/photo/fond.jpg"],
+    bedrooms: 3,
+    bathrooms: 4,
+    badge: { label: "Ready Soon", color: "orange" },
+    price: 2450000,
+    priceLabel: "From AED 2,450,000",
+    tag: "Corner Unit",
+    img: "styles/photo/wavesgrande.jpg",
+    action: "Limited Offer",
+    actionColor: "orange",
+    delivery: "Q1 2025"
   },
   {
-    title: "Creek Beach Lotus",
-    location: "Creek Beach",
+    title: "Creek Vista",
+    location: "MBR City - SOBHA",
+    developer: "SOBHA",
     type: "Apartment",
-    developer: "Emaar",
-    price: 700000,
-    handover: 2025,
-    status: "Handover Soon",
-    description: "Family-friendly, apartments steps Creek Beach.",
-    highlights: ["From 700,000 AED", "Golf-view apartments"],
-    images: ["styles/photo/dubai-map.jpg", "styles/photo/fond.jpg"],
+    bedrooms: 1,
+    bathrooms: 1,
+    badge: { label: "Hot", color: "red" },
+    price: 850000,
+    priceLabel: "From AED 850,000",
+    tag: "Canal View",
+    img: "styles/photo/creekvista.jpg",
+    action: "See More",
+    actionColor: "red",
+    delivery: "Q4 2025"
   },
   {
-    title: "Creek Beach Lotus",
-    location: "Creek Beach",
+    title: "Wilton Park Residences",
+    location: "MBR City - ELLINGTON",
+    developer: "ELLINGTON",
     type: "Apartment",
-    developer: "Emaar",
-    price: 700000,
-    handover: 2025,
-    status: "Handover Soon",
-    description: "Family-friendly, apartments steps Creek Beach.",
-    highlights: ["From 700,000 AED", "Golf-view apartments"],
-    images: ["styles/photo/dubai-map.jpg", "styles/photo/fond.jpg"],
+    bedrooms: 2,
+    bathrooms: 2,
+    badge: { label: "Limited", color: "blue" },
+    price: 1200000,
+    priceLabel: "From AED 1,200,000",
+    tag: "Green Area",
+    img: "styles/photo/wiltonpark.jpg",
+    action: "See Details",
+    actionColor: "blue",
+    delivery: "2025"
   },
   {
-    title: "Creek Beach Lotus",
-    location: "Creek Beach",
-    type: "Apartment",
-    developer: "Emaar",
-    price: 700000,
-    handover: 2025,
-    status: "Handover Soon",
-    description: "Family-friendly, apartments steps Creek Beach.",
-    highlights: ["From 700,000 AED", "Golf-view apartments"],
-    images: ["styles/photo/dubai-map.jpg", "styles/photo/fond.jpg"],
+    title: "Villa Lux",
+    location: "Meydan - EMAAR",
+    developer: "EMAAR",
+    type: "Villa",
+    bedrooms: 5,
+    bathrooms: 6,
+    badge: { label: "Luxury", color: "green" },
+    price: 5200000,
+    priceLabel: "From AED 5,200,000",
+    tag: "Private Pool",
+    img: "styles/photo/villalux.jpg",
+    action: "Book Now",
+    actionColor: "green",
+    delivery: "2027"
   },
   {
-    title: "Creek Beach Lotus",
-    location: "Creek Beach",
-    type: "Apartment",
-    developer: "Emaar",
-    price: 700000,
-    handover: 2025,
-    status: "Handover Soon",
-    description: "Family-friendly, apartments steps Creek Beach.",
-    highlights: ["From 700,000 AED", "Golf-view apartments"],
-    images: ["styles/photo/dubai-map.jpg", "styles/photo/fond.jpg"],
+    title: "Palm Jumeirah Mansion",
+    location: "Palm Jumeirah - EMAAR",
+    developer: "EMAAR",
+    type: "Villa",
+    bedrooms: 6,
+    bathrooms: 8,
+    badge: { label: "Exclusive", color: "red" },
+    price: 27000000,
+    priceLabel: "From AED 27,000,000",
+    tag: "Palm View",
+    img: "styles/photo/palmmansion.jpg",
+    action: "Ultra Luxury",
+    actionColor: "red",
+    delivery: "2025"
   },
   {
-    title: "Creek Beach Lotus",
-    location: "Creek Beach",
+    title: "Upper House",
+    location: "JLT - ELLINGTON",
+    developer: "ELLINGTON",
     type: "Apartment",
-    developer: "Emaar",
-    price: 700000,
-    handover: 2025,
-    status: "Handover Soon",
-    description: "Family-friendly, apartments steps Creek Beach.",
-    highlights: ["From 700,000 AED", "Golf-view apartments"],
-    images: ["styles/photo/dubai-map.jpg", "styles/photo/fond.jpg"],
+    bedrooms: 3,
+    bathrooms: 3,
+    badge: { label: "New", color: "blue" },
+    price: 2350000,
+    priceLabel: "From AED 2,350,000",
+    tag: "Skyline View",
+    img: "styles/photo/upperhouse.jpg",
+    action: "Explore",
+    actionColor: "blue",
+    delivery: "2026"
   },
-  // Ajoute d'autres projets ici...
+  {
+    title: "The Quayside",
+    location: "Business Bay - ELLINGTON",
+    developer: "ELLINGTON",
+    type: "Apartment",
+    bedrooms: 1,
+    bathrooms: 1,
+    badge: { label: "New Launch", color: "green" },
+    price: 1300000,
+    priceLabel: "From AED 1,300,000",
+    tag: "Canal View",
+    img: "styles/photo/quayside.jpg",
+    action: "Explore Now",
+    actionColor: "green",
+    delivery: "2027"
+  },
+  {
+    title: "Nima",
+    location: "The Valley - EMAAR",
+    developer: "EMAAR",
+    type: "Townhouse",
+    bedrooms: 3,
+    bathrooms: 4,
+    badge: { label: "Family", color: "blue" },
+    price: 1950000,
+    priceLabel: "From AED 1,950,000",
+    tag: "Community Park",
+    img: "styles/photo/nima.jpg",
+    action: "View Offer",
+    actionColor: "blue",
+    delivery: "2026"
+  },
+  {
+    title: "Elitz 3",
+    location: "JVC - DANUBE",
+    developer: "DANUBE",
+    type: "Apartment",
+    bedrooms: 1,
+    bathrooms: 2,
+    badge: { label: "Installment", color: "orange" },
+    price: 700000,
+    priceLabel: "From AED 700,000",
+    tag: "1% Monthly",
+    img: "styles/photo/elitz3.jpg",
+    action: "See Plan",
+    actionColor: "orange",
+    delivery: "Q2 2026"
+  },
+  {
+    title: "Hamilton Residence",
+    location: "Business Bay - SOBHA",
+    developer: "SOBHA",
+    type: "Apartment",
+    bedrooms: 2,
+    bathrooms: 3,
+    badge: { label: "Brand New", color: "blue" },
+    price: 1600000,
+    priceLabel: "From AED 1,600,000",
+    tag: "Downtown View",
+    img: "styles/photo/hamilton.jpg",
+    action: "Details",
+    actionColor: "blue",
+    delivery: "Q4 2025"
+  },
+  {
+    title: "Peninsula Five",
+    location: "Business Bay - SELECT GROUP",
+    developer: "SELECT GROUP",
+    type: "Apartment",
+    bedrooms: 2,
+    bathrooms: 2,
+    badge: { label: "Waterfront", color: "green" },
+    price: 2350000,
+    priceLabel: "From AED 2,350,000",
+    tag: "Burj View",
+    img: "styles/photo/peninsulafive.jpg",
+    action: "Show Units",
+    actionColor: "green",
+    delivery: "2025"
+  },
+  {
+    title: "Hillside Villas",
+    location: "Dubai Hills - EMAAR",
+    developer: "EMAAR",
+    type: "Villa",
+    bedrooms: 4,
+    bathrooms: 5,
+    badge: { label: "Premium", color: "orange" },
+    price: 4300000,
+    priceLabel: "From AED 4,300,000",
+    tag: "Park Side",
+    img: "styles/photo/hillsidevillas.jpg",
+    action: "See Villas",
+    actionColor: "orange",
+    delivery: "2026"
+  },
+  {
+    title: "Creek Palace",
+    location: "Dubai Creek Harbour - EMAAR",
+    developer: "EMAAR",
+    type: "Apartment",
+    bedrooms: 2,
+    bathrooms: 2,
+    badge: { label: "View", color: "blue" },
+    price: 2100000,
+    priceLabel: "From AED 2,100,000",
+    tag: "Creek View",
+    img: "styles/photo/creekpalace.jpg",
+    action: "See Apartments",
+    actionColor: "blue",
+    delivery: "2027"
+  }
 ];
-
-// Génération des suggestions dynamiquement (pour que ce soit connectable à une vraie DB)
-function setDynamicFilters() {
-  const unique = arr => [...new Set(arr)];
-  const areas = unique(projects.map(p => p.location)).sort();
-  const types = unique(projects.map(p => p.type || "Apartment")).sort();
-  const devs = unique(projects.map(p => p.developer)).sort();
-  const handovers = unique(projects.map(p => p.handover)).sort((a, b) => a - b);
-
-  const areaFilter = document.getElementById("areaFilter");
-  areaFilter.innerHTML = `<option>Location</option>` + areas.map(a => `<option>${a}</option>`).join('');
-
-  const typeFilter = document.getElementById("propertyType");
-  typeFilter.innerHTML = `<option>Property type</option>` + types.map(t => `<option>${t}</option>`).join('');
-
-  const devFilter = document.getElementById("developerFilter");
-  devFilter.innerHTML = `<option>Developer</option>` + devs.map(d => `<option>${d}</option>`).join('');
-
-  const handoverFilter = document.getElementById("handoverFilter");
-  handoverFilter.innerHTML = `<option>Handover</option>` + handovers.map(h => `<option>${h}</option>`).join('') + `<option>2027+</option>`;
-}
-
-let filteredProjects = [...projects];
+let selectedDeliveryDates = [];
 let currentPage = 1;
-const ITEMS_PER_PAGE = 6;
 
-// Filtres et recherche
-function filterProjects(page = 1) {
-  currentPage = page;
-  let filtered = projects.slice();
-
-  const search = document.getElementById("search").value.trim().toLowerCase();
-  const area = document.getElementById("areaFilter").value;
-  const propertyType = document.getElementById("propertyType").value;
-  const developer = document.getElementById("developerFilter").value;
-  const handover = document.getElementById("handoverFilter").value;
-  const priceMin = parseInt(document.getElementById("priceMin").value) || 0;
-  const priceMax = parseInt(document.getElementById("priceMax").value) || Infinity;
-
-  if (search) {
-    filtered = filtered.filter(p =>
-      p.title.toLowerCase().includes(search) ||
-      p.location.toLowerCase().includes(search) ||
-      p.developer.toLowerCase().includes(search)
-    );
+// ===================== AFFICHAGE =====================
+function displayFlatProjects(array) {
+  const container = document.getElementById("propertyResults");
+  container.innerHTML = "";
+  if (array.length === 0) {
+    container.innerHTML = `<div style="margin:40px auto;font-size:1.2em;color:#c44;text-align:center;">No project found</div>`;
+    return;
   }
-  if (area !== "Location") filtered = filtered.filter(p => p.location === area);
-  if (propertyType !== "Property type") filtered = filtered.filter(p => (p.type ? p.type === propertyType : true));
-  if (developer !== "Developer") filtered = filtered.filter(p => p.developer === developer);
-  if (handover !== "Handover") {
-    if (handover === "2027+") filtered = filtered.filter(p => parseInt(p.handover) >= 2027);
-    else filtered = filtered.filter(p => p.handover == handover);
-  }
-  filtered = filtered.filter(p => p.price >= priceMin && p.price <= priceMax);
-
-  filteredProjects = filtered;
-  displayProjects(filteredProjects, currentPage);
-  updatePagination(filteredProjects.length, currentPage);
+  array.forEach((p, i) => {
+    let badgeClass = "card-badge";
+    if (p.badge?.color === "orange") badgeClass += " orange";
+    else if (p.badge?.color === "green") badgeClass += " green";
+    else if (p.badge?.color === "blue") badgeClass += " blue";
+    const card = document.createElement("div");
+    card.className = "property-card-flat";
+    card.tabIndex = 0;
+    card.innerHTML = `
+      <div style="position:relative;">
+        <img src="${p.img}" alt="${p.title}" class="card-image-flat" />
+        ${p.badge ? `<span class="${badgeClass}">${p.badge.label}</span>` : ""}
+      </div>
+      <div class="card-body-flat">
+        <div class="card-title-flat">${p.title}</div>
+        <div class="card-sub-flat">${p.location}</div>
+        <div class="card-price-flat">${p.priceLabel || (p.price ? `From AED ${p.price.toLocaleString()}` : "")}</div>
+        <div class="card-icons-row">${p.tag ? `<span><i class="fa fa-check"></i> ${p.tag}</span>` : ""}</div>
+        <button class="card-action-btn">${p.action}</button>
+      </div>
+    `;
+    card.addEventListener("click", () => {
+      window.location = 'off-plan-click.html?project=' + encodeURIComponent(p.title);
+    });
+    container.appendChild(card);
+  });
 }
 
+// ===================== FILTRAGE + PAGINATION =====================
+function filterAndDisplayProjects(page = 1) {
+  const query = document.getElementById('search')?.value.trim().toLowerCase() || '';
+  const propertyType = document.getElementById('propertyType')?.value || '';
+  const bedroomsVal = document.getElementById('bedrooms')?.value || '';
+  const bathroomsVal = document.getElementById('bathrooms')?.value || '';
+  const bedrooms = bedroomsVal && bedroomsVal !== "Bedrooms" ? parseInt(bedroomsVal) : null;
+  const bathrooms = bathroomsVal && bathroomsVal !== "Bathrooms" ? parseInt(bathroomsVal) : null;
+  const deliveryDates = selectedDeliveryDates.length ? selectedDeliveryDates : [];
+
+  // AUTRES FILTRES
+  const priceMin = parseInt(document.getElementById('priceMin')?.value) || 0;
+  const priceMax = parseInt(document.getElementById('priceMax')?.value) || Infinity;
+  const keywordInput = document.getElementById('keywordInput');
+  const keywords = keywordInput ? keywordInput.value.trim().toLowerCase().split(',').map(k => k.trim()).filter(Boolean) : [];
+  const minArea = parseInt(document.getElementById('minAreaInput')?.value) || 0;
+  const maxArea = parseInt(document.getElementById('maxAreaInput')?.value) || Infinity;
+  const isFurnished = document.getElementById('furnishingFilter')?.checked;
+  const checkedAmenities = Array.from(document.querySelectorAll('.amenities-list input[type="checkbox"]:checked')).map(cb => cb.value);
+
+  // FILTRAGE PRINCIPAL
+  let arr = projects.filter(p => {
+    let match = (
+      p.title.toLowerCase().includes(query) ||
+      p.location.toLowerCase().includes(query) ||
+      (p.developer && p.developer.toLowerCase().includes(query))
+    );
+    if (propertyType && propertyType !== "Property Type" && p.type !== propertyType) return false;
+    if (bedrooms && (!p.bedrooms || Number(p.bedrooms) < bedrooms)) return false;
+    if (bathrooms && (!p.bathrooms || Number(p.bathrooms) < bathrooms)) return false;
+    if (deliveryDates.length > 0 && !deliveryDates.includes(String(p.delivery).toLowerCase())) return false;
+    if (p.price < priceMin || p.price > priceMax) return false;
+    if (minArea && (p.size || 0) < minArea) return false;
+    if (maxArea !== Infinity && (p.size || 0) > maxArea) return false;
+    if (isFurnished && !p.furnished) return false;
+    if (checkedAmenities.length && (!p.amenities || !checkedAmenities.every(a => p.amenities.includes(a)))) return false;
+    if (keywords.length) {
+      const allText = [
+        p.title, p.location, (p.developer || ''), (p.description || ''), ...(p.amenities || [])
+      ].join(' ').toLowerCase();
+      if (!keywords.every(k => allText.includes(k))) return false;
+    }
+    return match;
+  });
+
+  displayPaginatedProjects(arr, page);
+}
+
+// ============== PAGINATION UTILS ===================
 function paginate(arr, page) {
+  const cardsPerPage = 9; // Change as needed
   const total = arr.length;
-  const pages = Math.ceil(total / ITEMS_PER_PAGE) || 1;
-  const start = (page - 1) * ITEMS_PER_PAGE;
-  const end = start + ITEMS_PER_PAGE;
+  const pages = Math.ceil(total / cardsPerPage) || 1;
+  const start = (page - 1) * cardsPerPage;
+  const end = start + cardsPerPage;
   return { page, total, pages, slice: arr.slice(start, end) };
 }
 
-// Affichage projets
-function displayProjects(array, page) {
-  const container = document.getElementById("propertyResults");
-  const { slice } = paginate(array, page);
-  container.innerHTML = "";
-  document.getElementById("propertyCount").textContent = `${array.length} projects found`;
 
-  slice.forEach((property, i) => {
-    let statusClass = property.status.toLowerCase().includes("handover") ? "handover" : "";
-    let highlights = property.highlights.map(h => `<li>${h}</li>`).join('');
-    let imgs = "";
-    if (property.images.length > 1) {
-      imgs = `
-        <div class="carousel-v2">
-          <img src="${property.images[0]}" class="active" alt="${property.title}" />
-          ${property.images.slice(1).map(img => `<img src="${img}" alt="${property.title}" />`).join("")}
-          <button class="carousel-btn prev"><i class="fas fa-chevron-left"></i></button>
-          <button class="carousel-btn next"><i class="fas fa-chevron-right"></i></button>
-        </div>
-      `;
-    } else {
-      imgs = `<img src="${property.images[0]}" alt="${property.title}" />`;
-    }
-    const card = document.createElement("div");
-    card.className = "property-card-v2";
-    card.tabIndex = 0; // accessibilité au clavier
-    card.innerHTML = `
-      <div class="property-status ${statusClass}">${property.status.toUpperCase()}</div>
-      <div class="property-img-side">${imgs}</div>
-      <div class="property-details-main">
-        <h3>${property.title}</h3>
-        <div class="prop-location"><i class="fas fa-map-marker-alt"></i> ${property.location}</div>
-        <div class="prop-desc">${property.description}</div>
-        <ul class="prop-highlights">${highlights}</ul>
-        <div class="prop-info">
-          <span><b>From:</b> ${property.price.toLocaleString()} AED</span>
-          <span><b>Handover:</b> ${property.handover}</span>
-          <span><b>Developer:</b> ${property.developer}</span>
-        </div>
-      </div>
-    `;
-    card.addEventListener("click", function () {
-      window.location = 'off-plan-click.html?project=' + encodeURIComponent(property.title);
-    });
-    card.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") window.location = 'off-plan-click.html?project=' + encodeURIComponent(property.title);
-    });
-    container.appendChild(card);
+function displayPaginatedProjects(arr, page = 1) {
+  const {slice, total, pages} = paginate(arr, page);
+  displayFlatProjects(slice);
+  updatePagination(pages, page, arr);
+  if (document.getElementById('propertyCount')) document.getElementById('propertyCount').textContent = `${total} projects found`;
+  currentPage = page;
 
-    // Carrousel JS
-    const carousel = card.querySelector(".carousel-v2");
-    if (carousel) {
-      const imgs = carousel.querySelectorAll("img");
-      let idx = 0;
-      carousel.querySelector(".next").addEventListener("click", (e) => {
-        e.stopPropagation();
-        imgs[idx].classList.remove("active");
-        idx = (idx + 1) % imgs.length;
-        imgs[idx].classList.add("active");
-      });
-      carousel.querySelector(".prev").addEventListener("click", (e) => {
-        e.stopPropagation();
-        imgs[idx].classList.remove("active");
-        idx = (idx - 1 + imgs.length) % imgs.length;
-        imgs[idx].classList.add("active");
-      });
-    }
-  });
+  // --------- SCROLL EN HAUT POUR TOUS LES APPAREILS ---------
+  setTimeout(() => {
+    // Astuce pour Safari iOS et tous les mobiles : remet vraiment tout en haut
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    // Si jamais le clavier virtuel était ouvert (focus input), on l'enlève :
+    if (document.activeElement) document.activeElement.blur();
+    // Forçage extrême si jamais un navigateur "bloque" le scrollTo
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+  }, 80);
 }
 
-function updatePagination(total, page) {
-  const pages = Math.ceil(total / ITEMS_PER_PAGE) || 1;
-  const pagDiv = document.getElementById("pagination");
-  pagDiv.innerHTML = "";
-  if (pages <= 1) return;
 
+
+
+function updatePagination(pages, page, arr) {
+  const paginationDiv = document.getElementById("pagination");
+  paginationDiv.innerHTML = '';
+  if (pages <= 1) return;
   const prevBtn = document.createElement('button');
-  prevBtn.className = 'page-btn main-orange-btn outline';
+  prevBtn.innerHTML = '&laquo;';
+  prevBtn.className = 'page-btn';
   prevBtn.disabled = page === 1;
-  prevBtn.innerHTML = '<i class="fa fa-chevron-left"></i>';
-  prevBtn.onclick = () => { if (page > 1) { currentPage--; displayProjects(filteredProjects, currentPage); updatePagination(filteredProjects.length, currentPage); }};
-  pagDiv.appendChild(prevBtn);
+  prevBtn.onclick = () => filterAndDisplayProjects(page - 1);
+  paginationDiv.appendChild(prevBtn);
 
   for (let i = 1; i <= pages; i++) {
     const btn = document.createElement('button');
-    btn.className = 'page-btn main-orange-btn' + (i === page ? ' active' : ' outline');
+    btn.className = 'page-btn' + (i === page ? ' active' : '');
     btn.textContent = i;
-    btn.onclick = () => { currentPage = i; displayProjects(filteredProjects, currentPage); updatePagination(filteredProjects.length, currentPage); };
-    pagDiv.appendChild(btn);
+    btn.onclick = () => filterAndDisplayProjects(i);
+    paginationDiv.appendChild(btn);
   }
-
   const nextBtn = document.createElement('button');
-  nextBtn.className = 'page-btn main-orange-btn outline';
+  nextBtn.innerHTML = '&raquo;';
+  nextBtn.className = 'page-btn';
   nextBtn.disabled = page === pages;
-  nextBtn.innerHTML = '<i class="fa fa-chevron-right"></i>';
-  nextBtn.onclick = () => { if (page < pages) { currentPage++; displayProjects(filteredProjects, currentPage); updatePagination(filteredProjects.length, currentPage); }};
-  pagDiv.appendChild(nextBtn);
+  nextBtn.onclick = () => filterAndDisplayProjects(page + 1);
+  paginationDiv.appendChild(nextBtn);
 }
 
-// EVENTS
-document.addEventListener('DOMContentLoaded', () => {
-  setDynamicFilters();
-  filterProjects(1);
-
-  // --- AUTO-FILTER ON ANY CHANGE ---
-  document.querySelectorAll('.filter-bar input, .filter-bar select').forEach(el => {
-    el.addEventListener('input', () => filterProjects(1));
-    el.addEventListener('change', () => filterProjects(1));
-  });
-
-  // "Clear" button
-  document.getElementById("clearBtn").addEventListener("click", () => {
-    document.querySelectorAll(".filter-bar input, .filter-bar select").forEach(el => {
-      el.value = el.tagName === "SELECT" ? el.options[0].text : "";
-    });
-    filterProjects(1);
-  });
-
-  // --- Scroll to top btn ---
-  const scrollToTopBtn = document.getElementById("scrollToTopBtn");
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 250) scrollToTopBtn.style.display = 'block';
-    else scrollToTopBtn.style.display = 'none';
-  });
-  scrollToTopBtn.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
-});
-
-// --- Auto-prefill from query params + auto-search on arrival ---
-document.addEventListener('DOMContentLoaded', function () {
-  // Helper to get URL params
-  function getParam(name) {
-    return new URLSearchParams(window.location.search).get(name);
-  }
-
-  // Find filter fields by ID or fallback by order
-  const searchInput = document.getElementById('search') ||
-    document.querySelector('.filter-bar input[type="text"]');
-  const typeSelect = document.getElementById('propertyType') ||
-    document.querySelectorAll('.filter-bar select')[0];
-  const bedsSelect = document.querySelector('.filter-bar select[name="beds"]') ||
-    document.querySelectorAll('.filter-bar select')[1];
-  const searchBtn = document.getElementById('searchBtn') ||
-    document.querySelector('.filter-bar button[type="submit"], .filter-bar button');
-
-  // 1. Pré-remplit si paramètres présents
-  const q = getParam('search') || '';
-  const type = getParam('type') || '';
-  const beds = getParam('beds') || '';
-
-  if (searchInput && q) searchInput.value = decodeURIComponent(q);
-  if (typeSelect && type) {
-    Array.from(typeSelect.options).forEach(opt => {
-      if (opt.value === decodeURIComponent(type) || opt.text === decodeURIComponent(type)) {
-        opt.selected = true;
+// ===================== DELIVERY BTN =====================
+function setupDeliveryDateButtons() {
+  const btns = document.querySelectorAll('.delivery-date-btn');
+  const allBtn = document.querySelector('.delivery-date-btn[data-value="all"]');
+  if (allBtn) allBtn.classList.add('selected');
+  selectedDeliveryDates = [];
+  btns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const val = this.dataset.value;
+      if (val === "all") {
+        selectedDeliveryDates = [];
+        btns.forEach(b => b.classList.remove('selected'));
+        this.classList.add('selected');
+      } else {
+        allBtn.classList.remove('selected');
+        this.classList.toggle('selected');
+        if (this.classList.contains('selected')) {
+          if (!selectedDeliveryDates.includes(val)) selectedDeliveryDates.push(val);
+        } else {
+          selectedDeliveryDates = selectedDeliveryDates.filter(d => d !== val);
+        }
       }
-    });
-  }
-  if (bedsSelect && beds) {
-    Array.from(bedsSelect.options).forEach(opt => {
-      if (opt.value === decodeURIComponent(beds) || opt.text === decodeURIComponent(beds)) {
-        opt.selected = true;
+      if (selectedDeliveryDates.length === 0) {
+        allBtn.classList.add('selected');
       }
+      filterAndDisplayProjects(1);
     });
-  }
+  });
+}
 
-  // 2. Lance la recherche automatiquement si un paramètre présent
-  if ((q || type || beds) && searchBtn) {
-    // petit délai pour laisser le DOM (et JS dynamiques) s'installer
-    setTimeout(() => searchBtn.click(), 100);
-  }
-});
-
-
-
-// Mobile burger menu
-document.addEventListener('DOMContentLoaded', function () {
-  const burger = document.getElementById('burgerMenu');
-  const nav = document.querySelector('.all-button');
-  burger?.addEventListener('click', () => {
-    nav.classList.toggle('mobile-open');
-    // Close on any click outside
-    if (nav.classList.contains('mobile-open')) {
-      document.body.style.overflow = 'hidden';
-      setTimeout(() => {
-        document.addEventListener('click', closeMenu, { once: true });
-      }, 0);
-    } else {
-      document.body.style.overflow = '';
-    }
-    function closeMenu(e) {
-      if (!nav.contains(e.target) && !burger.contains(e.target)) {
-        nav.classList.remove('mobile-open');
-        document.body.style.overflow = '';
-      }
+// ============= PRICE SLIDER + HISTOGRAMME ==============
+let priceSlider = null;
+const PRICE_STEP = 10000;
+let globalMinPrice = 0, globalMaxPrice = 0;
+function getAllPrices(arr) {
+  return arr.map(p => parseInt(p.price)).filter(n => !isNaN(n));
+}
+function setupPriceFilter(projects) {
+  const allPrices = getAllPrices(projects);
+  globalMinPrice = Math.min(...allPrices);
+  globalMaxPrice = Math.max(...allPrices);
+  document.getElementById("priceMin").value = globalMinPrice;
+  document.getElementById("priceMax").value = globalMaxPrice;
+  updatePriceSliderAndHistogram(projects);
+}
+function updatePriceSliderAndHistogram(arr) {
+  let sliderElem = document.getElementById("priceSlider");
+  if (!sliderElem) return;
+  if (priceSlider) { priceSlider.destroy(); priceSlider = null; sliderElem.innerHTML = ""; }
+  let currentMin = parseInt(document.getElementById("priceMin").value) || globalMinPrice;
+  let currentMax = parseInt(document.getElementById("priceMax").value) || globalMaxPrice;
+  const minInput = document.getElementById("priceMinInput");
+  const maxInput = document.getElementById("priceMaxInput");
+  priceSlider = noUiSlider.create(sliderElem, {
+    start: [currentMin, currentMax],
+    connect: true,
+    step: PRICE_STEP,
+    range: { min: globalMinPrice, max: globalMaxPrice },
+    tooltips: [true, true],
+    format: {
+      to: v => Number(v).toLocaleString('en-US'),
+      from: v => Number(String(v).replace(/[^\d]/g,""))
     }
   });
+  minInput.value = currentMin.toLocaleString('en-US');
+  maxInput.value = currentMax.toLocaleString('en-US');
+  priceSlider.on('update', function(values){
+    minInput.value = values[0];
+    maxInput.value = values[1];
+    document.getElementById("selectedPriceRange").textContent = values[0] + " - " + values[1] + " AED";
+    drawPriceHistogram(arr, globalMinPrice, globalMaxPrice, values);
+  });
+  priceSlider.on('change', function(values){
+    let minVal = Number(String(values[0]).replace(/[^\d]/g,"")) || globalMinPrice;
+    let maxVal = Number(String(values[1]).replace(/[^\d]/g,"")) || globalMaxPrice;
+    document.getElementById('priceMin').value = minVal;
+    document.getElementById('priceMax').value = maxVal;
+    filterAndDisplayProjects(1);
+  });
+  minInput.onchange = function() {
+    let minVal = Number(String(minInput.value).replace(/[^\d]/g,"")) || globalMinPrice;
+    let maxVal = Number(String(maxInput.value).replace(/[^\d]/g,"")) || globalMaxPrice;
+    minVal = Math.max(globalMinPrice, Math.min(maxVal, minVal));
+    priceSlider.set([minVal, null]);
+  };
+  maxInput.onchange = function() {
+    let minVal = Number(String(minInput.value).replace(/[^\d]/g,"")) || globalMinPrice;
+    let maxVal = Number(String(maxInput.value).replace(/[^\d]/g,"")) || globalMaxPrice;
+    maxVal = Math.min(globalMaxPrice, Math.max(minVal, maxVal));
+    priceSlider.set([null, maxVal]);
+  };
+  document.getElementById("sliderMinLabel").textContent = globalMinPrice.toLocaleString('en-US') + " AED";
+  document.getElementById("sliderMaxLabel").textContent = globalMaxPrice.toLocaleString('en-US') + " AED";
+  document.getElementById("selectedPriceRange").textContent = currentMin.toLocaleString('en-US') + " - " + currentMax.toLocaleString('en-US') + " AED";
+  document.getElementById("priceMin").value = currentMin;
+  document.getElementById("priceMax").value = currentMax;
+  drawPriceHistogram(arr, globalMinPrice, globalMaxPrice, [currentMin, currentMax]);
+}
+function drawPriceHistogram(arr, min, max, [sliderMin, sliderMax]=[min,max]) {
+  const canvas = document.getElementById('priceHistogram');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width, height = canvas.height;
+  ctx.clearRect(0, 0, width, height);
+  let prices = getAllPrices(arr);
+  if (prices.length === 0) return;
+  let bins = 18, hist = Array(bins).fill(0);
+  prices.forEach(price => {
+    let idx = Math.floor((price - min) / (max - min) * (bins - 1));
+    idx = Math.max(0, Math.min(bins - 1, idx));
+    hist[idx]++;
+  });
+  let maxHist = Math.max(...hist, 2);
+  for (let i = 0; i < bins; i++) {
+    let x = Math.floor(i * width / bins) + 3;
+    let barWidth = Math.floor(width / bins) - 7;
+    let y = Math.floor(height - (hist[i] / maxHist) * (height-10));
+    let barHeight = height - y;
+    ctx.beginPath();
+    ctx.fillStyle = (function(){
+      let binStart = min + (i / bins) * (max - min);
+      let binEnd = min + ((i+1)/bins) * (max - min);
+      return (binEnd >= sliderMin && binStart <= sliderMax) ? "#f17100" : "#ffd2a5";
+    })();
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 2;
+    ctx.roundRect(x, y, barWidth, barHeight, 5);
+    ctx.fill();
+    ctx.stroke();
+  }
+  ctx.save();
+  ctx.globalAlpha = 0.78;
+  prices.forEach(price => {
+    let px = Math.floor((price - min) / (max - min) * width);
+    px = Math.max(4, Math.min(width - 4, px));
+    ctx.beginPath();
+    ctx.arc(px, height - 8, 2.2, 0, 2 * Math.PI);
+    ctx.fillStyle = "#ff8300";
+    ctx.fill();
+  });
+  ctx.restore();
+}
+
+// ====== POPUPS (Price & More) =======
+function openMoreFilterPopup() {
+  const popup = document.getElementById("moreFilterPopup");
+  const inner = popup.querySelector(".more-filter-inner");
+  popup.classList.add('active');
+  document.body.classList.add('more-filters-open');
+  if(window.innerWidth < 700) {
+    inner.style.transform = "translateX(-50%)";
+    inner.style.top = "170px";
+    inner.style.left = "50%";
+  } else {
+    inner.style.transform = "translate(-50%, -50%)";
+    inner.style.top = "50%";
+    inner.style.left = "50%";
+  }
+}
+function closeMoreFilterPopup() {
+  document.getElementById("moreFilterPopup").classList.remove('active');
+  document.body.classList.remove('more-filters-open');
+}
+function openPricePopup() {
+  const popup = document.getElementById("priceFilterPopup");
+  popup.classList.add('active');
+  document.body.classList.add('price-popup-open');
+  setTimeout(() => { document.getElementById("priceMinInput")?.focus(); }, 120);
+}
+function closePricePopup() {
+  const popup = document.getElementById("priceFilterPopup");
+  popup.classList.remove('active');
+  document.body.classList.remove('price-popup-open');
+}
+
+// ===================== INIT =====================
+document.addEventListener('DOMContentLoaded', function() {
+  setupDeliveryDateButtons();
+  setupPriceFilter(projects);
+
+  // Filtres principaux
+  ["search", "propertyType", "bedrooms", "bathrooms"].forEach(id => {
+    if (document.getElementById(id)) {
+      document.getElementById(id).addEventListener('input', () => filterAndDisplayProjects(1));
+      document.getElementById(id).addEventListener('change', () => filterAndDisplayProjects(1));
+    }
+  });
+  if (document.getElementById("searchBtn"))
+    document.getElementById("searchBtn").addEventListener('click', () => filterAndDisplayProjects(1));
+
+  if (document.getElementById("clearBtn"))
+    document.getElementById("clearBtn").addEventListener('click', function() {
+      document.querySelectorAll("input, select").forEach(el => {
+        if (el.tagName === "SELECT") el.selectedIndex = 0;
+        else el.value = "";
+      });
+      document.querySelectorAll("#moreFilterPopup input[type='checkbox']").forEach(cb => { cb.checked = false; });
+      if (document.getElementById("priceMin")) document.getElementById("priceMin").value = globalMinPrice;
+      if (document.getElementById("priceMax")) document.getElementById("priceMax").value = globalMaxPrice;
+      selectedDeliveryDates = [];
+      document.querySelectorAll('.delivery-date-btn').forEach(b => b.classList.remove('selected'));
+      if (document.querySelector('.delivery-date-btn[data-value="all"]')) document.querySelector('.delivery-date-btn[data-value="all"]').classList.add('selected');
+      filterAndDisplayProjects(1);
+      closePricePopup();
+      closeMoreFilterPopup();
+    });
+
+  // --- POPUPS ---
+  if (document.getElementById("openPriceFilter"))
+    document.getElementById("openPriceFilter").addEventListener("click", openPricePopup);
+  if (document.getElementById("closePricePopup"))
+    document.getElementById("closePricePopup").addEventListener("click", closePricePopup);
+  if (document.getElementById("validatePriceBtn"))
+    document.getElementById("validatePriceBtn").addEventListener("click", function() {
+      let minVal = Number(String(document.getElementById("priceMinInput").value).replace(/[^\d]/g,"")) || globalMinPrice;
+      let maxVal = Number(String(document.getElementById("priceMaxInput").value).replace(/[^\d]/g,"")) || globalMaxPrice;
+      document.getElementById('priceMin').value = minVal;
+      document.getElementById('priceMax').value = maxVal;
+      closePricePopup();
+      filterAndDisplayProjects(1);
+    });
+  if (document.getElementById("priceFilterPopup"))
+    document.getElementById("priceFilterPopup").addEventListener("mousedown", function(e){
+      if (e.target === this) closePricePopup();
+    });
+
+  document.addEventListener("keydown", function(e){
+    if (document.getElementById("priceFilterPopup")?.classList.contains("active") && e.key === "Escape") closePricePopup();
+    if (document.getElementById("moreFilterPopup")?.classList.contains("active") && e.key === "Escape") closeMoreFilterPopup();
+  });
+  if (document.getElementById("openMoreFilter"))
+    document.getElementById("openMoreFilter").addEventListener("click", openMoreFilterPopup);
+  if (document.getElementById("closeMoreFilter"))
+    document.getElementById("closeMoreFilter").addEventListener("click", closeMoreFilterPopup);
+  if (document.getElementById("moreFilterPopup"))
+    document.getElementById("moreFilterPopup").addEventListener("mousedown", function(e){
+      if (e.target === this) closeMoreFilterPopup();
+    });
+  if (document.getElementById("applyMoreFiltersBtn"))
+    document.getElementById("applyMoreFiltersBtn").addEventListener("click", function() {
+      closeMoreFilterPopup();
+      filterAndDisplayProjects(1);
+    });
+
+  // Appel initial
+  filterAndDisplayProjects(1);
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+  // ... tout ton code existant ...
+
+  // Active Map tab redirection
+  const tabMap = document.getElementById('tab-map');
+  if(tabMap) {
+    tabMap.addEventListener('click', function() {
+      window.location.href = "off-plan-map.html";
+    });
+  }
+});
+
 
 
 
