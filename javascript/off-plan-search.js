@@ -296,7 +296,7 @@ function displayFlatProjects(array) {
   const container = document.getElementById("propertyResults");
   container.innerHTML = "";
   if (array.length === 0) {
-    container.innerHTML = `<div style="margin:40px auto;font-size:1.2em;color:#c44;text-align:center;">No project found</div>`;
+    container.innerHTML = '<div style="margin:40px auto;font-size:1.2em;color:#c44;text-align:center;">No project found</div>';
     return;
   }
   array.forEach((p, i) => {
@@ -304,10 +304,10 @@ function displayFlatProjects(array) {
     if (p.badge?.color === "orange") badgeClass += " orange";
     else if (p.badge?.color === "green") badgeClass += " green";
     else if (p.badge?.color === "blue") badgeClass += " blue";
-    const card = document.createElement("div");
-    card.className = "property-card-flat";
-    card.tabIndex = 0;
-    card.innerHTML = `
+    else if (p.badge?.color === "red") badgeClass += " red";
+
+    // Génère le HTML comme string classique
+    let html = `
       <div style="position:relative;">
         <img src="${p.img}" alt="${p.title}" class="card-image-flat" />
         ${p.badge ? `<span class="${badgeClass}">${p.badge.label}</span>` : ""}
@@ -320,12 +320,17 @@ function displayFlatProjects(array) {
         <button class="card-action-btn">${p.action}</button>
       </div>
     `;
+    const card = document.createElement("div");
+    card.className = "property-card-flat";
+    card.tabIndex = 0;
+    card.innerHTML = html;
     card.addEventListener("click", () => {
       window.location = 'off-plan-click.html?project=' + encodeURIComponent(p.title);
     });
     container.appendChild(card);
   });
 }
+
 
 // ===================== FILTRAGE + PAGINATION =====================
 // ===================== FILTRAGE + PAGINATION =====================
@@ -358,7 +363,20 @@ function filterAndDisplayProjects(page = 1) {
     if (propertyType && propertyType !== "Property Type" && p.type !== propertyType) return false;
     if (bedrooms && (!p.bedrooms || Number(p.bedrooms) < bedrooms)) return false;
     if (bathrooms && (!p.bathrooms || Number(p.bathrooms) < bathrooms)) return false;
-    if (deliveryDates.length > 0 && !deliveryDates.includes(String(p.delivery).toLowerCase())) return false;
+    
+    // ----------- FILTRE DATES DE LIVRAISON (correction ici) -------------
+    if (deliveryDates.length > 0) {
+      const matchDelivery = deliveryDates.some(val => {
+        val = val.toLowerCase();
+        // Si année seule, match tous les "QX YEAR" ou "YEAR"
+        if (/^\d{4}$/.test(val)) return String(p.delivery).toLowerCase().includes(val);
+        // Si quarter précis (Q3 2025 etc.), match strictement
+        return String(p.delivery).toLowerCase() === val;
+      });
+      if (!matchDelivery) return false;
+    }
+    // ------------------------------------------------------
+    
     if (p.price < priceMin || p.price > priceMax) return false;
     if (minArea && (p.size || 0) < minArea) return false;
     if (maxArea !== Infinity && (p.size || 0) > maxArea) return false;
@@ -375,6 +393,7 @@ function filterAndDisplayProjects(page = 1) {
 
   displayPaginatedProjects(arr, page);
 }
+
 
 // ============== PAGINATION UTILS ===================
 function displayPaginatedProjects(arr, page = 1) {
@@ -500,33 +519,50 @@ function updatePagination(pages, page, arr) {
 
 // ===================== DELIVERY BTN =====================
 function setupDeliveryDateButtons() {
-  const btns = document.querySelectorAll('.delivery-date-btn');
-  const allBtn = document.querySelector('.delivery-date-btn[data-value="all"]');
-  if (allBtn) allBtn.classList.add('selected');
+  const btns = document.querySelectorAll('.delivery-date-options .delivery-date-btn');
+  const allBtn = document.querySelector('.delivery-date-options .delivery-date-btn[data-value="all"]');
+
   selectedDeliveryDates = [];
+
+  // Toujours commencer avec "All" sélectionné
+  if (allBtn) allBtn.classList.add('selected');
+
   btns.forEach(btn => {
     btn.addEventListener('click', function() {
       const val = this.dataset.value;
+
       if (val === "all") {
+        // Si "All" => on désactive tout, puis on active All
         selectedDeliveryDates = [];
         btns.forEach(b => b.classList.remove('selected'));
         this.classList.add('selected');
       } else {
+        // On désactive "All"
         allBtn.classList.remove('selected');
         this.classList.toggle('selected');
+
         if (this.classList.contains('selected')) {
+          // Ajoute si pas déjà dans la sélection
           if (!selectedDeliveryDates.includes(val)) selectedDeliveryDates.push(val);
         } else {
+          // Retire de la sélection
           selectedDeliveryDates = selectedDeliveryDates.filter(d => d !== val);
         }
+
+        // Si plus aucun bouton sélectionné, réactive "All"
+        if (selectedDeliveryDates.length === 0) {
+          allBtn.classList.add('selected');
+        }
       }
-      if (selectedDeliveryDates.length === 0) {
-        allBtn.classList.add('selected');
-      }
+
+      // Met à jour l'affichage filtré
       filterAndDisplayProjects(1);
     });
   });
 }
+
+
+
 
 // ============= PRICE SLIDER + HISTOGRAMME ==============
 let priceSlider = null;
@@ -917,3 +953,29 @@ document.addEventListener('DOMContentLoaded', function() {
   document.addEventListener('DOMContentLoaded', checkStickyTabs);
 })();
 
+document.querySelector('.delivery-date-options').addEventListener('click', function(e) {
+  const btn = e.target.closest('.delivery-date-btn');
+  if (!btn) return;
+
+  const val = btn.dataset.value;
+  const allBtn = this.querySelector('.delivery-date-btn[data-value="all"]');
+  const btns = this.querySelectorAll('.delivery-date-btn');
+
+  if (val === "all") {
+    selectedDeliveryDates = [];
+    btns.forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  } else {
+    allBtn.classList.remove('selected');
+    btn.classList.toggle('selected');
+    if (btn.classList.contains('selected')) {
+      if (!selectedDeliveryDates.includes(val)) selectedDeliveryDates.push(val);
+    } else {
+      selectedDeliveryDates = selectedDeliveryDates.filter(d => d !== val);
+    }
+    if (selectedDeliveryDates.length === 0) {
+      allBtn.classList.add('selected');
+    }
+  }
+  filterAndDisplayProjects(1);
+});
