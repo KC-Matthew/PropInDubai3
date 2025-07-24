@@ -281,28 +281,30 @@ function drawPriceHistogram(min, max, [sliderMin, sliderMax]=[min,max]) {
 // --------- POPUP LEAFLET ---------
 function showProjectPopup(projet, latlng) {
   const popupContent = `
-    <div style="width:250px;min-width:180px;padding-bottom:7px;box-shadow:0 4px 18px 0 rgba(32,32,32,0.14);border-radius:14px;background:#fff;overflow:hidden;">
+    <div style="width:250px;min-width:180px;padding-bottom:7px;box-shadow:0 4px 18px 0 rgba(32,32,32,0.14);border-radius:14px;background:#fff;overflow:hidden;position:relative;">
       <button class="popup-close" title="Fermer" onclick="closeLeafletPopup()" style="position:absolute;top:7px;left:8px;border:none;background:#fff;font-size:1.13rem;border-radius:8px;width:30px;height:30px;box-shadow:0 1px 8px #0001;cursor:pointer;z-index:3;">&times;</button>
-      <div style="height:93px;overflow:hidden;">
-        <img src="${projet.image || projet.logo}" style="width:100%;height:93px;object-fit:cover;">
-      </div>
-      <div style="padding:10px 14px 0 14px;">
-        <div style="font-size:1.11rem;font-weight:700;margin-bottom:2px;">${projet.titre}</div>
-        <div style="color:#999;font-size:1rem;margin-bottom:5px;">
-          <img src="https://img.icons8.com/ios-filled/15/aaaaaa/marker.png" style="margin-bottom:-2px;opacity:.68;">
-          ${projet.location}
+      <div class="popup-clickable" style="cursor:pointer;">
+        <div style="height:93px;overflow:hidden;">
+          <img src="${projet.image || projet.logo}" style="width:100%;height:93px;object-fit:cover;">
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
-          <span style="color:#ff9100;font-weight:700;font-size:1.08rem;">${projet.prix}</span>
-          <span style="font-weight:600;border-radius:9px;padding:2.5px 13px;font-size:.98rem;background:${projet.status==='launch'?'#f6efff':'#fff6e0'};color:${projet.status==='launch'?'#8429d3':'#ff9100'};">
-            ${projet.status === 'launch' ? 'Launch Soon' : 'Handover Soon'}
-          </span>
+        <div style="padding:10px 14px 0 14px;">
+          <div style="font-size:1.11rem;font-weight:700;margin-bottom:2px;">${projet.titre}</div>
+          <div style="color:#999;font-size:1rem;margin-bottom:5px;">
+            <img src="https://img.icons8.com/ios-filled/15/aaaaaa/marker.png" style="margin-bottom:-2px;opacity:.68;">
+            ${projet.location}
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+            <span style="color:#ff9100;font-weight:700;font-size:1.08rem;">${projet.prix}</span>
+            <span style="font-weight:600;border-radius:9px;padding:2.5px 13px;font-size:.98rem;background:${projet.status==='launch'?'#f6efff':'#fff6e0'};color:${projet.status==='launch'?'#8429d3':'#ff9100'};">
+              ${projet.status === 'launch' ? 'Launch Soon' : 'Handover Soon'}
+            </span>
+          </div>
+          <div style="color:#757575;font-size:.99rem;margin-bottom:4px;">
+            <img src="https://img.icons8.com/ios-glyphs/16/aaaaaa/clock--v1.png" style="margin-bottom:-2px;opacity:.8;"> <b>${projet.handover}</b>
+            &nbsp; <img src="https://img.icons8.com/ios-glyphs/16/aaaaaa/worker-male--v2.png" style="margin-bottom:-2px;opacity:.7;"> <b>${projet.dev}</b>
+          </div>
+          ${projet.details.map(d => `<div style="font-size:.98rem;color:#3d3d3d;">• ${d}</div>`).join('')}
         </div>
-        <div style="color:#757575;font-size:.99rem;margin-bottom:4px;">
-          <img src="https://img.icons8.com/ios-glyphs/16/aaaaaa/clock--v1.png" style="margin-bottom:-2px;opacity:.8;"> <b>${projet.handover}</b>
-          &nbsp; <img src="https://img.icons8.com/ios-glyphs/16/aaaaaa/worker-male--v2.png" style="margin-bottom:-2px;opacity:.7;"> <b>${projet.dev}</b>
-        </div>
-        ${projet.details.map(d => `<div style="font-size:.98rem;color:#3d3d3d;">• ${d}</div>`).join('')}
       </div>
     </div>
     <div style="left:50%;transform:translateX(-50%);bottom:-20px;position:absolute;">
@@ -324,7 +326,24 @@ function showProjectPopup(projet, latlng) {
   }).setLatLng(latlng).setContent(popupContent).openOn(map);
 
   window._leafletCustomPopup = leafletPopup;
+
+  // ➜ Ajoute le listener APRÈS l’ouverture du popup (sinon le DOM n’existe pas encore)
+  setTimeout(() => {
+    const clickable = document.querySelector('.popup-clickable');
+    if (clickable) {
+      clickable.onclick = function(e) {
+        // Pour éviter de fermer si on clique la croix par erreur
+        window.location.href = "off-plan-click.html";
+      };
+    }
+  }, 10);
 }
+
+
+
+
+
+
 function closeLeafletPopup() {
   if (window._leafletCustomPopup) {
     map.closePopup(window._leafletCustomPopup);
