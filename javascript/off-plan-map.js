@@ -334,6 +334,8 @@ function closeLeafletPopup() {
 
 // --------- INIT GLOBAL ---------
 document.addEventListener('DOMContentLoaded', function () {
+
+  
   // 1. Map
   map = L.map('map').setView([25.2048, 55.2708], 11);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
@@ -421,7 +423,5 @@ document.addEventListener('DOMContentLoaded', function () {
   // 7. Markers et tout le reste
   applyAllFilters();
 });
-
-
 
 
