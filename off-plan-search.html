@@ -1,280 +1,1930 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PropInDubai - Off Plan</title>
-  <link rel="stylesheet" href="styles/off-plan-search.css" />
-  <link rel="stylesheet" href="styles/accueil.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css">
-
-
-</head>
-<body>
-  <!-- HEADER -->
-<div class="header2">
-<div class="burger" id="burgerMenu">
-  <span></span>
-  <span></span>
-  <span></span>
-</div>
-
-
-  
-   <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
+    /* ------------- GENERAL ------------- */
+html, body {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100vw;
+  position: relative;
+}
 
 
 
+    /* ------------- HEADER ------------- */
+    /* (Suppose déjà stylisé par accueil.css, rien à ajouter ici) */
 
-  <div class="all-button">
-    <a href="areaforyou.html" class="chat-button header-btn">Chatgpt</a>
-    <a href="buy.html" class="buy-button header-btn">Buy</a>
-    <a href="rent.html" class="rent-button header-btn">Rent</a>
-    <a href="commercial.html" class="commercial-button header-btn">Commercial</a>
-    <a href="off-plan-search.html" class="project-button header-btn">Off Plan</a>
-    <a href="findagent.html" class="agent-button header-btn">Find agents</a>
-  </div>
-  <div class="profil-block">
-    <a href="login.html" class="login-button header-btn">Login</a>
-  </div>
-</div>  
+    /* ------------- TABS & FILTERS ------------- */
 
+  .top-tabs-filters {
+    margin: 70px auto 0 auto;
+    max-width: 1100px;
+    width: 97vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 5;
+    position: relative;
+    gap: 16px;
+    margin-bottom: 0;
+  }
+.tabs {
+  display: flex;
+  gap: 7px;
+  background: #fff;
+  padding: 2px 6px;
+  border-radius: 18px;
+  box-shadow: 0 4px 18px 0 rgba(32,32,32,0.09);
+}
 
+.tab {
+  border: none;
+  background: none;
+  padding: 4px 18px;
+  border-radius: 15px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #474759;
+  cursor: pointer;
+  transition: background 0.13s, color 0.12s;
+}
 
+.tab.active,
+.tab:hover {
+  background: #ffeed9;
+  color: #ff9500;
+}
 
-<div class="top-tabs-filters">
-    <div class="tabs">
-      <button class="tab" id="tab-map">Active Map</button>
-      <button class="tab active" id="tab-listing">Listing</button></a>  
-    </div>
-    
+    /* === HOW OFFPLAN WORKS BANNER === */
+    .how-offplan-works {
+      max-width: 820px;
+      margin: 30px auto 28px auto;
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 2px 14px #0001;
+      padding: 30px;
+      text-align: center;
 
-  </div>
-
-<div class="filter-bar">
-  <!-- Search bar toujours en haut -->
-<div class="search-autocomplete-wrapper">
-    <input type="text" placeholder="Location, project or developer" id="search" autocomplete="off" />
-    <div id="searchSuggestions" class="autocomplete-suggestions"></div>
-  </div>
-
-  <!-- Ligne filtres scrollable mobile -->
-  <div class="filter-row-scroll">
-    <select id="propertyType">
-      <option>Property Type</option>
-      <option>Apartment</option>
-      <option>Villa</option>
-      <option>Townhouse</option>
-      <option>Penthouse</option>
-      <option>Compound</option>
-      <option>Duplex</option>
-    </select>
-    <select id="bedrooms">
-      <option>Bedrooms</option>
-      <option>1+</option>
-      <option>2+</option>
-      <option>3+</option>
-      <option>4+</option>
-      <option>5+</option>
-      <option>6+</option>
-    </select>
-    <select id="bathrooms">
-      <option>Bathrooms</option>
-      <option>1+</option>
-      <option>2+</option>
-      <option>3+</option>
-      <option>4+</option>
-      <option>5+</option>
-      <option>6+</option>
-    </select>
-    <button id="openPriceFilter" type="button">Price</button>
-
-    <button id="openMoreFilter" type="button">More Filters</button>
-
-
-    <button id="searchBtn">Search</button>
-    <button id="clearBtn">Clear</button>
-
-    
-
-  </div>
-
-  <!-- INPUTS cachés pour JS (ne rien toucher) -->
-  <input type="hidden" id="priceMin" />
-  <input type="hidden" id="priceMax" />
-
-  <!-- POPUP du filtre prix -->
-  
-</div>
-<div id="priceFilterPopup">
-    <div class="price-popup-inner">
-      <div class="price-popup-header">
-        <span>Price (AED)</span>
-        <button id="closePricePopup" aria-label="Close">&times;</button>
-      </div>
-      <canvas id="priceHistogram" width="320" height="42"></canvas>
-      <div class="price-hist-label">Distribution of properties by price</div>
-      <div class="price-inputs">
-        <input id="priceMinInput" type="text" autocomplete="off" />
-        <span style="color:#b6b6b6; font-size:1.2em;">—</span>
-        <input id="priceMaxInput" type="text" autocomplete="off" />
-      </div>
-      <div class="slider-labels">
-        <span id="sliderMinLabel"></span>
-        <span id="sliderMaxLabel"></span>
-      </div>
-      <div class="slider-main">
-        <div id="priceSlider"></div>
-      </div>
-      <div id="selectedPriceRange" class="selected-price-label"></div>
-      <button id="validatePriceBtn" class="validate-price-btn">Apply</button>
-    </div>
-  </div>
-
-
-
-<!-- POPUP MORE FILTERS (simple & moderne) -->
-<div id="moreFilterPopup">
-  <div class="more-filter-inner">
-    <div class="more-filter-header">
-      <span>More Filters</span>
-      <button id="closeMoreFilter" aria-label="Close">&times;</button>
-    </div>
-    
-    <div class="filter-section">
-  <label style="font-size:1.22em; font-weight:700; color:#222; display:flex; align-items:center; gap:10px;">
-    <!-- Icône chantier SVG inline pour correspondre à ta capture -->
-    <svg width="29" height="23" viewBox="0 0 29 23" fill="none" style="margin-right:4px;flex-shrink:0;">
-      <path d="M3 20V7H26V20" stroke="#222" stroke-width="2" stroke-linecap="round"/>
-      <rect x="1" y="7" width="27" height="4" rx="2" stroke="#222" stroke-width="2"/>
-      <rect x="5" y="15" width="5" height="5" rx="1.5" stroke="#222" stroke-width="2"/>
-      <rect x="19" y="15" width="5" height="5" rx="1.5" stroke="#222" stroke-width="2"/>
-    </svg>
-    Delivery Date
-  </label>
-  <div class="delivery-date-options">
-    <button type="button" class="delivery-date-btn" data-value="all">All dates</button>
-    <button class="delivery-date-btn" data-value="q3 2025">Q3 2025</button>
-    <button class="delivery-date-btn" data-value="q4 2025">Q4 2025</button>
-    <button class="delivery-date-btn" data-value="2026">2026</button>
-    <button class="delivery-date-btn" data-value="2027">2027</button>
-
-  </div>
-</div>
-
-
-<div class="filter-section amenities-section">
-  <label>Amenities</label>
-  <div class="amenities-list">
-    <label><input type="checkbox" value="Central A/C"> Central A/C</label>
-    <label><input type="checkbox" value="Maids Room"> Maids Room</label>
-    <label><input type="checkbox" value="Balcony"> Balcony</label>
-    <label><input type="checkbox" value="Shared Pool"> Shared Pool</label>
-    <label><input type="checkbox" value="Shared Gym"> Shared Gym</label>
-    <label><input type="checkbox" value="Concierge Service"> Concierge Service</label>
-    <label><input type="checkbox" value="Covered Parking"> Covered Parking</label>
-    <label><input type="checkbox" value="View of Water"> View of Water</label>
-    <label><input type="checkbox" value="View of Landmark"> View of Landmark</label>
-    <label><input type="checkbox" value="Private Garden"> Private Garden</label>
-    <label><input type="checkbox" value="Pets Allowed"> Pets Allowed</label>
-    <label><input type="checkbox" value="Private Pool"> Private Pool</label>
-    <label><input type="checkbox" value="Built in Wardrobes"> Built in Wardrobes</label>
-    <label><input type="checkbox" value="Built in Kitchen Appliances"> Built in Kitchen Appliances</label>
-    <label><input type="checkbox" value="Barbecue Area"> Barbecue Area</label>
-    <!-- Ajoute ici les autres amenities que tu veux -->
-  </div>
-</div>
-
-
-
-    <div class="filter-section">
-      <label>Min Area (sqft)</label>
-      <input type="text" id="minAreaInput" placeholder="e.g. 800">
-    </div>
-    <div class="filter-section">
-      <label>Max Area (sqft)</label>
-      <input type="text" id="maxAreaInput" placeholder="e.g. 2000">
-    </div>
-    <div class="filter-section">
-      <label>Keywords</label>
-      <input type="text" id="keywordInput" placeholder="e.g. pool, chiller free">
-    </div>
-
-
-    <button id="applyMoreFiltersBtn" class="apply-filters-btn">Apply Filters</button>
-  </div>
-</div>
-
-
-  <!-- FILTER BAR (DYNAMIQUE via JS) -->
-
-  <!-- HOW OFFPLAN WORKS BANNER -->
-  <div class="how-offplan-works">
-    <h2>How does buying off-plan work in Dubai?</h2>
-    <div class="offplan-steps">
-      <div class="step"><i class="fa fa-check-circle"></i> Choose</div>
-      <i class="fa fa-arrow-right step-arrow"></i>
-      <div class="step"><i class="fa fa-credit-card"></i> Pay booking fee</div>
-      <i class="fa fa-arrow-right step-arrow"></i>
-      <div class="step"><i class="fa fa-money-bill-wave"></i> Make payments</div>
-    </div>
-  </div>
-
-<div class="main-content-wrapper">
-  <div class="main-column">
-    <div class="property-summary-wrapper">
-      <a href="offplan.html" target="_blank" class="chatboat-banner">
-        <i class="fa-solid fa-robot"></i>
-        Try our AI assistant to help you find the best off-plan project!
-      </a>
-
-
+    }
+    .how-offplan-works h2 {
       
-    <div class="property-count" id="propertyCount"></div>
-    </div>
-<div class="property-cards-row" id="propertyResults"></div>
-<div class="pagination" id="pagination"></div>
+      font-size: 2rem;
+      margin-bottom: 12px;
+      color: #263063;
+    }
+    .offplan-steps {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 18px;
+    }
+    .offplan-steps .step {
+      font-size: 1.13rem;
+      font-weight: 600;
+      color: #7a7a93;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .step-arrow {
+      font-size: 1.18rem;
+      color: #e57200;
+    }
+    .learn-more-btn {
+      background: #ff9500;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 1.15rem;
+      padding: 10px 24px;
+      cursor: pointer;
+      margin-left: 26px;
+    }
 
-  </div>
-</div>
 
 
 
 
 
 
-  <button id="scrollToTopBtn" title="Back to top">↑</button>
 
-  <!-- FOOTER -->
-  <footer class="site-footer">
-    <div class="footer-container">
-      <div class="footer-left">
-        <h3 class="footer-logo">PropInDubai</h3>
-        <p>Connecting you with the best new projects in Dubai.</p>
-      </div>
-      <div class="footer-links">
-        <a href="about-us.html">About Us</a>
-        <a href="contact-us.html">Contact us</a>
-        <a href="privacy-policy.html">Privacy Policy</a>
-        <a href="term-condition.html">Terms & Conditions</a>
-        <a href="cookies-policy.html">Cookies policy</a>
-        <a href="disclaimer.html">Disclaimer</a>
-      </div>
-      <div class="footer-socials">
-        <a href="#"><img src="styles/photo/facebook.png" alt="Facebook" /></a>
-        <a href="#"><img src="styles/photo/insta.png" alt="Instagram" /></a>
-        <a href="#"><img src="styles/photo/linkedin.png" alt="LinkedIn" /></a>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      © 2025 PropInDubai. All rights reserved.
-    </div>
-  </footer>
-  <script src="javascript/off-plan-search.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
-</body>
-</html>
+  .filter-bar {
+    background: #fff;
+    padding: 12px 14px 12px 14px;  /* Moins de padding en haut/bas */
+    margin-top: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    border-bottom: 1px solid #e6e6e6;
+    position: sticky;
+    top: 60px;
+    z-index: 9;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 12px;      /* Petit espace entre searchbar et filtres */
+    justify-content: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    width: 100%;
+    max-width: 100vw;
+    min-width: 0;
+    height: 68  px;   /* Barre fine */
+  }
+
+  /* ...ET TOUT LE RESTE DE TON CSS ICI, INCHANGÉ... */
+  /* (Tu n’as qu’à coller la suite comme dans ton fichier d’origine, tout est OK) */
+    .filter-bar {
+      transition: transform 0.33s cubic-bezier(.5,.1,.6,1), opacity 0.3s;
+    }
+
+
+
+
+  .filter-bar > * {
+    flex-shrink: 0;
+    align-items: center;
+    height: 48px; /* Aligne tout verticalement */
+    display: flex;
+  }
+
+  /* ---------- CORRECTION Z-INDEX SUGGESTIONS -------------- */
+  .search-autocomplete-wrapper {
+    position: relative;
+    width: 360px;
+    min-width: 240px;
+    max-width: 420px;
+    margin-right: 2px;
+    display: flex;
+    align-items: center;
+    height: 48px;
+    z-index: 1101 !important; /* Correction : wrapper très haut */
+  }
+
+  #searchSuggestions,
+  .autocomplete-suggestions {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    z-index: 1105 !important; /* Correction : suggestions au top */
+    background: #fff;
+    border: 1px solid #ececec;
+    box-shadow: 0 5px 20px rgba(60,40,20,0.13);
+    min-width: 100%;
+    max-width: 440px;
+    margin-top: 2px;
+    border-radius: 16px;
+    overflow: hidden;
+    display: none;
+  }
+
+  #searchSuggestions.visible,
+  .autocomplete-suggestions.visible {
+    display: block;
+  }
+
+  .autocomplete-suggestions .suggestion,
+  #searchSuggestions .suggestion {
+    padding: 12px 18px;
+    font-size: 1.04em;
+    cursor: pointer;
+    color: #222;
+    border-bottom: 1px solid #f2f2f2;
+    background: #fff;
+    transition: background 0.13s;
+  }
+  .autocomplete-suggestions .suggestion:last-child,
+  #searchSuggestions .suggestion:last-child { border-bottom: none; }
+  .autocomplete-suggestions .suggestion:hover,
+  #searchSuggestions .suggestion:hover,
+  .autocomplete-suggestions .suggestion.active,
+  #searchSuggestions .suggestion.active {
+    background: #f4f6f8;
+    color: #e77e23;
+  }
+
+  /* ---------- CORRECTION POPUP PRIX ----------- */
+  #priceFilterPopup {
+    display: none;
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 6000 !important;
+    background: rgba(30,30,34,0.09);
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  #priceFilterPopup.active { display: flex; }
+
+  body, html, .filter-bar {
+    overflow: visible !important; /* Pour être certain que rien ne coupe le popup */
+  }
+
+  .price-inputs input {
+    width: 200px;                /* Encore plus large ! */
+    font-size: 0.98em;           /* Légèrement plus petit */
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-weight: 600;
+    text-align: center;
+    border-radius: 8px;
+    border: 1.3px solid #ffd9b7;
+    padding: 6px 8px;
+    background: #fafafc;
+    outline: none;
+    transition: border 0.13s, box-shadow 0.13s;
+    box-shadow: 0 1px 6px #ffe4d352;
+    color: #232323;
+    min-width: 0;
+    max-width: 98vw;
+    overflow-x: auto;            /* Ajoute le scroll si besoin */
+  }
+
+
+
+  /* ------------------------------------------------------- */
+
+  .filter-row-scroll {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    overflow-x: auto;
+    white-space: nowrap;
+    align-items: center;
+    height: 48px;
+  }
+
+  .filter-bar select,
+  .filter-row-scroll select {
+    appearance: none;
+    background: #fff;
+    color: #e84242;
+    border: 1.5px solid #e84242;
+    border-radius: 25px;
+    padding: 0 26px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(232,66,66,0.10);
+    transition: background 0.15s, color 0.14s, border 0.14s;
+    min-width: 120px;
+    max-width: 210px;
+    height: 48px;
+    box-sizing: border-box;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='red' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 18px 18px;
+    padding-right: 40px;
+  }
+
+  .filter-bar input[type="number"] {
+    height: 48px;
+  }
+
+  .filter-bar button,
+  .filter-row-scroll button {
+    background: #e84242;
+    color: #fff;
+    border: none;
+    border-radius: 25px;
+    padding: 0 26px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    height: 48px;
+    min-width: 90px;
+    margin: 0 4px;
+    box-sizing: border-box;
+    transition: background 0.15s, box-shadow 0.16s;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+  }
+
+  .filter-bar #clearBtn,
+  .filter-row-scroll #clearBtn {
+    background: #e84242;
+    color: #fff;
+    border: 1.5px solid #e84242;
+    margin-left: 6px;
+  }
+  .filter-bar #clearBtn:hover,
+  .filter-bar #searchBtn:hover,
+  .filter-bar button:hover,
+  .filter-row-scroll #clearBtn:hover,
+  .filter-row-scroll #searchBtn:hover,
+  .filter-row-scroll button:hover {
+    background: #ff5c5c;
+  }
+
+
+
+
+  .filter-bar-inner {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    max-width: 1200px;   /* Ou la largeur centrale désirée */
+    margin: 0 auto;
+    justify-content: center;   /* Ou flex-start si tu veux à gauche */
+    align-items: center;
+  }
+
+
+
+
+  /* --- FILTRE PRIX MINIMALISTE ET MODERNE --- */
+  #openPriceFilter {
+    background: #fff;
+    color: #e84242;
+    border: 1.5px solid #e84242;
+    border-radius: 25px;
+    padding: 10px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 1px 7px rgba(232,66,66,0.07);
+    transition: background 0.14s, color 0.14s, border 0.14s;
+  }
+  #openPriceFilter:hover {
+    background: #ffeaea;
+    color: #b83838;
+  }
+
+  #priceFilterPopup {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    background: rgba(30,30,34,0.09);
+    align-items: center;
+    justify-content: center;
+  }
+
+
+  #priceFilterPopup.active { display: flex; }
+  .price-popup-inner {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 8px 34px rgba(240,90,0,0.10), 0 2px 8px #ffd6b440;
+    width: 345px; min-width: 240px; max-width: 96vw;
+    padding: 17px 19px 15px 19px;
+    text-align: center; position: relative;
+    animation: popupAppear .22s cubic-bezier(.61,.01,.74,1.05);
+    border: 1.3px solid #ffe7cb;
+  }
+  @keyframes popupAppear { 0% { transform: scale(0.92); opacity: 0;} 100% { transform: none; opacity: 1;} }
+  .price-popup-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;
+  }
+  .price-popup-header span {
+    font-size: 1.13em; font-weight: 700; color: #ff8300; letter-spacing: 0.18px;
+  }
+  #closePricePopup {
+    background: none; border: none; font-size: 1.6em; color: #ff8300; cursor: pointer;
+    border-radius: 8px; padding: 1px 7px; transition: background 0.16s;
+  }
+  #closePricePopup:hover { background: #fff5e2;}
+  #priceHistogram {
+    width: 100% !important; max-width: 325px; height: 40px;
+    margin: 2px 0 7px 0; border-radius: 8px;
+    display: block;
+  }
+  .price-hist-label {
+    font-size: 0.81em; color: #b7b7b7; margin-bottom: 2px; margin-top: -4px;
+    text-align: left; font-weight: 400; padding-left: 2px;
+  }
+  .price-inputs {
+    display: flex;
+    align-items: center; 
+    justify-content: center; 
+    gap: 10px;
+    margin-bottom: 35px;
+  }
+  .price-inputs input {
+    text-align: center; font-weight: 600;
+    border-radius: 8px; border: 1.3px solid #ffd9b7; padding: 6px 3px;
+    background: #fafafc; outline: none; transition: border 0.13s, box-shadow 0.13s;
+    box-shadow: 0 1px 6px #ffe4d352;
+    color: #232323;
+  }
+  .price-inputs input:focus { border-color: #ff8300; background: #fff; box-shadow: 0 1px 10px #ffe2c9c7;}
+  .selected-price-label {
+    margin: 10px 0 6px 0;
+    font-size: 1.09em;
+    font-weight: 700;
+    color: #f17100;
+    letter-spacing: 0.05px;
+    text-align: center;
+    text-shadow: 0 2px 12px #ffe2c940;
+  }
+  .slider-main { margin-bottom: 6px; margin-top: 0; }
+  .slider-labels {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.93em; color: #c7c7c7;
+    margin: 0 1px 2px 1px; font-weight: 500; letter-spacing: 0.11px;
+  }
+
+
+
+
+
+  #priceSlider .noUi-base {
+    background: #ffe8d6;
+    height: 5px;
+    border-radius: 4px;
+    margin-top: 1px;
+  }
+  #priceSlider .noUi-connect {
+    background: linear-gradient(90deg,#ffd399 0%,#ff9100 100%);
+    height: 5px;
+    border-radius: 4px;
+  }
+  #priceSlider .noUi-handle {
+    background: #fff2e6;
+    border: 2px solid #ff9100;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    top: -7px;
+    box-shadow: 0 1px 8px #ffd7b150;
+    cursor: pointer;
+    transition: border 0.15s;
+  }
+  #priceSlider .noUi-handle:focus {
+    border: 2.5px solid #f17100;
+    outline: none;
+  }
+  #priceSlider .noUi-tooltip {
+    margin-bottom: 12px;
+    background: #ffad55;
+    color: #fff;
+    font-size: 0.91em;
+    border-radius: 7px;
+    border: none;
+    font-weight: 600;
+    padding: 3px 10px;
+    box-shadow: 0 1px 8px #ffd7b175;
+  }
+
+  #priceSlider .noUi-horizontal .noUi-handle { top: -7px; }
+  .validate-price-btn {
+    margin-top: 10px;
+    background: linear-gradient(93deg,#ffb473 0%,#f17100 90%);
+    color: #fff;
+    border: none; border-radius: 21px;
+    padding: 11px 40px;
+    font-size: 17px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 2px 13px #ffd6b49e;
+    transition: background 0.16s, box-shadow 0.13s;
+    letter-spacing: 0.4px;
+  }
+
+
+  #priceSlider, #priceSlider .noUi-target {
+    overflow: visible !important;
+    position: relative;
+  }
+
+  #priceSlider .noUi-tooltip {
+    white-space: nowrap;
+    min-width: 72px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 13px;
+    font-size: 1.08em;
+    font-weight: bold;
+    z-index: 50;
+    /* Garde ta couleur/background si tu veux */
+  }
+
+
+
+
+
+
+  .validate-price-btn:hover { background: #f18101;}
+  body.price-popup-open { overflow: hidden; }
+
+  .search-autocomplete-wrapper {  
+    position: relative;
+    display: flex;
+
+    vertical-align: middle;
+    min-width: 460px;
+    max-width: 540px;
+    width: 420px;        /* Tu peux encore augmenter si tu veux plus large */
+    flex-shrink: 0;
+  }
+
+
+
+  #search {
+    width: 100%;
+    max-width: 100vw;
+    height: 48px;           /* Même hauteur que filtres */
+    font-size: 1.07em;
+    padding: 0 18px;        /* Moins large et plus équilibré */
+    border-radius: 25px;
+    border: 1.5px solid #e6e6e6;
+    background: #fff;
+    box-sizing: border-box;
+    transition: border 0.14s;
+  }
+  #search:focus {
+    border: 1.5px solid #ff902b;
+  }
+  .autocomplete-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    border-radius: 0 ;
+    border: 1px solid #ececec;
+    border-top: none;
+    box-shadow: 0 3px 12px 0 rgba(44,39,56,.09);
+    background: #fff;
+    z-index: 25;
+    min-width: 100%;
+    max-height: 182px;
+    overflow-y: auto;
+    margin-top: -1px;
+    display: none;
+    padding: 0;
+  }
+  .autocomplete-suggestions.visible { display: block; }
+  .autocomplete-suggestions .suggestion {
+    padding: 12px 18px;
+    font-size: 1.04em;
+    cursor: pointer;
+    color: #222;
+    border-bottom: 1px solid #f2f2f2;
+    background: #fff;
+    transition: background 0.13s;
+  }
+  .autocomplete-suggestions .suggestion:last-child { border-bottom: none; }
+  .autocomplete-suggestions .suggestion:hover,
+  .autocomplete-suggestions .suggestion.active {
+    background: #f4f6f8;
+    color: #e77e23;
+  }
+  #searchSuggestions {
+    position: absolute;
+    left: 0; right: 0;
+    top: 100%;
+    z-index: 19;
+    background: #fff;
+    border: 1px solid #ececec;
+    box-shadow: 0 5px 20px rgba(60,40,20,0.12);
+    width: 100%;
+    min-width: 200px;
+    max-width: 430px;
+    margin-top: 2px;
+    border-radius: 16px;
+    overflow: hidden;
+    display: none;
+  }
+  .suggestion-pf-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 13px 20px 8px 18px;
+    cursor: pointer;
+    border-bottom: 1px solid #f4f4f4;
+    transition: background 0.13s;
+    font-size: 1.04em;
+  }
+  .suggestion-pf-item:last-child { border-bottom: none; }
+  .suggestion-pf-item:hover { background: #faf6ff; }
+  .suggestion-pf-icon {
+    color: #ff5500;
+    font-size: 1.19em;
+    margin-right: 14px;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+  .suggestion-pf-label {
+    display: inline;
+    flex-direction: column;
+    line-height: 1.17;
+  }
+  .suggestion-pf-label strong {
+    color: #2c2c2c;
+    font-weight: bold;
+  }
+  .suggestion-pf-area {
+    color: #8c8c8c;
+    font-size: 0.94em;
+    font-weight: 400;
+    margin-top: 0.5px;
+    margin-bottom: 2px;
+  }
+
+
+  /* --- Searchbar harmonisée (copie/colle tout ça en bas de ton CSS) --- */
+
+
+
+
+  .search-autocomplete-wrapper {
+    position: relative;
+    flex-shrink: 0;
+    min-width: 180px;    /* ou 120px si tu veux */
+    max-width: 350px;
+    width: 100%;         /* pour qu’elle rapetisse mais reste visible */
+    margin-right: 2px;
+    display: flex;
+    align-items: center;
+    height: 48px;
+  }
+
+
+  #search:focus {
+    border: 1.5px solid #ff902b;
+  }
+
+  /* Suggestions dropdown (inchangé) */
+  #searchSuggestions, .autocomplete-suggestions {
+    position: absolute;
+    left: 0; right: 0; top: 100%;
+    z-index: 1105 !important;
+    background: #fff;
+    border: 1px solid #ececec;
+    box-shadow: 0 5px 20px rgba(60,40,20,0.13);
+    min-width: 100%;
+    max-width: 420px;
+    margin-top: 2px;
+    border-radius: 16px;
+    overflow: hidden;
+    display: none;
+  }
+  #searchSuggestions.visible,
+  .autocomplete-suggestions.visible { display: block; }
+
+
+
+
+
+
+  #moreFilterPopup {
+    display: none;
+    position: fixed;
+    inset: 0; /* top:0; left:0; right:0; bottom:0; */
+    z-index: 5000;
+    background: rgba(30,30,34,0.09);
+    align-items: center;
+    justify-content: center;
+  }
+  #moreFilterPopup.active {
+    display: flex;
+  }
+
+  .more-filter-inner {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 8px 34px rgba(240,90,0,0.10), 0 2px 8px #ffd6b440;
+    width: min(98vw, 540px);
+    min-width: 320px;
+    max-width: 96vw;
+    padding: 17px 19px 15px 19px;
+    text-align: left;
+    position: relative;
+    animation: popupAppear .22s cubic-bezier(.61,.01,.74,1.05);
+    border: 1.3px solid #ffe7cb;
+    z-index: 11060;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+
+  .more-filter-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;
+  }
+  .more-filter-header span {
+    font-size: 1.13em; font-weight: 700; color: #ff8300; letter-spacing: 0.18px;
+  }
+  #closeMoreFilter {
+    background: none; border: none; font-size: 1.6em; color: #ff8300; cursor: pointer;
+    border-radius: 8px; padding: 1px 7px; transition: background 0.16s;
+    position: relative;
+  }
+  #closeMoreFilter:hover { background: #fff5e2;}
+  .filter-section { margin-bottom: 16px; }
+  .filter-section label { font-weight: bold; margin-bottom: 5px; display: block; color: #3c2b10; font-size: 1.04em;}
+  .more-filter-inner input[type="text"] {
+    border: 1.2px solid #ffd9b7;
+    border-radius: 8px;
+    padding: 7px 13px;
+    font-size: 1.07em;
+    background: #fafafc;
+    margin-bottom: 2px;
+    width: 100%;
+    outline: none;
+    margin-top: 6px;
+    transition: border 0.14s, background 0.14s;
+  }
+  .more-filter-inner input[type="text"]:focus {
+    border-color: #ff8300;
+    background: #fff;
+  }
+  .apply-filters-btn {
+    display: block;
+    margin: 16px auto 0 auto;
+    background: linear-gradient(93deg,#ffb473 0%,#f17100 90%);
+    color: #fff;
+    border: none; border-radius: 21px;
+    padding: 11px 40px;
+    font-size: 17px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 2px 13px #ffd6b49e;
+    transition: background 0.16s, box-shadow 0.13s;
+    letter-spacing: 0.4px;
+  }
+  .apply-filters-btn:hover { background: #f18101;}
+
+  #openMoreFilter {
+    background: #fff;
+    color: #e84242;
+    border: 1.5px solid #e84242;
+    border-radius: 25px;
+    padding: 10px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 1px 7px rgba(232,66,66,0.07);
+    transition: background 0.14s, color 0.14s, border 0.14s;
+  }
+  #openMoreFilter:hover {
+    background: #ffeaea;
+    color: #b83838;
+  }
+  #moreFilterPopup {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    background: rgba(30,30,34,0.09);
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.13s;
+  }
+  #moreFilterPopup.active {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .more-filter-inner {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 8px 34px rgba(240,90,0,0.10), 0 2px 8px #ffd6b440;
+    width: min(98vw, 540px);
+    min-width: 320px;
+    max-width: 96vw;
+    padding: 17px 19px 15px 19px;
+    text-align: left;
+    position: relative;
+    margin-right: auto;
+    animation: popupAppear .22s cubic-bezier(.61,.01,.74,1.05);
+    border: 1.3px solid #ffe7cb;
+    z-index: 11060;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    margin-top: -5%;
+
+  }
+
+
+
+  .delivery-date-options {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+  }
+
+  .delivery-date-btn {
+    background: #fff;
+    border: 2px solid #e0ddf6;
+    color: #ff8800;
+    font-weight: 10;
+    font-size: 1em;
+    border-radius: 15px;
+    padding: 10px 28px;
+    cursor: pointer;
+    transition: background .12s, border .12s, color .12s;
+    outline: none;
+    box-shadow: none;
+    min-width: 112px;
+    text-align: center;
+  }
+
+  .delivery-date-btn.selected, .delivery-date-btn:focus {
+    background: #ffe6cd;
+    color: #ff8800;
+    border: 2px solid #ff8800;
+  }
+
+  .delivery-date-btn:hover:not(.selected) {
+    background: auto;
+    border: 2px solid #c6bafd;
+    color: #ff8800;
+  }
+
+
+  
+
+  #moreFilterPopup {
+    display: none;
+    position: fixed !important;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 5000;
+    background: rgba(30,30,34,0.09);
+    width: 100vw;
+    height: 100vh;
+    /* LE POINT CLEF : Flex centré total */
+    display: flex;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: opacity 0.13s;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #moreFilterPopup.active {
+    display: flex !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+
+
+
+
+  .amenities-section label {
+    font-weight: 700;
+    font-size: 1.07em;
+    color: #ff8300;
+    margin-bottom: 7px;
+    display: block;
+  }
+
+
+
+
+  /* 1. Uniformiser la taille des checkboxes et garder un style moderne */
+  .amenities-list input[type="checkbox"] {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    min-height: 18px;
+    margin: 0 7px 0 0;
+    border: 2px solid #ff8300;
+    border-radius: 5px;
+    background: #fff;
+    vertical-align: middle;
+    transition: border 0.16s, box-shadow 0.13s;
+    position: relative;
+    cursor: pointer;
+    display: inline-block;
+  }
+
+  .amenities-list input[type="checkbox"]:checked {
+    background-color: #ff8300;
+    border: 2px solid #ff8300;
+  }
+  .amenities-list input[type="checkbox"]:checked::after {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 4px;
+    top: 0.5px;
+    width: 6px;
+    height: 11px;
+    border: solid #fff;
+    border-width: 0 2.2px 2.2px 0;
+    transform: rotate(45deg);
+  }
+
+  /* 2. Réduire la taille globale et empêcher le débordement de la grid */
+  .amenities-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);  /* 3 colonnes */
+    gap: 10px 16px;
+    margin-top: 8px;
+    margin-bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* 3. Chaque label est aligné proprement */
+  .amenities-list label {
+    font-weight: 500;
+    font-size: 1em;
+    color: #353535;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+
+
+
+  /* 4. Champ area: largeur adaptée */
+  .more-filter-inner input[type="text"] {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    font-size: 1.08em;
+    padding: 8px 13px;
+    margin-bottom: 2px;
+    margin-top: 6px;
+    border: 1.2px solid #ffd9b7;
+    border-radius: 8px;
+    background: #fafafc;
+    outline: none;
+    transition: border 0.14s, background 0.14s;
+  }
+
+
+  .more-filter-inner {
+    width: min(98vw, 540px);
+    min-width: 320px;
+    max-width: 96vw;
+    /* garde le reste inchangé */
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /* === HOOK BOX === */
+    .buy-hook {
+      max-width: 1100px;
+      margin: 40px auto 0 auto;
+      text-align: left;
+      font-size: 1.50rem;
+      font-style: italic;
+      color: #e57200;
+      background: #fff7ed;
+      border-left: 5px solid #f17100;
+      border-right: 5px solid #f17100;
+      border-radius: 0px 0 16px 16px;
+      padding: 13px 0 13px 13px;
+      box-shadow: 0 2px 8px rgba(241,113,0,0.07);
+      letter-spacing: 0.5px;
+      padding-left: 10%;
+      margin-bottom: 30px;
+    }
+
+    /* === MAIN CONTENT === */
+    .main-content-wrapper {
+      display: flex;
+      align-items: flex-start;
+      max-width: 1400px;
+      margin: 0 auto;
+      gap: 36px;
+    }
+    .main-column {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+    .property-summary-wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding-left: 0;
+    }
+    .property-count {
+      display: inline-block;
+      padding: 8px 26px;
+      margin: 30px 0 8px 0;
+      background: linear-gradient(93deg, #ffcf93 0%, #f17100 90%);
+      color: #fff;
+      border-radius: 18px 8px 22px 8px;
+      font-size: 1.12rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 14px rgba(241, 113, 0, 0.11);
+      border: 1.5px solid #f9c97b;
+      transition: box-shadow 0.16s;
+    }
+    .property-count:hover {
+      box-shadow: 0 6px 24px rgba(241,113,0,0.22);
+    }
+    .chatboat-banner {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      background: #f2efff;
+      color: #000000;
+      border-radius: 12px;
+      padding: 11px 24px;
+      margin: 20px 0 14px 0;
+      font-size: 1.08rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s, box-shadow 0.16s;
+      border: 1.3px solid #dfd8ff;
+      box-shadow: 0 2px 10px rgba(65,40,147,0.07);
+      max-width: 470px;
+    }
+    .chatboat-banner:hover {
+      background: #ebdfff;
+      color: #ff8800;
+      box-shadow: 0 2px 24px #00000040;
+    }
+    .chatboat-banner i {
+      font-size: 1.35em;
+      color: #ffa600;
+    }
+
+    /* === PROPERTY CARD MODIFIÉE (GRANDE IMAGE) === */
+
+
+    /* ... header, filter bar, autres classes identiques ... */
+
+    /* === PROPERTY CARD MODIFIÉE (GRANDE IMAGE & TEXTE AJUSTÉ) === */
+    .property-listing {
+      max-width: 1100px;
+      margin: 0 auto 20px auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+    .property-card-v2 {
+      display: flex;
+      background: #fff;
+      border: 1.5px solid #ececec;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 6px 24px rgba(100,100,160,0.07);
+      min-height: 360px;
+      height: 400px;
+      position: relative;
+      transition: box-shadow 0.2s, border-color 0.2s;
+      cursor: pointer;
+    }
+    .property-card-v2:hover {
+      box-shadow: 0 12px 40px rgba(100,100,160,0.14);
+      border-color: #cfc6fa;
+    }
+
+    .property-status {
+      writing-mode: vertical-lr;
+      transform: rotate(180deg);
+      color: #fff;
+      font-weight: bold;
+      font-size: 1.07rem;
+      padding: 22px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 46px;
+      background: #4b2997;
+      letter-spacing: 1px;
+    }
+    .property-status.handover { background: #ff9500; }
+
+    .property-img-side {
+      width: 46%;
+      min-width: 260px;
+      max-width: 440px;
+      height: 100%;
+      background: #f2f0f9;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .property-img-side img,
+    .property-img-side .carousel-v2 img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 0;
+      display: block;
+    }
+    .property-img-side .carousel-v2 {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+    .property-img-side .carousel-v2 img {
+      position: absolute;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity .2s;
+      z-index: 1;
+    }
+    .property-img-side .carousel-v2 img.active {
+      opacity: 1;
+      z-index: 2;
+      position: absolute;
+    }
+    .property-img-side .carousel-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(60,60,90,0.24);
+      color: #fff;
+      font-size: 22px;
+      border: none;
+      border-radius: 50%;
+      padding: 7px 13px;
+      cursor: pointer;
+      transition: background 0.12s;
+      z-index: 3;
+    }
+    .property-img-side .carousel-btn.prev { left: 14px; }
+    .property-img-side .carousel-btn.next { right: 14px; }
+    .property-img-side .carousel-btn:hover {
+      background: #cfc6fa;
+      color: #542d8a;
+    }
+
+    .property-details-main {
+      width: 54%;
+      height: 100%;
+      padding: 36px 38px 34px 42px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.7em;
+    }
+
+    .property-details-main h3 {
+      margin: 0 0 8px 0;
+      font-size: 1.65rem;
+      color: #3f265b;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      line-height: 1.2;
+    }
+
+    .property-details-main .prop-location {
+      font-size: 1.13rem;
+      color: #707092;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .property-details-main .prop-desc {
+      margin-bottom: 7px;
+      color: #4d4d4d;
+      font-size: 1.09rem;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    .property-details-main .prop-highlights {
+      list-style: disc inside;
+      color: #e17000;
+      font-size: 1.07rem;
+      margin: 0 0 5px 10px;
+      padding: 0 0 0 0;
+      font-weight: 500;
+    }
+    .property-details-main .prop-highlights li { margin-bottom: 3px; }
+
+    .property-details-main .prop-info {
+      margin-bottom: 5px;
+      color: #363648;
+      font-size: 1.08rem;
+      display: flex;
+      gap: 26px;
+      flex-wrap: wrap;
+      font-weight: 600;
+    }
+    .property-details-main .prop-info span {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+
+
+    /* ...le reste du CSS ne change pas... */
+
+    .property-details-main .prop-location {
+      font-size: 1.06rem;
+      color: #707092;
+      margin-bottom: 5px;
+    }
+    .property-details-main .prop-desc {
+      margin-bottom: 9px;
+      color: #4d4d4d;
+      font-size: 15px;
+    }
+    .property-details-main .prop-highlights {
+      list-style: disc inside;
+      color: #e17000;
+      font-size: 1.03rem;
+      margin: 0 0 5px 8px;
+      padding: 0 0 0 0;
+    }
+    .property-details-main .prop-highlights li {
+      margin-bottom: 2px;
+    }
+    .property-details-main .prop-info {
+      margin-bottom: 7px;
+      color: #363648;
+      font-size: 1rem;
+      display: flex;
+      gap: 22px;
+    }
+
+
+
+    /* === PAGINATION === */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 44px auto 0 auto;
+      gap: 22px;
+      flex-wrap: wrap;
+      user-select: none;
+      min-height: 120px;
+    }
+    .page-btn {
+      background: #f5f4fa;
+      color: #000000;
+      border: none;
+      border-radius: 16px;
+      width: 40px;
+      height: 40px;
+      font-size: 1.55rem;
+      font-weight: 600;
+      margin: 0 4px;
+      transition: background 0.18s, color 0.18s;
+      cursor: pointer;
+      outline: none;
+      box-shadow: 0 1px 7px #f1f1f8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .page-btn.active {
+      background: #ffae00;
+      color: #fff;
+      font-weight: bold;
+    }
+    .page-btn:disabled {
+      opacity: 0.42;
+      background: #e6e6e6;
+      color: #bcbccb;
+      cursor: default;
+      border: none;
+    }
+
+    /* === SCROLL TO TOP === */
+    #scrollToTopBtn {
+      position: fixed;
+      bottom: 36px;
+      right: 32px;
+      z-index: 1001;
+      background: linear-gradient(90deg, #f17100 0%, #ffcf93 100%);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 54px;
+      height: 54px;
+      font-size: 32px;
+      font-weight: bold;
+      box-shadow: 0 4px 18px rgba(241,113,0,0.13);
+      cursor: pointer;
+      opacity: 0.78;
+      transition: opacity 0.2s, background 0.14s;
+      display: none;
+    }
+    #scrollToTopBtn:hover {
+      opacity: 1;
+      background: #f17100;
+    }
+
+    /* === FOOTER === */
+    .site-footer {
+      background-color: #f9f9f9;
+      padding: 40px 20px 20px;
+      border-top: 1px solid #ddd;
+      color: #444;
+      font-family: Arial, sans-serif;
+    }
+    .footer-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 20px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .footer-left {
+      max-width: 300px;
+    }
+    .footer-logo {
+      font-size: 24px;
+      color: #ff9900;
+      margin-bottom: 10px;
+    }
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .footer-links a {
+      color: #444;
+      text-decoration: none;
+      font-size: 18px;
+    }
+    .footer-links a:hover {
+      color: #ff9900;
+    }
+    .footer-socials {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+    .footer-socials img {
+      width: 50px;
+      height: 50px;
+      filter: grayscale(100%);
+      transition: filter 0.3s;
+    }
+    .footer-socials img:hover {
+      filter: grayscale(0%);
+    }
+    .footer-bottom {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 12px;
+      color: #999;
+    }
+
+
+  .property-cards-row {
+    display: flex;
+    gap: 26px;
+    flex-wrap: wrap;
+    margin: 40px 0 30px 0;
+    justify-content: center;  /* <-- change ici ! */
+  }
+
+
+  .property-card-flat {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 18px 0 rgba(32,32,32,0.10);
+    overflow: hidden;
+    width: 345px;
+    min-width: 300px;
+    max-width: 95vw;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: box-shadow 0.19s;
+    cursor: pointer;
+    border: 1.2px solid #f3f3f3;
+  }
+  .property-card-flat:hover {
+    box-shadow: 0 10px 32px 0 rgba(255,135,0,0.15);
+    border-color: #ffe1b0;
+  }
+
+  .card-image-flat {
+    width: 100%;
+    aspect-ratio: 16/10;
+    object-fit: cover;
+    display: block;
+    position: relative;
+  }
+
+  .card-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    padding: 6px 16px;
+    border-radius: 14px;
+    font-size: 1.02em;
+    font-weight: bold;
+    color: #fff;
+    z-index: 5;
+    background: #ff3e3e;
+    letter-spacing: 0.03em;
+  }
+  .card-badge.orange { background: #ff9500; }
+  .card-badge.green { background: #35b96c; }
+  .card-badge.blue { background: #25b4ff; }
+
+  .card-body-flat {
+    padding: 18px 20px 16px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .card-title-flat {
+    font-size: 1.19em;
+    font-weight: 700;
+    color: #203171;
+    margin-bottom: 2px;
+  }
+
+  .card-sub-flat {
+    color: #53536d;
+    font-size: 1.01em;
+    margin-bottom: 6px;
+  }
+  .card-price-flat {
+    font-weight: 600;
+    font-size: 1.08em;
+    color: #ff6600;
+    margin-bottom: 7px;
+  }
+  .card-icons-row {
+    display: flex;
+    gap: 12px;
+    font-size: 0.99em;
+    color: #505076;
+    margin-bottom: 8px;
+  }
+
+  .card-action-btn {
+    background: linear-gradient(93deg,#ffb473 0%,#f17100 90%);
+    color: #fff;
+    border: none;
+    border-radius: 21px;
+    padding: 9px 28px;
+    font-size: 1.07em;
+    font-weight: 700;
+    cursor: pointer;
+    align-self: flex-start;
+    margin-top: 6px;
+    transition: background 0.16s, box-shadow 0.13s;
+    box-shadow: 0 2px 13px #ffd6b49e;
+    letter-spacing: 0.04em;
+  }
+  .card-action-btn:hover { background: #ff9500; }
+
+
+
+
+
+
+  /* Suggestions : affichage complet du texte, gestion ellipse si trop long */
+  .suggestion,
+  #searchSuggestions .suggestion,
+  .autocomplete-suggestions .suggestion {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 18px 22px 14px 18px; /* moins de padding à droite */
+    font-size: 1.19em;
+    font-weight: 600;
+    color: #191919;
+    cursor: pointer;
+    background: #fff;
+    border-bottom: 1px solid #f5f3fa;
+    transition: background 0.13s, color 0.13s;
+    border-radius: 0;
+    position: relative;
+    min-width: 0;
+    
+  }
+
+  .suggestion .suggestion-label,
+  #searchSuggestions .suggestion .suggestion-label,
+  .autocomplete-suggestions .suggestion .suggestion-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: normal;      /* Permet retour à la ligne automatique */
+    word-break: break-word;   /* Coupe proprement si mot trop long */
+    overflow-wrap: break-word;
+    font-weight: 600;
+    color: #191919;
+    font-size: 1em;
+    letter-spacing: 0.01em;
+    text-align: left;
+    line-height: 1.22;
+
+  }
+
+
+  /* Icone toujours à gauche, jamais coupée */
+  .suggestion .suggestion-icon,
+  #searchSuggestions .suggestion .suggestion-icon,
+  .autocomplete-suggestions .suggestion .suggestion-icon {
+    flex: none;
+    color: #ff6a18;
+    font-size: 1.32em;
+    margin-right: 10px;
+    margin-top: 1px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .suggestion:hover,
+  #searchSuggestions .suggestion:hover,
+  .autocomplete-suggestions .suggestion:hover,
+  .suggestion:focus,
+  #searchSuggestions .suggestion:focus,
+  .autocomplete-suggestions .suggestion:focus {
+    background: #f8f8fc;
+    color: #ff6a18;
+    outline: none;
+  }
+
+  #searchSuggestions, .autocomplete-suggestions {
+    min-width: 460px;     /* Plus large par défaut */
+    width: max-content;   /* Prend la largeur du plus grand élément */
+    max-width: 98vw;      /* Ne dépasse jamais la fenêtre */
+    box-sizing: border-box;
+    
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  @media (max-width: 700px) {
+    html, body {
+      width: 100vw !important;
+      min-width: 0 !important;
+      max-width: 100vw !important;
+      overflow-x: hidden !important;
+      background: #faf8f6 !important;
+      box-sizing: border-box;
+    }
+    .header2 {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 54px; 
+      background: #fff; width: 100%;
+      min-width: 0;
+      max-width: 100vw;
+  
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* --- TABS Active Map / Listing --- */
+
+    .top-tabs-filters {
+   width: 100%;
+      min-width: 0;
+      max-width: 100vw;
+      overflow-x: hidden;
+    margin: 55px 0 0 0 !important;
+    padding: 0 !important;
+  }
+
+  .tabs { gap: 2px; }
+  .tab { padding: 8px 9vw; font-size: 1rem; }
+
+
+
+    
+    /* --- SearchBar sticky SOUS les tabs --- */
+  .search-autocomplete-wrapper {
+      position: fixed !important;
+     width: 100%;
+      min-width: 0;
+      max-width: 100vw;
+      overflow-x: hidden;
+
+      left: 0;
+      right: 0;
+      top: 124px; /* ou calcule dynamiquement selon header/tabs */
+      z-index: 9;
+      height: 60px;
+      background: #fff;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      padding: 0 9px;
+      transition: top .23s;
+
+  }
+
+    body.tabs-gone .search-autocomplete-wrapper {
+      top: 54px !important; /* tabs ont disparu */
+    }
+  .search-autocomplete-wrapper input[type="text"], #search {
+       width: 100%;
+      min-width: 0;
+      max-width: 100vw;
+      overflow-x: hidden;
+      font-size: 1.17em;
+      border-radius: 22px;
+      border: 1.5px solid #e6e6e6;
+      background: #fff;
+      padding: 14px 17px;
+      margin: 0;
+      height: 38px;
+      display: block;
+      outline: none;
+      
+      right: 0  ;
+  }
+
+    .autocomplete-suggestions, #searchSuggestions {
+      position: fixed !important;
+      top: 158px !important; /* header+tabs+search */
+      left: 0; right: 0;
+     width: 100%;
+      min-width: 0;
+      max-width: 100vw;
+      overflow-x: hidden;
+      z-index: 19900 !important;
+      background: #fff;
+      border-radius: 0 0 13px 13px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.13);
+      border: 1px solid #e6e6e6;
+      font-size: 1.1em;
+    }
+    .autocomplete-suggestion {
+      padding: 18px 20px;
+      cursor: pointer;
+      border-bottom: 1px solid #f2f2f2;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* --- FILTER BAR sticky en-dessous de la search --- */
+    .filter-bar {
+  
+  
+      background: #fff;
+      z-index: 8;
+      
+    
+      border-bottom: 1px solid #ececec;
+      height: 54px;
+    
+      top: 184px; /* header+tabs+searchbar */
+      transition: top .23s;
+      overflow-x: hidden;
+
+    }
+    body.tabs-gone .filter-bar {
+      top: 114px !important; /* header+searchbar */
+    }
+    .filter-row-scroll {
+      width: 100vw !important;
+      min-width: 0 !important;
+      max-width: 100vw !important;
+      overflow-x: auto !important;
+      gap: 6px;
+      padding-left: 4px;
+    }
+    .filter-row-scroll::-webkit-scrollbar { display: none; }
+    .filter-row-scroll select,
+    .filter-row-scroll button {
+      font-size: 1em;
+      min-width: 84px;
+      max-width: 128px;
+      padding: 8px 10px;
+      border-radius: 16px;
+      height: 38px;
+      flex-shrink: 0;
+      white-space: nowrap;
+      background: none;
+      border: 2px solid #f05423;
+      color: #d13b15;
+      font-weight: 600;
+      margin-top: 3px;
+      margin-bottom: 3px;
+      outline: none;
+      transition: 0.14s;
+    }
+    .filter-row-scroll button.active, .filter-row-scroll button.selected {
+      border-color: #ff9900;
+      color: #ff9900;
+      background: #fff6ee;
+    }
+
+    /* --- MAIN CONTENT démarre SOUS sticky --- */
+    .main-content-wrapper {
+      padding-top: 150px !important; /* 54+44+60+54 */
+      background: #faf8f6 !important;
+      max-width: 100vw;
+      min-width: 0;
+      box-sizing: border-box;
+      transition: padding-top .23s;
+    }
+
+
+    /* Masque la bannière how-offplan-works en mobile */
+    .how-offplan-works {
+      display: none !important;
+    }
+    /* Règle le z-index du menu burger */
+    .all-button {
+      z-index: 1200 !important;
+    }
+    
+  }
+
+
+
+
+
+
+@media (max-width: 700px) {
+
+  /* STICKY POSITION MOBILE */
+  .search-autocomplete-wrapper {
+    position: fixed !important;
+    left: 0;
+    right: 0;
+    width: 100vw !important;
+    top: 120px !important;       /* Tabs (54 header + 66 tabs) */
+    z-index: 1093;
+    transition: top .22s;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+  }
+  .filter-bar {
+    position: fixed !important;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    top: 180px !important;      /* Searchbar + 60px */
+    z-index: 1092;
+    transition: top .22s;
+    background: #fff;
+    border-bottom: 1px solid #ececec;
+  }
+
+  /* Quand tabs sont partis -> les deux bars stack juste sous header */
+  body.tabs-gone .search-autocomplete-wrapper {
+    top: 54px !important;       /* sous header */
+  }
+  body.tabs-gone .filter-bar {
+    top: 114px !important;      /* sous searchbar (54+60) */
+  }
+
+  /* Décaler le main content pour ne pas passer dessous */
+  
+  body.tabs-gone .main-content-wrapper {
+    padding-top: 120px !important;  /* 54 header + 60 search + 54 filter */
+  }
+
+
+
+  
+}
+
+
+
+
+  @media (max-width: 700px) {
+  #moreFilterPopup {
+    align-items: flex-start !important;
+    justify-content: center !important;
+  }
+  .more-filter-inner {
+    margin-top: 1vh !important;    /* Décale le popup plus haut */
+    margin-bottom: 2vh !important; /* Laisse un mini espace en bas */
+    max-height: 75vh !important;   /* Toujours compact */
+  }
+
+
+
+  .delivery-date-options {
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .delivery-date-btn {
+    font-size: 0.92em !important;
+    padding: 7px 7px !important;
+    min-width: 74px !important;
+    border-radius: 8px !important;
+  }
+
+  .amenities-list {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 7px 6px !important;
+  }
+  .amenities-list label {
+    font-size: 0.99em !important;
+  }
+  .more-filter-inner input[type="text"] {
+    font-size: 0.97em !important;
+    padding: 6px 8px !important;
+    border-radius: 6px !important;
+  }
+  .apply-filters-btn {
+    font-size: 1.03em !important;
+    padding: 10px 16vw !important;
+    border-radius: 16px !important;
+    margin-top: 10px !important;
+  }
+  .more-filter-header span {
+    font-size: 1.07em !important;
+  }
+}
+
+
+
+
+
+/* Par exemple si tu fais un menu mobile latéral */
+body.menu-open .all-button {
+  display: flex;    /* ou block, selon ton menu mobile */
+
+}
+
+@media (max-width: 900px) {
+  .all-button {
+    display: none;   /* ou left:-100vw, selon ton système */
+    /* etc… */
+
+  position: relative;   /* Ou absolute/fixed si tu préfères, mais relative suffit normalement */
+  z-index: 14;        /* Mets plus élevé que .filter-bar, .search-autocomplete-wrapper, etc. */
+}
+
+  }
+
+
+
+
+  
+
+
+.filter-bar {
+    background: #fff;
+    padding: 12px 14px;
+    margin-top: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    border-bottom: 1px solid #e6e6e6;
+    position: sticky;
+    top: 60px;
+    z-index: 9;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    width: 100vw;
+    min-width: 100vw;
+    height: 68px;
+}
+
+
+
 
 
