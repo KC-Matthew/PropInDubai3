@@ -1567,6 +1567,20 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
   @media (max-width: 700px) {
     html, body {
       width: 100vw !important;
@@ -1744,8 +1758,6 @@
 
 
 
-
-
 @media (max-width: 700px) {
 
   /* STICKY POSITION MOBILE */
@@ -1781,11 +1793,65 @@
   }
 
   /* Décaler le main content pour ne pas passer dessous */
-  .main-content-wrapper {
-    transition: padding-top .22s;
-    padding-top: 234px !important;  /* 54 header + 66 tabs + 60 search + 54 filter */
-  }
+  
   body.tabs-gone .main-content-wrapper {
-    padding-top: 168px !important;  /* 54 header + 60 search + 54 filter */
+    padding-top: 120px !important;  /* 54 header + 60 search + 54 filter */
+  }
+
+
+
+  
+}
+
+
+
+
+  @media (max-width: 700px) {
+  #moreFilterPopup {
+    align-items: flex-start !important;
+    justify-content: center !important;
+  }
+  .more-filter-inner {
+    margin-top: 1vh !important;    /* Décale le popup plus haut */
+    margin-bottom: 2vh !important; /* Laisse un mini espace en bas */
+    max-height: 75vh !important;   /* Toujours compact */
+  }
+
+
+
+  .delivery-date-options {
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .delivery-date-btn {
+    font-size: 0.92em !important;
+    padding: 7px 7px !important;
+    min-width: 74px !important;
+    border-radius: 8px !important;
+  }
+
+  .amenities-list {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 7px 6px !important;
+  }
+  .amenities-list label {
+    font-size: 0.99em !important;
+  }
+  .more-filter-inner input[type="text"] {
+    font-size: 0.97em !important;
+    padding: 6px 8px !important;
+    border-radius: 6px !important;
+  }
+  .apply-filters-btn {
+    font-size: 1.03em !important;
+    padding: 10px 16vw !important;
+    border-radius: 16px !important;
+    margin-top: 10px !important;
+  }
+  .more-filter-header span {
+    font-size: 1.07em !important;
   }
 }
+
+
