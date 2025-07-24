@@ -678,7 +678,7 @@ function closePricePopup() {
 
 
 
-// ------ AUTOCOMPLETE SUGGESTIONS (VERSION SAFE, PAS DE BLOCAGE DE LA SAISIE) ------
+// ------ AUTOCOMPLETE SUGGESTIONS (version corrigée sans doublons, logos cohérents) ------
 document.addEventListener('DOMContentLoaded', function () { 
   const searchInput = document.getElementById('search');
   const suggestionsDiv = document.getElementById('searchSuggestions');
@@ -689,17 +689,32 @@ document.addEventListener('DOMContentLoaded', function () {
   function getSuggestions(query) {
     if (!query) return [];
     const q = query.trim().toLowerCase();
+
+    const projectSet = new Set();
+    const locationSet = new Set();
+    const developerSet = new Set();
     let matches = [];
+
     projects.forEach(p => {
-      if (p.title.toLowerCase().includes(q))  
-        matches.push({label: p.title, icon: "fa-building"});
-      if (p.location.toLowerCase().includes(q))
-        matches.push({label: p.location, icon: "fa-map-marker-alt"});
-      if (p.developer && p.developer.toLowerCase().includes(q))
-        matches.push({label: p.developer, icon: "fa-user-tie"});
+      // Projets (immeuble)
+      if (p.title.toLowerCase().includes(q) && !projectSet.has(p.title)) {
+        matches.push({ label: p.title, icon: "fa-building", type: "project" });
+        projectSet.add(p.title);
+      }
+      // Quartiers/lieux (carte)
+      let locationName = p.location.split(" - ")[0].trim();
+      if (locationName.toLowerCase().includes(q) && !locationSet.has(locationName)) {
+        matches.push({ label: locationName, icon: "fa-map-marker-alt", type: "location" });
+        locationSet.add(locationName);
+      }
+      // Promoteur (business)
+      if (p.developer && p.developer.toLowerCase().includes(q) && !developerSet.has(p.developer)) {
+        matches.push({ label: p.developer, icon: "fa-user-tie", type: "developer" });
+        developerSet.add(p.developer);
+      }
     });
-    // Remove duplicates
-    return Array.from(new Map(matches.map(s => [s.label, s])).values()).slice(0, 8);
+
+    return matches.slice(0, 8);
   }
 
   function renderSuggestions(suggestions) {
@@ -843,6 +858,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // Appel initial
   filterAndDisplayProjects(1);
 });
+
+
+
 
 document.addEventListener('DOMContentLoaded', function() {
   // ... tout ton code existant ...
