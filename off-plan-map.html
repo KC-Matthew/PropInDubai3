@@ -1,1 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
 
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <title>PropIn Dubai - Carte Off Plan</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+      <link rel="stylesheet" href="styles/off-plan-map.css" />
+  <link rel="stylesheet" href="styles/accueil.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css"/>
+
+</head>
+<body class="offplan-map-page">
+
+  <!-- HEADER: NE PAS TOUCHER -->
+   
+<!-- HEADER -->
+<div class="header2">
+  <div class="burger" id="burgerMenu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+  <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
+  <div class="all-button">
+    <a href="areaforyou.html" class="chat-button header-btn">Chatgpt</a>
+    <a href="buy.html" class="buy-button header-btn">Buy</a>
+    <a href="rent.html" class="rent-button header-btn">Rent</a>
+    <a href="commercial.html" class="commercial-button header-btn">Commercial</a>
+    <a href="off-plan-search.html" class="project-button header-btn">Off Plan</a>
+    <a href="findagent.html" class="agent-button header-btn">Find agents</a>
+  </div>
+  <div class="profil-block">
+    <a href="login.html" class="login-button header-btn">Login</a>
+  </div>
+</div>
+ 
+
+
+  <!-- BARRE TABS + FILTRES -->
+  <div class="top-tabs-filters">
+    <div class="tabs">
+      <button class="tab active" id="tab-map">Active Map</button>
+      <button class="tab" id="tab-listing">Listing</button>
+    </div>
+  <div class="filter-bar">
+  <!-- Status -->
+  <select id="handoverFilter" class="filter-btn">
+    <option value="">Handover or Launch</option>
+    <option value="handover">Handover Soon</option>
+    <option value="launch">Launch Soon</option>
+  </select>
+  <!-- Promoteur -->
+  <select id="promoteurFilter" class="filter-btn">
+    <option value="">Promoter</option>
+    <option value="Ellington">Ellington</option>
+    <option value="Emaar">Emaar</option>
+    <option value="Sobha">Sobha</option>
+    <option value="DAMAC">DAMAC</option>
+  </select>
+  <!-- Property Type -->
+  <select id="propertyTypeFilter" class="filter-btn">
+    <option value="">Property Type</option>
+    <option value="Apartment">Apartment</option>
+    <option value="Villa">Villa</option>
+    <option value="Townhouse">Townhouse</option>
+    <option value="Penthouse">Penthouse</option>
+    <!-- Ajoute d'autres types si besoin -->
+  </select>
+  <!-- Room -->
+  <select id="roomFilter" class="filter-btn">
+    <option value="">Rooms</option>
+    <option value="1">1 Room</option>
+    <option value="2">2 Rooms</option>
+    <option value="3">3 Rooms</option>
+    <option value="4">4+ Rooms</option>
+  </select>
+  <!-- Bathroom -->
+  <select id="bathroomFilter" class="filter-btn">
+    <option value="">Bathrooms</option>
+    <option value="1">1 Bathroom</option>
+    <option value="2">2 Bathrooms</option>
+    <option value="3">3 Bathrooms</option>
+    <option value="4">4+ Bathrooms</option>
+  </select>
+  <!-- Price -->
+<button id="openPriceFilter" type="button" class="filter-btn">
+  <i class="fas fa-tags"></i>
+  <span id="priceLabel">Price</span>
+</button>
+
+  <!-- Reset -->
+  <button id="resetFilters" type="button" class="filter-btn" style="background:#ffede1;color:#ff9100;">
+    <i class="fas fa-undo"></i> Reset
+  </button>
+</div>
+
+    <!-- POPUP PRIX -->
+    <div id="priceFilterPopup">
+      <div class="price-popup-inner">
+        <div class="price-popup-header">
+          <span>Price (AED)</span>
+          <button id="closePricePopup" aria-label="Close">&times;</button>
+        </div>
+        <canvas id="priceHistogram" width="320" height="42"></canvas>
+        <div class="price-hist-label">Distribution of properties by price</div>
+        <div class="price-inputs">
+          <input id="priceMinInput" type="text" autocomplete="off" />
+          <span style="color:#b6b6b6; font-size:1.2em;">—</span>
+          <input id="priceMaxInput" type="text" autocomplete="off" />
+        </div>
+        <div class="slider-labels">
+          <span id="sliderMinLabel"></span>
+          <span id="sliderMaxLabel"></span>
+        </div>
+        <div class="slider-main">
+          <div id="priceSlider"></div>
+        </div>
+        <div id="selectedPriceRange" class="selected-price-label"></div>
+        <button id="validatePriceBtn" class="validate-price-btn">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARTE -->
+  <div id="map"></div>
+  <div id="popup-container"></div>
+
+
+
+
+
+
+
+
+
+  
+
+  <!-- SCRIPTS -->
+   <script>
+setTimeout(() => {
+  console.log('all-button display:', getComputedStyle(document.querySelector('.all-button')).display);
+  console.log('all-button classes:', document.querySelector('.all-button').className);
+}, 2500);
+</script>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
+  <script src="javascript/off-plan-map.js"></script>
+</body>
+</html>
