@@ -56,10 +56,9 @@ agentContact.innerHTML = `
   <p><i class="fas fa-envelope"></i> <a href="mailto:${data.agent.email}">${data.agent.email}</a></p>
 `;
 
-
 const unitsTableBody = document.getElementById('unitsTableBody');
 data.availableUnits.forEach(unit => {
-const row = `<tr><td>${unit.type}</td><td>${unit.size}</td><td>${unit.price}</td><td>${unit.availability}</td></tr>`;
+  const row = `<tr><td>${unit.type}</td><td>${unit.size}</td><td>${unit.price}</td><td>${unit.availability}</td></tr>`;
   unitsTableBody.innerHTML += row;
 });
 
@@ -119,11 +118,32 @@ document.getElementById('lightbox-next').onclick = () => {
   updateImage();
 };
 
+// ----- GESTION DU SWIPE TACTILE -----
+let touchStartX = 0;
+let touchEndX = 0;
 
+mainImage.addEventListener('touchstart', function(e) {
+  touchStartX = e.changedTouches[0].screenX;
+}, false);
 
+mainImage.addEventListener('touchmove', function(e) {
+  touchEndX = e.changedTouches[0].screenX;
+}, false);
+
+mainImage.addEventListener('touchend', function(e) {
+  // Seulement si le swipe est suffisamment long (>30px)
+  if (touchStartX - touchEndX > 30) {
+    // swipe gauche (image suivante)
+    currentImageIndex = (currentImageIndex + 1) % data.images.length;
+    updateImage();
+  } else if (touchEndX - touchStartX > 30) {
+    // swipe droite (image précédente)
+    currentImageIndex = (currentImageIndex - 1 + data.images.length) % data.images.length;
+    updateImage();
+  }
+}, false);
 
 // Simulated recommended data (à remplacer par un appel DB ou API plus tard)
-// ---- DATA DE RECOMMANDATION (à remplacer plus tard par ta DB/Fetch) ----
 const recommendedProjects = [
   {
     image: "styles/select.jpg",
