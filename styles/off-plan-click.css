@@ -402,3 +402,271 @@ th {
 }
 
 
+@media (max-width: 768px) {
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    font-size: 17px !important;
+    background: #fff !important;
+    overflow-x: hidden !important;
+  }
+
+  .header2, .all-button, .profil-block {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0.6rem 0.6rem 0.2rem 0.6rem !important;
+    box-sizing: border-box !important;
+  }
+
+  .project-header {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    padding: 2rem 1.2rem 0.8rem 1.2rem !important;
+    margin: 0 !important;
+    font-size: 1.27em;
+    box-sizing: border-box;
+  }
+
+  .project-main {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.3rem !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .project-left, .project-details {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    margin: 0 0 1.2rem 0 !important;
+    padding: 1rem 0.7rem !important;
+    border-radius: 17px !important;
+    box-sizing: border-box !important;
+    font-size: 1.1em !important;
+    background: #fffbe9 !important;
+    border: 1.5px solid #ffe1b5 !important;
+    box-shadow: 0 2px 14px rgba(255,153,0,0.06) !important;
+  }
+  .project-details {
+    margin-left: 0 !important;
+    max-height: none !important;
+  }
+
+  .project-image {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 100vw !important;
+    aspect-ratio: 16/9 !important;
+    margin: 0 auto 1.1rem auto !important;
+    border-radius: 16px !important;
+    background: #eee !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+  .project-image img {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 100vw !important;
+    border-radius: 15px !important;
+    min-height: 180px !important;
+    object-fit: cover !important;
+    display: block !important;
+  }
+
+  .image-count, .image-arrows {
+    font-size: 1.08em !important;
+  }
+
+  .agent-contact {
+    margin-top: 1rem !important;
+    padding: 1rem !important;
+    font-size: 1.09em !important;
+    border-radius: 15px !important;
+    background: #fff !important;
+    border: 1.5px solid #ffdcb5 !important;
+  }
+
+  /* LOCATION + UNITS EN STACK */
+  .location-units {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.7rem !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    padding: 0 0 1.2rem 0 !important;
+    margin: 0 !important;
+  }
+  .location, .available-units {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    padding: 0 0.8rem !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+  }
+  .location iframe {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 100vw !important;
+    height: 155px !important;
+    border-radius: 14px !important;
+    margin-bottom: 10px !important;
+  }
+  .available-units h2 {
+    margin-top: 1.3rem !important;
+    margin-bottom: 0.7rem !important;
+    font-size: 1.17em;
+  }
+  /* Cacher le tableau sur mobile, afficher en "cards" (JS peut ajouter ça, ou fais-le ici si tu veux) */
+  .available-units table,
+  .available-units thead,
+  .available-units tr {
+    display: none !important;
+  }
+  #unitsTableBody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.3rem !important;
+    margin-top: 0.9rem !important;
+  }
+  #unitsTableBody tr {
+    display: flex !important;
+    flex-direction: column !important;
+    background: #fff !important;
+    border: 1.5px solid #ffb63a !important;
+    border-radius: 15px !important;
+    margin: 0 auto;
+    padding: 1rem 1.1rem 0.8rem 1.1rem !important;
+    box-shadow: 0 2px 14px rgba(255,153,0,0.06) !important;
+    width: 92vw !important;
+    max-width: 92vw !important;
+    font-size: 1.08em !important;
+  }
+  #unitsTableBody td {
+    display: block !important;
+    text-align: left !important;
+    border: none !important;
+    padding: 0.2rem 0 !important;
+    font-size: 1.08em !important;
+  }
+  #unitsTableBody td:not(:last-child) {
+    margin-bottom: 0.12rem !important;
+  }
+
+  /* Developer vision */
+  .developer-vision {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    border-radius: 15px !important;
+    margin: 1.3rem 0 0 0 !important;
+    padding: 1.1rem 0.7rem !important;
+    font-size: 1.13em !important;
+    box-sizing: border-box;
+    border: 1.5px solid #ffe1b5 !important;
+  }
+  .developer-vision h2, .developer-vision h3 {
+    font-size: 1.17em;
+  }
+
+  /* Recommended projects */
+  .recommended-projects {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    padding: 1.6rem 0.6rem 1.2rem 0.6rem !important;
+    margin-top: 1.2rem !important;
+    box-sizing: border-box !important;
+  }
+  .recommended-list {
+    gap: 1.3rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+  .recommended-card {
+    width: 94vw !important;
+    min-width: 210px !important;
+    max-width: 99vw !important;
+    font-size: 1.07em !important;
+    border-radius: 14px !important;
+    box-shadow: 0 2px 10px rgba(255,153,0,0.08) !important;
+    margin: 0 auto 1.1rem auto !important;
+  }
+  .recommended-card img {
+    height: 130px !important;
+    border-radius: 12px !important;
+    object-fit: cover !important;
+    width: 100% !important;
+    min-width: 180px !important;
+  }
+
+  /* Footer responsive */
+  .site-footer, .footer-container {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    padding: 1.7rem 0 1rem 0 !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+    left: 0 !important;
+  }
+  .footer-left, .footer-links, .footer-socials {
+    max-width: 100vw !important;
+    width: 100vw !important;
+    margin: 0 !important;
+    padding: 0 1.1rem !important;
+    align-items: flex-start !important;
+  }
+  .footer-socials img {
+    width: 36px !important;
+    height: 36px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    background: #fff !important;
+    overflow-x: hidden !important;
+  }
+  body {
+    margin-left: 0 !important;  /* Ecrase le margin-left: 6%; de la version desktop */
+  }
+  .project-header,
+  .project-main,
+  .project-left,
+  .project-details,
+  .project-image,
+  .location-units,
+  .location,
+  .available-units,
+  .developer-vision,
+  .recommended-projects,
+  .site-footer,
+  .footer-container
+  {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    box-sizing: border-box !important;
+  }
+  /* Désactive tout centrage automatique du layout desktop */
+  .main, .container, #main, .wrapper, .content {
+    margin: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+}
+
