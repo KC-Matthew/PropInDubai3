@@ -168,7 +168,7 @@
 .filter-bar {
   position: sticky;
   top: 61px; /* ou 0 selon ton header */
-  z-index: 1001;
+  z-index: 1;
   width: 100%;
   background: #fff;
   display: flex;
@@ -2048,10 +2048,6 @@ body.price-popup-open { overflow: hidden; }
 
 
 
-
-
-
-
 /* RESET de base */
 .header2, .all-button, .profil-block {
   box-sizing: border-box;
@@ -2132,6 +2128,7 @@ body.price-popup-open { overflow: hidden; }
 .dropdown {
   position: relative;
   display: inline-block;
+  z-index: 99;
 }
 
 .buy-button {
