@@ -14,15 +14,48 @@
 
   <!-- Headbar -->
 <div class="header2">
-   <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
-  <div class="all-button">
-    <a href="areaforyou.html" class="chat-button header-btn">Chatgpt</a>
-    <a href="buy.html" class="buy-button header-btn">Buy</a>
-    <a href="rent.html" class="rent-button header-btn">Rent</a>
-    <a href="commercial.html" class="commercial-button header-btn">Commercial</a>
-    <a href="off-plan-search.html" class="project-button header-btn">Off Plan</a>
-    <a href="findagent.html" class="agent-button header-btn">Find agents</a>
+  <div class="burger" id="burgerMenu">
+    <span></span>
+    <span></span>
+    <span></span>
   </div>
+  <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
+
+
+
+
+<div class="all-button">
+  <a href="areaforyou.html" class="chat-button header-btn">Chat Property AI</a>
+  
+  <div class="dropdown header-btn" id="buyDropdown">
+    <a href="buy.html" class="buy-button header-btn" id="mainBuyBtn" tabindex="0">Buy <span class="arrow">&#9660;</span></a>
+    <div class="dropdown-content" id="dropdownContent">
+        <a href="rent.html" data-link="rent.html" class="dropdown-option">Buy</a>
+      <a href="rent.html" data-link="rent.html" class="dropdown-option">Rent</a>
+      <a href="commercial.html" data-link="commercial.html" class="dropdown-option">Commercial</a>
+    </div>  
+  </div>
+  
+  <!-- Mobile version, hidden by default, visible only in mobile via CSS -->
+<div class="mobile-buy-menu" style="display: none;">
+  <a href="buy.html">Buy</a>
+  <a href="rent.html">Rent</a>
+  <a href="commercial.html">Commercial</a>
+</div>
+
+
+
+
+  <a href="off-plan-map.html" class="project-button header-btn">Off Plan</a>
+  <a href="roi-calculator.html" class="roi-button header-btn">ROI-Calculator</a>
+  <a href="maps.html" class="map-button header-btn">Map</a>
+  <a href="findagent.html" class="agent-button header-btn">Find agents</a>
+</div>
+
+
+
+
+  
   <div class="profil-block">
     <a href="login.html" class="login-button header-btn">Login</a>
   </div>
