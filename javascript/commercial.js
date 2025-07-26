@@ -816,3 +816,42 @@ document.getElementById("applyMoreFiltersBtn").addEventListener("click", functio
   // --> Ajoute ici la logique pour filtrer tes propriétés avec ces valeurs
   handleSearchOrFilter(); // Si tu veux relancer le filtrage après changement
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  const buyDropdown = document.getElementById('buyDropdown');
+  const mainBuyBtn = document.getElementById('mainBuyBtn');
+
+  // Ouvre/Ferme le menu au clic
+  mainBuyBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    buyDropdown.classList.toggle('open');
+  });
+
+  // Ferme le menu si clic en dehors
+  document.addEventListener('click', function(e) {
+    if (!buyDropdown.contains(e.target)) {
+      buyDropdown.classList.remove('open');
+    }
+  });
+
+  // NO MORE preventDefault on dropdown-option!
+  // Les liens <a> du menu déroulant ouvrent bien la page maintenant
+});
