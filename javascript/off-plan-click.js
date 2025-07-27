@@ -35,7 +35,6 @@ const data = {
   otherProjects: ["Creek Harbour", "The Valley", "Emaar South", "Downtown Views II"]
 };
 
-// Inject project content
 document.getElementById('projectTitle').textContent = data.title;
 document.getElementById('projectLocation').textContent = data.location;
 document.getElementById('developer').textContent = data.developer;
@@ -82,7 +81,8 @@ data.otherProjects.forEach(p => {
   devList.appendChild(li);
 });
 
-// Carousel + Lightbox
+// ----------- Carousel, Lightbox et SWIPE ------------
+
 let currentImageIndex = 0;
 const mainImage = document.getElementById('mainImage');
 const mainProjectImage = document.getElementById('mainProjectImage');
@@ -93,19 +93,75 @@ function updateImage() {
   mainProjectImage.src = data.images[currentImageIndex];
   lightboxImg.src = data.images[currentImageIndex];
 }
-document.getElementById('prevImage').onclick = () => {
+
+// Flèches du carousel
+document.getElementById('prevImage').onclick = (e) => {
+  e.stopPropagation();
   currentImageIndex = (currentImageIndex - 1 + data.images.length) % data.images.length;
   updateImage();
 };
-document.getElementById('nextImage').onclick = () => {
+document.getElementById('nextImage').onclick = (e) => {
+  e.stopPropagation();
   currentImageIndex = (currentImageIndex + 1) % data.images.length;
   updateImage();
 };
+
+// Slide au doigt sur le carousel principal
+let touchStartX = 0;
+let touchEndX = 0;
+mainImage.addEventListener('touchstart', function(e) {
+  if (e.touches.length === 1) touchStartX = e.touches[0].clientX;
+});
+mainImage.addEventListener('touchmove', function(e) {
+  if (e.touches.length === 1) touchEndX = e.touches[0].clientX;
+});
+mainImage.addEventListener('touchend', function(e) {
+  const minDistance = 50;
+  if (touchStartX && touchEndX) {
+    const deltaX = touchEndX - touchStartX;
+    if (deltaX > minDistance) {
+      currentImageIndex = (currentImageIndex - 1 + data.images.length) % data.images.length;
+      updateImage();
+    } else if (deltaX < -minDistance) {
+      currentImageIndex = (currentImageIndex + 1) % data.images.length;
+      updateImage();
+    }
+  }
+  touchStartX = 0;
+  touchEndX = 0;
+});
+
+// Ouvre la lightbox
 mainImage.onclick = (event) => {
-  if (event.target.closest('.image-arrows')) return;
   lightbox.style.display = 'flex';
   updateImage();
 };
+
+// --- SWIPE dans la lightbox --- //
+let lightboxTouchStartX = 0;
+let lightboxTouchEndX = 0;
+lightboxImg.addEventListener('touchstart', function(e) {
+  if (e.touches.length === 1) lightboxTouchStartX = e.touches[0].clientX;
+});
+lightboxImg.addEventListener('touchmove', function(e) {
+  if (e.touches.length === 1) lightboxTouchEndX = e.touches[0].clientX;
+});
+lightboxImg.addEventListener('touchend', function(e) {
+  const minDistance = 40;
+  if (lightboxTouchStartX && lightboxTouchEndX) {
+    const deltaX = lightboxTouchEndX - lightboxTouchStartX;
+    if (deltaX > minDistance) {
+      currentImageIndex = (currentImageIndex - 1 + data.images.length) % data.images.length;
+      updateImage();
+    } else if (deltaX < -minDistance) {
+      currentImageIndex = (currentImageIndex + 1) % data.images.length;
+      updateImage();
+    }
+  }
+  lightboxTouchStartX = 0;
+  lightboxTouchEndX = 0;
+});
+
 document.getElementById('lightboxOverlay').onclick = () => {
   lightbox.style.display = 'none';
 };
@@ -118,32 +174,7 @@ document.getElementById('lightbox-next').onclick = () => {
   updateImage();
 };
 
-// ----- GESTION DU SWIPE TACTILE -----
-let touchStartX = 0;
-let touchEndX = 0;
-
-mainImage.addEventListener('touchstart', function(e) {
-  touchStartX = e.changedTouches[0].screenX;
-}, false);
-
-mainImage.addEventListener('touchmove', function(e) {
-  touchEndX = e.changedTouches[0].screenX;
-}, false);
-
-mainImage.addEventListener('touchend', function(e) {
-  // Seulement si le swipe est suffisamment long (>30px)
-  if (touchStartX - touchEndX > 30) {
-    // swipe gauche (image suivante)
-    currentImageIndex = (currentImageIndex + 1) % data.images.length;
-    updateImage();
-  } else if (touchEndX - touchStartX > 30) {
-    // swipe droite (image précédente)
-    currentImageIndex = (currentImageIndex - 1 + data.images.length) % data.images.length;
-    updateImage();
-  }
-}, false);
-
-// Simulated recommended data (à remplacer par un appel DB ou API plus tard)
+// --------- Cartes recommandées --------
 const recommendedProjects = [
   {
     image: "styles/select.jpg",
@@ -196,15 +227,12 @@ const recommendedProjects = [
   }
 ];
 
-// --- UTILITAIRE POUR EXTRAIRE LE PRIX NUMÉRIQUE ---
 function extractNumeric(priceStr) {
-  // Retourne 1200000 à partir de "AED 1,200,000"
   return Number(priceStr.replace(/[^\d]/g, ""));
 }
 
-// --- AFFICHAGE DES CARTES RECOMMANDÉES ---
 const recommendedList = document.getElementById("recommendedList");
-recommendedList.innerHTML = ""; // clear avant d’ajouter
+recommendedList.innerHTML = "";
 
 recommendedProjects.forEach((project, idx) => {
   let minPrice = null, maxPrice = null;
@@ -230,44 +258,7 @@ recommendedProjects.forEach((project, idx) => {
   `;
   card.style.cursor = "pointer";
   card.onclick = () => {
-    // Redirige avec index (ou remplace idx par project.id si tu en as un unique)
     window.location.href = `off-plan-click.html?rec_id=${idx}`;
   };
   recommendedList.appendChild(card);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-document.addEventListener('DOMContentLoaded', function() {
-  const buyDropdown = document.getElementById('buyDropdown');
-  const mainBuyBtn = document.getElementById('mainBuyBtn');
-
-  // Ouvre/Ferme le menu au clic
-  mainBuyBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    buyDropdown.classList.toggle('open');
-  });
-
-  // Ferme le menu si clic en dehors
-  document.addEventListener('click', function(e) {
-    if (!buyDropdown.contains(e.target)) {
-      buyDropdown.classList.remove('open');
-    }
-  });
-
-  // NO MORE preventDefault on dropdown-option!
-  // Les liens <a> du menu déroulant ouvrent bien la page maintenant
-});
-
