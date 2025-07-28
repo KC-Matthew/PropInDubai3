@@ -65,14 +65,33 @@
   <main class="maps-main">
     <section class="map-side-left">
       <!-- Search bar with min/max price -->
-      <div class="property-search-bar">
-        <input type="text" id="searchInput" placeholder="Search by location, type..." />
-        <div class="price-inputs-group">
-          <input type="number" id="minPriceInput" placeholder="Min Price" min="0" />
-          <input type="number" id="maxPriceInput" placeholder="Max Price" min="0" />
+<div class="property-search-bar">
+  <input type="text" id="searchInput" placeholder="Search by location, type..." />
+
+  <div class="price-inputs-group">
+    <!-- Prix Min -->
+    <div class="price-input-wrap">
+      <input type="number" id="minPriceInput" placeholder="Min Price" min="0" autocomplete="off" />
+      <div class="price-suggestions" id="minPriceSuggestions"></div>
+    </div>
+    <!-- Prix Max -->
+    <div class="price-input-wrap">
+      <input type="number" id="maxPriceInput" placeholder="Max Price" min="0" autocomplete="off" />
+      <div class="price-suggestions" id="maxPriceSuggestions"></div>
+    </div>
+  </div>
+  <button id="searchBtn"><i class="fa fa-search"></i></button>
+
+
+          <div class="search-autocomplete" id="searchAutocomplete"></div>
+        
+
         </div>
         <button id="searchBtn"><i class="fa fa-search"></i></button>
       </div>
+
+
+      
       <!-- Cards -->
       <div class="property-list-grid" id="propertyGrid"></div>
       <!-- Pagination -->
@@ -83,6 +102,20 @@
     </section>
   </main>
 
+
+<div class="mobile-map-container">
+  <div id="leafletMapMobile"></div>
+  <div class="mobile-cards-deck collapsed">
+    <div class="deck-handle"></div>
+  
+    
+    <div class="mobile-deck-list" id="propertyListMobile"></div>
+  </div>
+</div>
+
+
+
+  
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
   <script src="javascript/maps.js"></script>
 </body>
