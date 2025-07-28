@@ -12,7 +12,7 @@ const propertyData = {
     "styles/photo/profil.png"
   ],
   propertyType: "Apartment",
-  roi: 7.2, // En pourcentage (number)
+  roi: 7.2,
   avgRent: "AED 120,000"
 };
 
@@ -45,21 +45,20 @@ window.onload = () => {
   thumb2.addEventListener('click', () => openLightboxCarousel(2));
 
   // Infos propriété SANS avgPrice
-    info.innerHTML = `
-      <h2>${propertyData.location}</h2>
-      <div class="price">${propertyData.price}</div>
-      <div class="details">
-        <span>🛏️ ${propertyData.bedrooms} Bedrooms</span>
-        <span>🛁 ${propertyData.bathrooms} Bathrooms</span>
-        <span>📐 ${propertyData.size}</span>
-      </div>
-      <div style="margin: 10px 0 15px 0; font-size: 1.04rem; color:rgb(0, 0, 0); font-weight: 500;">
-        📈 ROI: ${propertyData.roi}% &nbsp; 
-        💰 Avg Rent: ${propertyData.avgRent}
-      </div>
-      <p style="margin-top: 20px;">${propertyData.description}</p>
-    `;
-
+  info.innerHTML = `
+    <h2>${propertyData.location}</h2>
+    <div class="price">${propertyData.price}</div>
+    <div class="details">
+      <span>🛏️ ${propertyData.bedrooms} Bedrooms</span>
+      <span>🛁 ${propertyData.bathrooms} Bathrooms</span>
+      <span>📐 ${propertyData.size}</span>
+    </div>
+    <div style="margin: 10px 0 15px 0; font-size: 1.04rem; color:rgb(0, 0, 0); font-weight: 500;">
+      📈 ROI: ${propertyData.roi}% &nbsp; 
+      💰 Avg Rent: ${propertyData.avgRent}
+    </div>
+    <p style="margin-top: 20px;">${propertyData.description}</p>
+  `;
 
   // Description détaillée
   description.textContent = propertyData.description;
@@ -93,7 +92,7 @@ function renderAgentInfo() {
   `;
 }
 
-// Lightbox avec navigation (simplifié)
+// Lightbox avec navigation (flèches + swipe mobile)
 function openLightboxCarousel(startIndex) {
   let index = startIndex;
 
@@ -126,6 +125,32 @@ function openLightboxCarousel(startIndex) {
     box-shadow: 0 6px 36px rgba(0,0,0,0.38);
     display: block;
   `;
+
+  // === SWIPE MOBILE LOGIC ===
+  let touchStartX = 0;
+  img.addEventListener('touchstart', function(e) {
+    if (e.touches.length === 1) {
+      touchStartX = e.touches[0].clientX;
+    }
+  });
+  img.addEventListener('touchend', function(e) {
+    if (e.changedTouches.length === 1) {
+      const touchEndX = e.changedTouches[0].clientX;
+      const deltaX = touchEndX - touchStartX;
+      if (Math.abs(deltaX) > 40) {
+        if (deltaX < 0) {
+          // Swipe gauche : next
+          index = (index + 1) % propertyData.images.length;
+          img.src = propertyData.images[index];
+        } else {
+          // Swipe droite : prev
+          index = (index - 1 + propertyData.images.length) % propertyData.images.length;
+          img.src = propertyData.images[index];
+        }
+      }
+    }
+  });
+  // =========================
 
   // Modern arrows
   const arrowStyle = `
@@ -317,7 +342,7 @@ function createSimilarPropertyCard(property) {
   return card;
 }
 
-
+// Injecte les cartes similaires au chargement
 window.addEventListener('load', () => {
   const container = document.querySelector('.similar-properties-wrapper');
   if (!container) return;
@@ -326,44 +351,4 @@ window.addEventListener('load', () => {
     const card = createSimilarPropertyCard(prop);
     container.appendChild(card);
   });
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-document.addEventListener('DOMContentLoaded', function() {
-  const buyDropdown = document.getElementById('buyDropdown');
-  const mainBuyBtn = document.getElementById('mainBuyBtn');
-
-  // Ouvre/Ferme le menu au clic
-  mainBuyBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    buyDropdown.classList.toggle('open');
-  });
-
-  // Ferme le menu si clic en dehors
-  document.addEventListener('click', function(e) {
-    if (!buyDropdown.contains(e.target)) {
-      buyDropdown.classList.remove('open');
-    }
-  });
-
-  // NO MORE preventDefault on dropdown-option!
-  // Les liens <a> du menu déroulant ouvrent bien la page maintenant
 });
