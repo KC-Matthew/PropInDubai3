@@ -437,6 +437,56 @@ body {
   margin-left: 16px;
 }
 
+.search-autocomplete {
+  position: absolute;
+  top: 56px;
+  left: 15px;
+  right: 15px;
+  z-index: 40;
+  background: #fff;
+  border: 1px solid #ffb347;
+  border-radius: 11px;
+  box-shadow: 0 7px 24px rgba(255,136,0,0.12);
+  display: none;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.search-autocomplete .suggestion {
+  padding: 11px 16px;
+  cursor: pointer;
+  font-size: 1.04rem;
+  color: #444;
+}
+.search-autocomplete .suggestion:hover {
+  background: #fff3e6;
+  color: #ff8800;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* Responsive : MOBILE (<900px) */
 @media (max-width: 900px) {
   .header2 {
@@ -444,6 +494,7 @@ body {
     justify-content: flex-start;
     padding: 0 12px;
     min-height: 52px;
+    z-index: 1001;
   }
   .logo {
     margin: 0 auto;
@@ -451,6 +502,8 @@ body {
   }
   .burger {
     display: flex;
+    z-index: 6;
+
   }
   .profil-block {
     margin-left: auto;
@@ -469,7 +522,7 @@ body {
     position: absolute;
     left: 0;
     top: 55px;
-    z-index: 21;
+    z-index: 1002;
     border-radius: 0 0 15px 15px;
     border-top: 1.5px solid #ececec;
     display: none; /* sera activé par JS burger */
@@ -499,9 +552,7 @@ body {
     color: #ff6600;
   }
   /* Plus de dropdown sur mobile */
-  .dropdown, .dropdown-content {
-    display: none !important;
-  }
+
   /* Montrer les 3 liens Buy/Rent/Commercial sur mobile */
   .mobile-buy-menu {
     display: flex !important;
@@ -536,12 +587,161 @@ body {
     white-space: nowrap;  
     max-width: 97vw;
   }
-}
 
-/* Désactive le menu mobile sur desktop */
-@media (min-width: 901px) {
-  .mobile-buy-menu {
-    display: none !important;
+  .property-search-bar{
+    z-index: 20;
   }
 }
 
+/* Désactive le menu mobile sur desktop */
+
+
+
+
+.search-autocomplete {
+  background: #fff !important;
+  border: 2px solid red !important;
+  color: #222 !important;
+  z-index: 1000 !important;
+}
+.suggestion {
+  color: #222 !important;
+  background: #fff !important;
+  border-bottom: 1px solid #f2ae54;
+  padding: 12px 20px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@media (max-width: 700px) {
+  .header2 { z-index: 1; } /* pour que la map soit au-dessus en full */
+  .mobile-map-container {
+    position: fixed;
+    top: -30px; left: 0; right: 0; bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #fafbfc;
+    z-index: 1; /* map au-dessus du header */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #leafletMapMobile {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 1;
+    border-radius: 0;
+  }
+  .mobile-cards-deck {
+    position: absolute;
+    left: 0; width: 100vw;
+    background: #fff;
+    z-index: 5;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    box-shadow: 0 -6px 24px rgba(0,0,0,0.10);
+    transition: top 0.32s cubic-bezier(.23,1.15,.8,1.01), height 0.32s cubic-bezier(.23,1.15,.8,1.01);
+    will-change: top, height;
+    display: flex;
+    flex-direction: column;
+  }
+  .mobile-cards-deck .deck-handle {
+    width: 60px; height: 7px; background: #f2ae54;
+    border-radius: 12px;
+    margin: 11px auto 13px auto;
+    cursor: pointer;
+    transition: background 0.13s;
+  }
+  .mobile-deck-list {
+    flex: 10;
+    overflow-y: auto;
+    padding: 6px 0 16px 0;
+  }
+  /* Deck positions */
+  .mobile-cards-deck.collapsed { top: 96vh; height: 30vh; }
+  .mobile-cards-deck.half      { top: 50vh; height: 65vh; }
+  .mobile-cards-deck.full      { top: 18vh;   height: 100vh; border-radius: 0; }
+  /* cache le main desktop */
+
+}
+
+
+@media (max-width: 700px) {
+  .maps-main {
+    z-index: 35;
+  }
+
+
+  
+
+
+
+
+
+@media (max-width: 900px) {
+  .header2 {
+    z-index: 30!important;
+  }
+  .maps-main, .property-search-bar {
+  
+  }
+  .property-search-bar {
+    position: sticky;
+    z-index: 29 !important;
+  }
+}
+}
+@media (max-width: 900px) {
+  .header2 .dropdown { display: none !important; }
+  .header2 .mobile-buy-menu { display: flex !important; }
+}
+
+
+
+
+
+
+
+
+
+
+
+.price-suggestions {
+  display: none;
+  position: absolute;
+  background: #fff;
+  border: 1.5px solid #ffb347;
+  border-radius: 13px;
+  margin-top: 3px;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(255,136,0,0.11);
+  max-height: 300px;
+  overflow-y: auto;
+  min-width: 150px;
+  width: calc(100% - 6px);
+}
+.price-suggestions .suggestion {
+  padding: 13px 23px;
+  cursor: pointer;
+  font-size: 1.09rem;
+  color: #444;
+  background: #fff;
+}
+.price-suggestions .suggestion:hover {
+  background: #fff3e6;
+  color: #ff8800;
+}
+.price-inputs-group {
+  position: relative; /* Important : pour positionner la dropdown */
+}
