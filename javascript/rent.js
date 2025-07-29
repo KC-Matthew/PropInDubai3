@@ -275,6 +275,7 @@ function displayProperties(propsArray, page) {
     const imageElements = property.images.map((src, index) =>
       `<img src="${src}" class="${index === 0 ? 'active' : ''}" alt="Property Photo">`
     ).join('');
+
     card.innerHTML = `
       <div class="carousel">
         ${imageElements}
@@ -300,18 +301,38 @@ function displayProperties(propsArray, page) {
         </div>
       </div>
     `;
-    card.style.cursor = "pointer";
-    card.addEventListener("click", () => {
+
+    // Redirection si on clique sur la card (mais pas les flèches)
+    card.addEventListener("click", (e) => {
+      if (e.target.classList.contains('prev') || e.target.classList.contains('next')) return;
       window.location.href = "bien.html";
     });
 
     container.appendChild(card);
-    // Carousel (comme avant)
+
+    // === CAROUSEL LOGIC ===
+    const images = card.querySelectorAll(".carousel img");
+    let currentIndex = 0;
+
+    card.querySelector(".prev").addEventListener("click", (e) => {
+      e.stopPropagation(); // empêche redirection
+      images[currentIndex].classList.remove("active");
+      currentIndex = (currentIndex - 1 + images.length) % images.length;
+      images[currentIndex].classList.add("active");
+    });
+
+    card.querySelector(".next").addEventListener("click", (e) => {
+      e.stopPropagation(); // empêche redirection
+      images[currentIndex].classList.remove("active");
+      currentIndex = (currentIndex + 1) % images.length;
+      images[currentIndex].classList.add("active");
+    });
   });
 
   displayPropertyTypesSummary(propsArray, propertyTypeSelect.value);
   updatePagination(pages, page, propsArray);
 }
+
 
 function updatePagination(pages, page, propsArray) {
   const paginationDiv = document.getElementById("pagination");
@@ -586,3 +607,46 @@ function drawPriceHistogram(propsArray, min, max, [sliderMin, sliderMax]=[min,ma
     // NO MORE preventDefault on dropdown-option!
     // Les liens <a> du menu déroulant ouvrent bien la page maintenant
   });
+
+
+
+
+
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const search = urlParams.get('search')?.toLowerCase();
+  const type = urlParams.get('type')?.toLowerCase();
+  const beds = urlParams.get('beds')?.toLowerCase();
+
+  const filtered = properties.filter(p => {
+    const matchSearch = !search || p.location.toLowerCase().includes(search);
+    const matchType = !type || p.type.toLowerCase() === type;
+    const matchBeds = !beds || p.beds.toLowerCase().includes(beds);
+    return matchSearch && matchType && matchBeds;
+  });
+
+  const resultsContainer = document.getElementById('results');
+  if (!resultsContainer) return;
+
+  if (filtered.length === 0) {
+    resultsContainer.innerHTML = "<p>No properties found.</p>";
+    return;
+  }
+
+  resultsContainer.innerHTML = filtered.map(p => `
+    <div class="property-card">
+      <h3>${p.title}</h3>
+      <p><strong>Location:</strong> ${p.location}</p>
+      <p><strong>Type:</strong> ${p.type}</p>
+      <p><strong>Beds:</strong> ${p.beds}</p>
+    </div>
+  `).join('');
+});
+
+
+
+
+
+
+
+  
