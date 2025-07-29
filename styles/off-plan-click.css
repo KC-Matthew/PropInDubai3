@@ -955,3 +955,37 @@ th {
   }
 }
 
+/* Cacher les points en desktop, afficher seulement sur mobile (< 700px) */
+.carousel-indicators {
+  display: none;
+}
+@media (max-width: 700px) {
+  .carousel-indicators {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    left: 0;
+    right: 0;
+    bottom: 14px;
+    z-index: 11;
+    pointer-events: auto;
+    position: absolute;
+  }
+  .carousel-indicator-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    border: 2px solid #ff9100;
+    opacity: 0.7;
+    transition: background 0.15s, opacity 0.15s;
+    cursor: pointer;
+  }
+  .carousel-indicator-dot.active {
+    background: #ff9100;
+    opacity: 1;
+    border-color: #fff;
+  }
+}
