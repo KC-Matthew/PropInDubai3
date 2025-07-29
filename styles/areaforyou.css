@@ -364,6 +364,7 @@ html, body {
   margin-top: 0;
   padding: 0 36px 10px 36px;
   background: #fff;
+  margin-bottom: 15px;
 }
 .chat-pick-btn-v2 {
   background: #ff9100;
@@ -945,4 +946,3 @@ html, body {
     display: none !important;
   }
 }
-
