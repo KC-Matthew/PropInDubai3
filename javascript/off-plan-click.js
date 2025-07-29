@@ -81,32 +81,46 @@ data.otherProjects.forEach(p => {
   devList.appendChild(li);
 });
 
-// ----------- Carousel, Lightbox et SWIPE ------------
+// ----------- Carousel principal avec points et swipe ------------
 
 let currentImageIndex = 0;
 const mainImage = document.getElementById('mainImage');
 const mainProjectImage = document.getElementById('mainProjectImage');
+const carouselIndicators = document.getElementById('carousel-indicators');
 const lightbox = document.getElementById('lightbox');
 const lightboxImg = document.getElementById('lightbox-img');
 
 function updateImage() {
   mainProjectImage.src = data.images[currentImageIndex];
-  lightboxImg.src = data.images[currentImageIndex];
+  document.getElementById('photoCount').textContent = data.images.length;
+  updateIndicators();
 }
 
-// Flèches du carousel
-document.getElementById('prevImage').onclick = (e) => {
-  e.stopPropagation();
+function updateIndicators() {
+  // Les points s'affichent uniquement sur mobile (mais ils sont générés tout le temps, CSS gère l'affichage)
+  carouselIndicators.innerHTML = '';
+  for (let i = 0; i < data.images.length; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'carousel-indicator-dot' + (i === currentImageIndex ? ' active' : '');
+    dot.addEventListener('click', (e) => {
+      e.stopPropagation();
+      currentImageIndex = i;
+      updateImage();
+    });
+    carouselIndicators.appendChild(dot);
+  }
+}
+
+function goToPrev() {
   currentImageIndex = (currentImageIndex - 1 + data.images.length) % data.images.length;
   updateImage();
-};
-document.getElementById('nextImage').onclick = (e) => {
-  e.stopPropagation();
+}
+function goToNext() {
   currentImageIndex = (currentImageIndex + 1) % data.images.length;
   updateImage();
-};
+}
 
-// Slide au doigt sur le carousel principal
+// --- Swipe au doigt sur le carousel principal ---
 let touchStartX = 0;
 let touchEndX = 0;
 mainImage.addEventListener('touchstart', function(e) {
@@ -120,24 +134,22 @@ mainImage.addEventListener('touchend', function(e) {
   if (touchStartX && touchEndX) {
     const deltaX = touchEndX - touchStartX;
     if (deltaX > minDistance) {
-      currentImageIndex = (currentImageIndex - 1 + data.images.length) % data.images.length;
-      updateImage();
+      goToPrev();
     } else if (deltaX < -minDistance) {
-      currentImageIndex = (currentImageIndex + 1) % data.images.length;
-      updateImage();
+      goToNext();
     }
   }
   touchStartX = 0;
   touchEndX = 0;
 });
 
-// Ouvre la lightbox
-mainImage.onclick = (event) => {
+// Ouvre la lightbox au clic sur l’image principale
+mainProjectImage.onclick = (event) => {
   lightbox.style.display = 'flex';
-  updateImage();
+  lightboxImg.src = data.images[currentImageIndex];
 };
 
-// --- SWIPE dans la lightbox --- //
+// --- SWIPE dans la lightbox (toujours flèches dans la lightbox) ---
 let lightboxTouchStartX = 0;
 let lightboxTouchEndX = 0;
 lightboxImg.addEventListener('touchstart', function(e) {
@@ -151,11 +163,11 @@ lightboxImg.addEventListener('touchend', function(e) {
   if (lightboxTouchStartX && lightboxTouchEndX) {
     const deltaX = lightboxTouchEndX - lightboxTouchStartX;
     if (deltaX > minDistance) {
-      currentImageIndex = (currentImageIndex - 1 + data.images.length) % data.images.length;
-      updateImage();
+      goToPrev();
+      lightboxImg.src = data.images[currentImageIndex];
     } else if (deltaX < -minDistance) {
-      currentImageIndex = (currentImageIndex + 1) % data.images.length;
-      updateImage();
+      goToNext();
+      lightboxImg.src = data.images[currentImageIndex];
     }
   }
   lightboxTouchStartX = 0;
@@ -166,70 +178,25 @@ document.getElementById('lightboxOverlay').onclick = () => {
   lightbox.style.display = 'none';
 };
 document.getElementById('lightbox-prev').onclick = () => {
-  currentImageIndex = (currentImageIndex - 1 + data.images.length) % data.images.length;
-  updateImage();
+  goToPrev();
+  lightboxImg.src = data.images[currentImageIndex];
 };
 document.getElementById('lightbox-next').onclick = () => {
-  currentImageIndex = (currentImageIndex + 1) % data.images.length;
-  updateImage();
+  goToNext();
+  lightboxImg.src = data.images[currentImageIndex];
 };
 
-// --------- Cartes recommandées --------
-const recommendedProjects = [
-  {
-    image: "styles/select.jpg",
-    units: [
-      { price: "AED 1,200,000" },
-      { price: "AED 1,350,000" },
-      { price: "AED 1,550,000" }
-    ],
-    beds: 1,
-    baths: 1,
-    size: "857 sqft",
-    location: "The Roof Residence, Nad Al Sheba Gardens",
-    agency: "fäm Properties - Branch 23"
-  },
-  {
-    image: "styles/appart1.jpg",
-    units: [
-      { price: "AED 1,733,421" },
-      { price: "AED 1,800,000" }
-    ],
-    beds: 1,
-    baths: 1,
-    size: "870 sqft",
-    location: "340 Riverside Crescent, Riverside Crescent",
-    agency: "The Noble Club Real Estate"
-  },
-  {
-    image: "styles/select.jpg",
-    units: [
-      { price: "AED 2,017,000" },
-      { price: "AED 2,200,000" }
-    ],
-    beds: 2,
-    baths: 2,
-    size: "1230 sqft",
-    location: "Palm Gate, Palm Jumeirah",
-    agency: "Dream Homes Dubai"
-  },
-  {
-    image: "styles/select.jpg",
-    units: [
-      { price: "AED 995,000" },
-      { price: "AED 1,050,000" }
-    ],
-    beds: 1,
-    baths: 1,
-    size: "690 sqft",
-    location: "Waves Tower, Sobha Hartland",
-    agency: "Al Habtoor Real Estate"
-  }
-];
+// Init
+updateImage();
 
+// --------- Cartes recommandées --------
 function extractNumeric(priceStr) {
   return Number(priceStr.replace(/[^\d]/g, ""));
 }
+
+const recommendedProjects = [
+  // ... (pas modifié, laisse comme tu avais)
+];
 
 const recommendedList = document.getElementById("recommendedList");
 recommendedList.innerHTML = "";
@@ -262,6 +229,8 @@ recommendedProjects.forEach((project, idx) => {
   };
   recommendedList.appendChild(card);
 });
+
+// (Garde ton code du menu burger/dropdown inchangé)
 
 
 
@@ -296,4 +265,3 @@ document.addEventListener('DOMContentLoaded', function() {
   // NO MORE preventDefault on dropdown-option!
   // Les liens <a> du menu déroulant ouvrent bien la page maintenant
 });
-
