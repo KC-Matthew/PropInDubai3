@@ -1,3 +1,4 @@
+// ====== DATA ======
 const propertyData = {
   price: "AED 135,000 /year",
   bedrooms: 2,
@@ -26,7 +27,12 @@ const agentData = {
 
 let currentIndex = 0;
 
-// ----------- CARROUSEL PRINCIPAL -----------
+// ========== UTILS ==========
+function isMobile() {
+  return window.matchMedia("(max-width: 700px)").matches;
+}
+
+// ========== CAROUSEL PRINCIPAL ==========
 
 function updateMainCarousel() {
   const mainImage = document.getElementById('main-image');
@@ -53,6 +59,25 @@ function updateMainCarousel() {
       countOverlay.innerHTML = '';
     }
   }
+
+  // Met à jour les points indicateurs
+  updateCarouselIndicators();
+}
+
+function updateCarouselIndicators() {
+  const indicators = document.getElementById('carousel-indicators');
+  if (!indicators) return;
+  indicators.innerHTML = '';
+  for (let i = 0; i < propertyData.images.length; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'carousel-indicator-dot' + (i === currentIndex ? ' active' : '');
+    dot.addEventListener('click', (e) => {
+      e.stopPropagation();
+      currentIndex = i;
+      updateMainCarousel();
+    });
+    indicators.appendChild(dot);
+  }
 }
 
 function openLightbox(index) {
@@ -61,6 +86,7 @@ function openLightbox(index) {
 
   let current = index;
 
+  // Crée la lightbox
   const lightbox = document.createElement('div');
   lightbox.id = 'lightbox-bien';
   lightbox.style.cssText = `
@@ -70,13 +96,14 @@ function openLightbox(index) {
     display:flex; align-items:center; justify-content:center;
   `;
 
+  // Image affichée
   const img = document.createElement('img');
   img.src = propertyData.images[current];
   img.style.cssText = `
     max-width:90vw; max-height:90vh; border-radius:12px; box-shadow:0 0 40px #0008;
     display:block; margin:auto;
     background:white;
-    touch-action: pan-y; /* important pour mobile */
+    touch-action: pan-y;
   `;
   lightbox.appendChild(img);
 
@@ -91,7 +118,7 @@ function openLightbox(index) {
   prevBtn.onclick = (e) => {
     e.stopPropagation();
     current = (current - 1 + propertyData.images.length) % propertyData.images.length;
-    img.src = propertyData.images[current];
+    updateLightboxImage();
   };
   lightbox.appendChild(prevBtn);
 
@@ -105,14 +132,38 @@ function openLightbox(index) {
   nextBtn.onclick = (e) => {
     e.stopPropagation();
     current = (current + 1) % propertyData.images.length;
-    img.src = propertyData.images[current];
+    updateLightboxImage();
   };
   lightbox.appendChild(nextBtn);
 
-  // Swipe mobile
+  // ---- LES POINTS INDICATEURS DANS LA LIGHTBOX ----
+  const indicators = document.createElement('div');
+  indicators.className = 'lightbox-indicators';
+  lightbox.appendChild(indicators);
+
+  function renderIndicators() {
+    indicators.innerHTML = '';
+    for (let i = 0; i < propertyData.images.length; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'lightbox-indicator-dot' + (i === current ? ' active' : '');
+      dot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        current = i;
+        updateLightboxImage();
+      });
+      indicators.appendChild(dot);
+    }
+  }
+
+  // ---- Fonction MAJ de l'image ET des points ----
+  function updateLightboxImage() {
+    img.src = propertyData.images[current];
+    renderIndicators();
+  }
+
+  // ---- Swipe tactile ----
   let touchStartX = 0;
   let touchEndX = 0;
-
   img.addEventListener('touchstart', (e) => {
     if (e.touches.length === 1) {
       touchStartX = e.touches[0].clientX;
@@ -123,24 +174,32 @@ function openLightbox(index) {
     const deltaX = touchEndX - touchStartX;
     if (Math.abs(deltaX) > 50) {
       if (deltaX < 0) {
-        // swipe gauche : next
         current = (current + 1) % propertyData.images.length;
-        img.src = propertyData.images[current];
+        updateLightboxImage();
       } else {
-        // swipe droite : prev
         current = (current - 1 + propertyData.images.length) % propertyData.images.length;
-        img.src = propertyData.images[current];
+        updateLightboxImage();
       }
     }
   });
 
+  // ---- Fermeture ----
   lightbox.onclick = () => { document.body.removeChild(lightbox); };
 
   document.body.appendChild(lightbox);
+
+  // ---- INIT image et points ----
+  renderIndicators();
 }
 
-
+// -------- Flèches du main carrousel : desktop only --------
 function createMainArrows() {
+  // Si mobile : on retire les flèches si elles existent, et on ne fait rien d'autre
+  if (isMobile()) {
+    const existing = document.getElementById('main-arrows-bien');
+    if (existing) existing.remove();
+    return;
+  }
   let arrowsDiv = document.getElementById('main-arrows-bien');
   if (arrowsDiv) arrowsDiv.remove();
   arrowsDiv = document.createElement('div');
@@ -192,8 +251,7 @@ function setupCarouselEvents() {
   };
 }
 
-// ----------- INFOS, AGENT, DETAILS -----------
-
+// ========== AGENT INFOS ==========
 function renderAgentInfo() {
   const container = document.getElementById('agent-contact-card-container');
   container.innerHTML = `
@@ -213,7 +271,7 @@ function renderAgentInfo() {
   `;
 }
 
-// --------- SIMILAR PROPERTIES ----------
+// ========== SIMILAIRES ==========
 const similarProperties = [
   {
     id: 1,
@@ -299,7 +357,7 @@ function createSimilarPropertyCard(property) {
   return card;
 }
 
-// ----------- MOBILE SWIPE (main image) -----------
+// ========== SWIPE MOBILE PRINCIPAL ==========
 function setupMobileSwipeOnMainImage() {
   const mainImage = document.getElementById('main-image');
   let startX = 0, isTouch = false;
@@ -326,7 +384,8 @@ function setupMobileSwipeOnMainImage() {
   });
 }
 
-// ----------- INITIALISATION TOTALE -----------
+// ========== INIT ==========
+
 window.onload = () => {
   // Images, carrousel, swipe, flèches
   updateMainCarousel();
@@ -377,6 +436,12 @@ window.onload = () => {
   }
 };
 
+// Met à jour les flèches si resize !
+window.addEventListener('resize', () => {
+  createMainArrows();
+});
+
+// ===== BURGER MENU MOBILE =====
 document.addEventListener('DOMContentLoaded', function () {
   const burger = document.getElementById('burgerMenu');
   const nav = document.querySelector('.all-button');
@@ -408,25 +473,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// ===== DROPDOWN DESKTOP =====
 document.addEventListener('DOMContentLoaded', function() {
   const buyDropdown = document.getElementById('buyDropdown');
   const mainBuyBtn = document.getElementById('mainBuyBtn');
@@ -443,7 +490,4 @@ document.addEventListener('DOMContentLoaded', function() {
       buyDropdown.classList.remove('open');
     }
   });
-
-  // NO MORE preventDefault on dropdown-option!
-  // Les liens <a> du menu déroulant ouvrent bien la page maintenant
 });
