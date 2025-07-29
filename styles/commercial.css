@@ -167,7 +167,7 @@
 
 .filter-bar {
   position: sticky;
-  top: 61px; /* ou 0 selon ton header */
+  top: 60.5px; /* ou 0 selon ton header */
   z-index: 1;
   width: 100%;
   background: #fff;
@@ -178,6 +178,7 @@
   min-width: 0;
   box-sizing: border-box;
   height: 93px;
+  z-index: 4  ;
   
 
 }
@@ -454,6 +455,7 @@ body, html, .filter-bar {
   margin: 0 auto;
   justify-content: center;   /* Ou flex-start si tu veux à gauche */
   align-items: center;
+  z-index: 3;
 }
 
 
@@ -656,7 +658,7 @@ body, html, .filter-bar {
   padding: 7px 13px;
   cursor: pointer;
   transition: background 0.12s;
-  z-index: 2;
+  z-index: 1;
 }
 .carousel-btn:hover {
   background: #cfc6fa;
@@ -2032,17 +2034,6 @@ body.price-popup-open { overflow: hidden; }
   display: flex;
   align-items: center;
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 
