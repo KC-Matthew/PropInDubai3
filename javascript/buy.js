@@ -1,5 +1,4 @@
 // === REAL ESTATE - JS BUY (APPARTEMENTS, VILLAS...) ===
-// (c) Prop In Dubai - Version filtrage 100% natif, adaptée au HTML fourni
 
 function fmt(n) { return Number(n).toLocaleString('en-US'); }
 
@@ -10,7 +9,7 @@ let minPrice = 0, maxPrice = 0;
 let globalMinPrice = 0, globalMaxPrice = 0;
 const PRICE_STEP = 10000;
 
-// --- DUMMY DATA : APARTMENTS & VILLAS AVEC DIVERS EMPLACEMENTS ---
+// --- DUMMY DATA : APARTMENTS & VILLAS ---
 function getDummyProperties() {
   const locations = [
     "JLT", "Jumeirah Village Circle", "Downtown Dubai", "Palm Jumeirah",
@@ -42,13 +41,9 @@ function getDummyProperties() {
   return arr;
 }
 
-
-
-
 // === BURGER MENU MOBILE (header2) ===
 const burger = document.getElementById('burgerMenu');
 let mobileMenu = null;
-
 function closeMobileMenu() {
   if (mobileMenu && document.body.contains(mobileMenu)) {
     mobileMenu.remove();
@@ -56,16 +51,13 @@ function closeMobileMenu() {
     document.body.style.overflow = '';
   }
 }
-
 if (burger) {
   burger.addEventListener('click', function (e) {
     e.stopPropagation();
-    // Si déjà ouvert => on ferme
     if (mobileMenu && document.body.contains(mobileMenu)) {
       closeMobileMenu();
       return;
     }
-    // Création du menu mobile à partir des boutons du header
     const allButton = document.querySelector('.all-button');
     mobileMenu = document.createElement('nav');
     mobileMenu.className = 'burger-menu';
@@ -86,8 +78,6 @@ if (burger) {
     });
     document.body.appendChild(mobileMenu);
     document.body.style.overflow = 'hidden';
-
-    // Fermeture en cliquant dehors
     setTimeout(() => {
       document.addEventListener('click', function escBurger(ev) {
         if (mobileMenu && !mobileMenu.contains(ev.target) && ev.target !== burger) {
@@ -96,7 +86,6 @@ if (burger) {
         }
       });
     }, 10);
-    // Fermeture avec Escape
     document.addEventListener('keydown', function escClose(ev) {
       if (ev.key === 'Escape' && mobileMenu && document.body.contains(mobileMenu)) {
         closeMobileMenu();
@@ -105,8 +94,6 @@ if (burger) {
     });
   });
 }
-
-// RESPONSIVE : ferme le burger si on revient sur desktop
 function responsiveHeaderBurger() {
   const isMobile = window.innerWidth < 700;
   if (!isMobile && mobileMenu && document.body.contains(mobileMenu)) {
@@ -115,14 +102,8 @@ function responsiveHeaderBurger() {
 }
 window.addEventListener('resize', responsiveHeaderBurger);
 
-
-
-
-
-
 // DOM READY
 document.addEventListener('DOMContentLoaded', function() {
-  // --- DATA INIT ---
   properties = getDummyProperties();
   filteredProperties = properties.slice();
   const allPrices = properties.map(p => p.price).filter(v => !isNaN(v));
@@ -132,7 +113,6 @@ document.addEventListener('DOMContentLoaded', function() {
   displayProperties(filteredProperties, 1);
   updatePriceSliderAndHistogram(properties);
 
-  // PRINCIPAUX BOUTONS/FILTRES
   document.getElementById("searchBtn")?.addEventListener("click", handleSearchOrFilter);
   document.getElementById("clearBtn")?.addEventListener("click", handleClearFilters);
   document.getElementById("openPriceFilter")?.addEventListener("click", openPricePopup);
@@ -150,7 +130,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   document.getElementById("closePricePopup")?.addEventListener("click", closePricePopup);
 
-  // SUGGESTIONS SEARCH live
   document.getElementById("search")?.addEventListener("input", showSearchSuggestions);
   function showSearchSuggestions(e) {
     const val = e.target.value.trim().toLowerCase();
@@ -197,7 +176,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // FILTERS instantanés
   document.querySelectorAll(
     '.filter-bar input, .filter-bar select, #moreFilterPopup input, #moreFilterPopup select'
   ).forEach(el => {
@@ -219,7 +197,6 @@ document.addEventListener('DOMContentLoaded', function() {
     handleSearchOrFilter();
   });
 
-  // Popup prix
   document.getElementById("priceFilterPopup")?.addEventListener("mousedown", function(e){
     if (e.target === this) closePricePopup();
   });
@@ -227,7 +204,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById("priceFilterPopup")?.classList.contains("active") && e.key === "Escape") closePricePopup();
   });
 
-  // Scroll To Top
   const scrollToTopBtn = document.getElementById("scrollToTopBtn");
   if (scrollToTopBtn) {
     window.addEventListener('scroll', () => {
@@ -278,9 +254,8 @@ function displayProperties(propsArray, page) {
     card.innerHTML = `
       <div class="carousel">
         ${imageElements}
-        <div class="carousel-btn prev">❮</div>
-        <div class="carousel-btn next">❯</div>
         <div class="image-count"><i class="fas fa-camera"></i> ${fmt(property.images.length)}</div>
+        <div class="carousel-dots"></div>
       </div>
       <div class="property-info">
         <h3>${property.title}</h3>
@@ -304,9 +279,48 @@ function displayProperties(propsArray, page) {
     card.addEventListener("click", () => {
       window.location.href = "bien.html";
     });
-
     container.appendChild(card);
-    // Carousel (comme avant)
+
+    // -- Carousel dots et swipe sur chaque card
+    const carousel = card.querySelector('.carousel');
+    const imgs = carousel.querySelectorAll('img');
+    const dotsContainer = carousel.querySelector('.carousel-dots');
+    let curIdx = 0;
+    // Création des dots
+    for (let d = 0; d < imgs.length; d++) {
+      const dot = document.createElement('div');
+      dot.className = 'carousel-dot' + (d === 0 ? ' active' : '');
+      dot.addEventListener('click', e => {
+        e.stopPropagation();
+        imgs[curIdx].classList.remove('active');
+        dotsContainer.children[curIdx].classList.remove('active');
+        curIdx = d;
+        imgs[curIdx].classList.add('active');
+        dotsContainer.children[curIdx].classList.add('active');
+      });
+      dotsContainer.appendChild(dot);
+    }
+    // Swipe mobile
+    let touchStartX = null;
+    carousel.addEventListener('touchstart', function(e) {
+      touchStartX = e.touches[0].clientX;
+    });
+    carousel.addEventListener('touchend', function(e) {
+      if (touchStartX === null) return;
+      const deltaX = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(deltaX) > 35) {
+        imgs[curIdx].classList.remove('active');
+        dotsContainer.children[curIdx].classList.remove('active');
+        if (deltaX < 0) {
+          curIdx = (curIdx + 1) % imgs.length;
+        } else {
+          curIdx = (curIdx - 1 + imgs.length) % imgs.length;
+        }
+        imgs[curIdx].classList.add('active');
+        dotsContainer.children[curIdx].classList.add('active');
+      }
+      touchStartX = null;
+    });
   });
 
   displayPropertyTypesSummary(propsArray, propertyTypeSelect.value);
@@ -338,7 +352,6 @@ function updatePagination(pages, page, propsArray) {
   paginationDiv.appendChild(nextBtn);
 }
 
-// Filtrage et résumé des types
 function displayPropertyTypesSummary(propsArray, filterType) {
   const propertyTypesDiv = document.getElementById("propertyTypesSummary");
   const propertyTypeSelect = document.getElementById("propertyType");
@@ -366,7 +379,6 @@ function displayPropertyTypesSummary(propsArray, filterType) {
   });
 }
 
-// ----- FILTRAGE PRINCIPAL -----
 function handleSearchOrFilter() {
   let arr = properties.slice();
 
@@ -378,83 +390,44 @@ function handleSearchOrFilter() {
   const priceMax = Number(document.getElementById('priceMax').value) || globalMaxPrice;
   const keywordInput = document.getElementById('keywordInput');
   const keywords = keywordInput ? keywordInput.value.trim().toLowerCase().split(',').map(k => k.trim()).filter(Boolean) : [];
-  const minArea = Number(document.getElementById('minAreaInput')?.value) || 0;
-  const maxArea = Number(document.getElementById('maxAreaInput')?.value) || Infinity;
-  const isFurnished = document.getElementById('furnishingFilter')?.checked;
-  const checkedAmenities = Array.from(document.querySelectorAll('.amenities-list input[type="checkbox"]:checked')).map(cb => cb.value);
+  const furnished = document.getElementById('furnished').checked;
 
-  // Filter by amenities
-  if (checkedAmenities.length) {
-    arr = arr.filter(p => (p.amenities || []).length && checkedAmenities.every(a => p.amenities.includes(a)));
-  }
-  // Filter by keywords
-  if (keywords.length > 0) {
-    arr = arr.filter(p => {
-      const allText = [
-        p.title, p.location, (p.description || ''), ...(p.amenities || [])
-      ].join(' ').toLowerCase();
-      return keywords.every(k => allText.includes(k));
-    });
-  }
-  // Search input (location/title)
-  if (search) {
-    arr = arr.filter(p =>
-      p.title.toLowerCase().includes(search) ||
-      p.location.toLowerCase().includes(search)
-    );
-  }
-  // Property Type
-  if (propertyType !== "Property Type") {
-    arr = arr.filter(p => p.title === propertyType);
-  }
-  // Bedrooms
-  if (bedrooms !== "Bedrooms") {
-    const min = parseInt(bedrooms);
-    if (!isNaN(min)) arr = arr.filter(p => p.bedrooms >= min);
-  }
-  // Bathrooms
-  if (bathrooms !== "Bathrooms") {
-    const min = parseInt(bathrooms);
-    if (!isNaN(min)) arr = arr.filter(p => p.bathrooms >= min);
-  }
-  // Surface
-  if (minArea > 0) arr = arr.filter(p => (p.size || 0) >= minArea);
-  if (maxArea < Infinity) arr = arr.filter(p => (p.size || 0) <= maxArea);
-  // Furnished
-  if (isFurnished) arr = arr.filter(p => p.furnished === true);
-  // Price
+  if (search) arr = arr.filter(p => p.location && p.location.toLowerCase().includes(search));
+  if (propertyType && propertyType !== "All") arr = arr.filter(p => p.title === propertyType);
+  if (bedrooms) arr = arr.filter(p => String(p.bedrooms) === bedrooms);
+  if (bathrooms) arr = arr.filter(p => String(p.bathrooms) === bathrooms);
+  if (furnished) arr = arr.filter(p => p.furnished === true);
   arr = arr.filter(p => p.price >= priceMin && p.price <= priceMax);
+  if (keywords.length) {
+    arr = arr.filter(p => keywords.some(k =>
+      (p.description && p.description.toLowerCase().includes(k)) ||
+      (p.amenities && p.amenities.some(a => a.toLowerCase().includes(k)))
+    ));
+  }
 
-  filteredProperties = arr;
+  filteredProperties = arr.slice();
   displayProperties(filteredProperties, 1);
-  updatePriceSliderAndHistogram(properties); // Histogramme global
+  updatePriceSliderAndHistogram(filteredProperties);
 }
-
 function handleClearFilters() {
-  document.querySelectorAll(".filter-bar input, .filter-bar select").forEach(el => {
-    if (el.tagName === "SELECT") el.selectedIndex = 0;
-    else el.value = "";
-  });
-  document.querySelectorAll("#moreFilterPopup input[type='text']").forEach(input => input.value = "");
-  document.querySelectorAll("#moreFilterPopup input[type='checkbox']").forEach(cb => {
-    cb.checked = false;
-    cb.dispatchEvent(new Event('change', { bubbles: true }));
-  });
+  document.getElementById("search").value = "";
+  document.getElementById("propertyType").value = "All";
+  document.getElementById("bedrooms").value = "";
+  document.getElementById("bathrooms").value = "";
   document.getElementById("priceMin").value = globalMinPrice;
   document.getElementById("priceMax").value = globalMaxPrice;
+  document.getElementById("selectedPriceRange").textContent = fmt(globalMinPrice) + " - " + fmt(globalMaxPrice) + " AED";
+  if (document.getElementById('keywordInput')) document.getElementById('keywordInput').value = "";
+  if (document.getElementById('furnished')) document.getElementById('furnished').checked = false;
   handleSearchOrFilter();
-  document.getElementById("priceFilterPopup")?.classList.remove("active");
-  document.getElementById("moreFilterPopup")?.classList.remove("active");
-  document.body.classList.remove("price-popup-open");
-  document.body.style.overflow = "";
-  setTimeout(() => {
-    document.querySelectorAll("#moreFilterPopup input[type='checkbox']").forEach(cb => {
-      cb.checked = false;
-      cb.dispatchEvent(new Event('input', { bubbles: true }));
-      cb.dispatchEvent(new Event('change', { bubbles: true }));
-    });
-  }, 10);
 }
+
+// --------- SLIDER / HISTOGRAMME PRIX ---------
+function updatePriceSliderAndHistogram(arr) {
+  // ... Ton code pour gérer le slider et histogramme, inchangé
+}
+
+
 
 // Slider
 function updatePriceSliderAndHistogram(propsArray) {
