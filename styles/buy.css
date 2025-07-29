@@ -1995,4 +1995,32 @@ body.price-popup-open { overflow: hidden; }
 }
 
 
+.carousel-dots {
+  display: flex;
+  justify-content: center; /* ou flex-end pour les mettre à droite */
+  align-items: center;
+  gap: 8px;
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 13px;
+  z-index: 2;
+  pointer-events: none;
+}
+.carousel-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.85;
+  border: 1.5px solid #eee;
+  transition: 0.22s;
+  pointer-events: auto;
+}
+.carousel-dot.active {
+  background: #fff;
+  opacity: 1;
+  border-color: #6b42a0;
+  box-shadow: 0 0 0 2px #6b42a033;
+}
+
 
