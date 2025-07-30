@@ -989,3 +989,28 @@ th {
     border-color: #fff;
   }
 }
+
+/* --- Lightbox: Images TOUTES la même taille, recadrage si besoin --- */
+.lightbox-content img#lightbox-img {
+  width: 75vw !important;
+  max-width: 980px !important;
+  height: 64vh !important;
+  max-height: 80vh !important;
+  object-fit: cover !important;
+  background: #fff !important;
+  display: block !important;
+  margin: 0 auto !important;
+  border-radius: 18px !important;
+  box-shadow: 0 0 40px #0008 !important;
+}
+
+@media (max-width: 900px) {
+  .lightbox-content img#lightbox-img {
+    width: 98vw !important;
+    max-width: 99vw !important;
+    height: 44vh !important;
+    max-height: 66vh !important;
+    border-radius: 0 !important;
+  }
+}
+
