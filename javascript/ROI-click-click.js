@@ -118,12 +118,19 @@ function openLightboxCarousel(startIndex) {
 
   const img = document.createElement('img');
   img.src = propertyData.images[index];
+  img.classList.add('lightbox-img');
   img.style.cssText = `
-    max-width: 92vw;
-    max-height: 85vh;
-    border-radius: 15px;
-    box-shadow: 0 6px 36px rgba(0,0,0,0.38);
+    width: 45vw;
+    height: auto;
+    max-width: 95vw;
+    max-height: 88vh;
+    object-fit: contain;
+    border-radius: 16px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
     display: block;
+    margin: 0 auto;
+    transition: all 0.3s ease-in-out;
+    background: #fff;
   `;
 
   // === SWIPE MOBILE LOGIC ===
