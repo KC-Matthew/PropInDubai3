@@ -1501,7 +1501,7 @@ html, body {
 
 
 
-  /* Suggestions : affichage complet du texte, gestion ellipse si trop long */
+  /* Suggestions : affichage complet du texte, gestion ellipse si trop long */
   .suggestion,
   #searchSuggestions .suggestion,
   .autocomplete-suggestions .suggestion {
@@ -2118,9 +2118,10 @@ body.menu-open .all-button {
     border-top: 1.5px solid #ececec;
     display: none; /* sera activé par JS burger */
   }
-  .all-button.menu-open {
-    display: flex;
-  }
+  .all-button.mobile-open {
+  display: flex;
+}
+
   .header-btn,
   .all-button > a {
     display: block;
@@ -2188,5 +2189,4 @@ body.menu-open .all-button {
     display: none !important;
   }
 }
-
 
