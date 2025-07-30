@@ -1083,3 +1083,26 @@ html, body {
   }
 }
 
+/* === LIGHTBOX IMAGE: uniformes partout === */
+#lightbox-bien img {
+  width: 80vw !important;     /* Ajuste selon ta préférence */
+  max-width: 1000px !important;
+  height: 65vh !important;    /* Ajuste selon ta préférence */
+  max-height: 80vh !important;
+  object-fit: cover !important;
+  background: #fff;
+  display: block;
+  margin: auto;
+  border-radius: 14px;
+  box-shadow: 0 0 40px #0008;
+}
+@media (max-width: 700px) {
+  #lightbox-bien img {
+    width: 98vw !important;
+    max-width: 98vw !important;
+    height: 42vh !important;
+    max-height: 55vh !important;
+    border-radius: 0 !important;
+  }
+}
+
