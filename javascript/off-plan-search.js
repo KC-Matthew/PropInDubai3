@@ -922,8 +922,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-
-
 (function() {
   // Fonction pour gérer le scroll
   var lastScrollY = window.scrollY;
@@ -995,25 +993,34 @@ document.querySelector('.delivery-date-options').addEventListener('click', funct
 
 
 
+document.addEventListener('DOMContentLoaded', function () {
+  const burger = document.getElementById('burgerMenu');
+  const allButtons = document.querySelector('.all-button');
+  const mobileBuyMenu = document.querySelector('.mobile-buy-menu');
 
-document.addEventListener('DOMContentLoaded', function() {
-  const buyDropdown = document.getElementById('buyDropdown');
-  const mainBuyBtn = document.getElementById('mainBuyBtn');
+  burger?.addEventListener('click', () => {
+    const isOpen = allButtons.classList.toggle('mobile-open');
 
-  // Ouvre/Ferme le menu au clic
-  mainBuyBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    buyDropdown.classList.toggle('open');
+    // Activer / désactiver aussi le menu déroulant si nécessaire
+    if (mobileBuyMenu) {
+      mobileBuyMenu.style.display = isOpen ? 'block' : 'none';
+    }
+
+    // Désactiver le scroll quand le menu est ouvert
+    document.body.style.overflow = isOpen ? 'hidden' : '';
   });
 
-  // Ferme le menu si clic en dehors
-  document.addEventListener('click', function(e) {
-    if (!buyDropdown.contains(e.target)) {
-      buyDropdown.classList.remove('open');
+  // Fermer si clic en dehors
+  document.addEventListener('click', (e) => {
+    const target = e.target;
+    if (
+      !burger.contains(target) &&
+      !allButtons.contains(target) &&
+      !mobileBuyMenu.contains(target)
+    ) {
+      allButtons.classList.remove('mobile-open');
+      if (mobileBuyMenu) mobileBuyMenu.style.display = 'none';
+      document.body.style.overflow = '';
     }
   });
-
-  // NO MORE preventDefault on dropdown-option!
-  // Les liens <a> du menu déroulant ouvrent bien la page maintenant
 });
-
