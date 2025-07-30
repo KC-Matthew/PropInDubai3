@@ -587,3 +587,24 @@ html, body {
   .side-thumbs { display: none !important; }
 }
 
+.lightbox-img {
+  width: 45vw;
+  height: auto;
+  max-width: 98vw;
+  max-height: 95vh;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+  border-radius: 10px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+  transition: all 0.3s ease-in-out;
+}
+
+@media (max-width: 900px) {
+  .lightbox-img {
+    width: 90vw;
+    max-width: 95vw;
+    max-height: 88vh;
+    border-radius: 16px;
+  }
+}
