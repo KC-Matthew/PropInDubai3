@@ -4,6 +4,7 @@ body { font-family: 'Inter', Arial, sans-serif; }
   font-weight: 700;
 }
 
+
 .form-title {
   font-size: 2.1rem;
   font-weight: 800;
@@ -122,58 +123,15 @@ body { font-family: 'Inter', Arial, sans-serif; }
   padding: 40px 40px 40px;
   background-color: rgb(255, 255, 255);
   color: rgb(14, 14, 14);
+  font-family: Arial, sans-serif;
+  background: url('/styles/roi.png');
   background-size: cover;
   width: auto;
-  height: auto;
+  height: 600px;
   border-radius: 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: relative;
-  overflow: hidden;
-}
-
-/* ----- AJOUT : plein écran desktop, sans arrondi ----- */
-@media (min-width: 900px) {
-  .window {
-    margin-left: 0 !important;
-    width: 100vw !important;
-    border-radius: 0 !important;
-  }
-  .bg-img-html {
-    width: 100vw !important;
-    left: 0;
-    border-radius: 0 !important;
-  }
-}
-/* ----- FIN AJOUT ----- */
-
-.bg-img-html {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-  border-radius: 80px;
-  pointer-events: none; /* Pour laisser cliquer à travers sur le formulaire */
-  user-select: none;
-}
-
-.window > *:not(.bg-img-html) {
-  position: relative;
-  z-index: 1;
-}
-
-@media (max-width: 900px) {
-  .bg-img-html {
-    border-radius: 28px;
-  }
-}
-@media (max-width: 550px) {
-  .bg-img-html {
-    border-radius: 0;
-  }
 }
 
 .ensemble-top {
@@ -198,6 +156,7 @@ body { font-family: 'Inter', Arial, sans-serif; }
 }
 
 .deco-text {
+  
   backdrop-filter: blur(12px) saturate(120%);
   -webkit-backdrop-filter: blur(30px) saturate(160%);
   border-radius: 18px;
@@ -240,6 +199,8 @@ body { font-family: 'Inter', Arial, sans-serif; }
   box-shadow: 0 2px 9px rgba(0,0,0,0.03);
 }
 
+
+
 .roi-form input:focus {
   border: 2px solid #ff9f00;
   box-shadow: 0 2px 12px #ffeabf;
@@ -278,6 +239,7 @@ body { font-family: 'Inter', Arial, sans-serif; }
   }
 }
 
+
 .roi-table {
   margin: 40px auto 20px auto;
   margin-bottom: 20px;
@@ -310,7 +272,7 @@ body { font-family: 'Inter', Arial, sans-serif; }
 }
 
 #roi-table th {
-  background-color: rgb(245, 139, 1);
+  background-color: #b9b9b9;
   color: #fff;
 }
 
@@ -327,144 +289,11 @@ body { font-family: 'Inter', Arial, sans-serif; }
   background-color: #2a3f5f;
 }
 
-/* RESET de base */
-.header2, .all-button, .profil-block {
-  box-sizing: border-box;
-}
 
-.header2 {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 60px;
-  background: #fff;
-  border-bottom: 1.5px solid #ececec;
-  position: sticky;
-  top: 0;
-  z-index: 99;
-  padding: 0 28px;
-}
 
-/* Logo & Burger */
-.logo {
-  height: 38px;
-  display: block;
-}
 
-.burger {
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  gap: 5px;
-  margin-right: 16px;
-  cursor: pointer;
-}
-.burger span {
-  display: block;
-  width: 27px;
-  height: 3px;
-  background: #ff6600;
-  border-radius: 2px;
-  transition: 0.25s;
-}
 
-/* Nav */
-.all-button {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  flex: 1 1 auto;
-  justify-content: center;
-  min-width: 0;
-}
 
-.header-btn {
-  font-family: 'Montserrat', Arial, sans-serif;
-  font-weight: 600;
-  font-size: 1.08rem;
-  color: #474747;
-  background: none;
-  border: none;
-  padding: 10px 19px;
-  border-radius: 7px;
-  margin: 0;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background 0.15s, color 0.15s, box-shadow 0.2s;
-  display: inline-block;
-  white-space: nowrap;
-}
-
-.header-btn:hover,
-.header-btn.active {
-  background: #faf7f3;
-  color: #ff6600;
-  box-shadow: 0 1px 4px 0 rgba(255, 102, 0, 0.09);
-}
-
-/* Dropdown - Desktop Only */
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.buy-button {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
-}
-.arrow {
-  font-size: 0.8em;
-  transition: transform 0.2s;
-}
-.dropdown.open .arrow {
-  transform: rotate(180deg);
-}
-.dropdown-content {
-  display: none;
-  position: absolute;
-  left: 0;
-  top: 112%;
-  min-width: 170px;
-  background: #fff;
-  box-shadow: 0 8px 32px 0 rgba(31,31,35,0.10);
-  border-radius: 10px;
-  z-index: 12;
-  padding: 7px 0;
-  animation: fadeIn 0.17s;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px);}
-  to { opacity: 1; transform: translateY(0);}
-}
-.dropdown.open .dropdown-content {
-  display: block;
-}
-.dropdown-option {
-  padding: 13px 20px 13px 24px;
-  display: block;
-  font-weight: 600;
-  color: #ff6600;
-  background: none;
-  border: none;
-  font-size: 1.03rem;
-  text-align: left;
-  border-radius: 6px;
-  transition: background 0.12s, color 0.12s;
-  cursor: pointer;
-  text-decoration: none;
-}
-.dropdown-option:hover {
-  background: #ff6600;
-  color: #fff;
-}
-
-/* Profil */
-.profil-block {
-  margin-left: 16px;
-}
 
 /* Responsive : MOBILE (<900px) */
 @media (max-width: 900px) {
@@ -503,9 +332,10 @@ body { font-family: 'Inter', Arial, sans-serif; }
     border-top: 1.5px solid #ececec;
     display: none; /* sera activé par JS burger */
   }
-  .all-button.menu-open {
-    display: flex;
-  }
+  .all-button.mobile-open {
+  display: flex;
+}
+
   .header-btn,
   .all-button > a {
     display: block;
@@ -571,142 +401,6 @@ body { font-family: 'Inter', Arial, sans-serif; }
 @media (min-width: 901px) {
   .mobile-buy-menu {
     display: none !important;
-  }
-}
-
-@media (max-width: 900px) {
-  body {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-    overflow-x: hidden !important;
-  }
-  .window {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100vw !important;
-    min-height: calc(100vh - 52px); /* header mobile */
-    border-radius: 0 !important;
-  }
-  .bg-img-html {
-    border-radius: 0 !important;
-    width: 100vw !important;
-    height: 100%;
-    left: 0;
-    top: 0;
-  }
-}
-
-
-@media (max-width: 900px) {
-  .roi-table {
-    padding: 8px 0 !important;
-    background: #fff;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    max-width: 100vw !important;
-    border: none !important;
-  }
-  #roi-table thead {
-    display: none !important;
-  }
-  #roi-table, #roi-table tbody, #roi-table tr {
-    display: block !important;
-    width: 100% !important;
-  }
-  #roi-table tr {
-    margin-bottom: 19px;
-    padding: 18px 12px 12px 15px;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 14px rgba(255,153,0,0.08);
-    border: 1.2px solid #ffbe40;
-    position: relative;
-  }
-  #roi-table td {
-    display: flex !important;
-    align-items: center;
-    justify-content: flex-start;
-    border: none !important;
-    padding: 6px 0 !important;
-    font-size: 1.09em !important;
-    text-align: left !important;
-    width: 100%;
-    white-space: normal !important;
-  }
-  #roi-table td:not(:last-child) {
-    margin-bottom: 0.11em;
-  }
-  #roi-table td strong {
-    font-size: 1.14em;
-    margin-right: 5px;
-  }
-  .view-btn {
-    margin-left: auto;
-    min-width: 112px;
-    font-size: 1em;
-    margin-top: 8px;
-    align-self: flex-end;
-  }
-}
-
-@media (max-width: 900px) {
-  .roi-table-title {
-    font-size: 1.25em !important;
-    padding: 0 10px !important;
-    line-height: 1.3 !important;
-  }
-}
-
-@media (max-width: 900px) {
-  .roi-table {
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-    box-sizing: border-box !important;
-    border-radius: 0 !important;
-    border: none !important;
-    background: #fff;
-    box-shadow: none !important;
-  }
-  #roi-table,
-  #roi-table tbody,
-  #roi-table tr {
-    width: 100% !important;
-    max-width: 100vw !important;
-    box-sizing: border-box !important;
-    margin: 0 !important;
-  }
-  #roi-table tr {
-    margin: 0 0 16px 0;
-    border-radius: 0 0 0 0 !important;
-    box-shadow: 0 2px 14px rgba(255,153,0,0.06);
-    border: 1.2px solid #ffbe40;
-    background: #fff;
-    padding: 14px 0 14px 0;
-    width: 100% !important;
-    max-width: 100vw !important;
-  }
-  #roi-table td {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-    box-sizing: border-box !important;
-    word-break: break-word;
-  }
-}
-
-@media (max-width: 900px) {
-  body, html {
-    overflow-x: hidden !important;
-    width: 100vw !important;
-  }
-}
-
-@media (max-width: 900px) {
-  .button-ROI {
-    margin-bottom: 20px !important;
   }
 }
 
