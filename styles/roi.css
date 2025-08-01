@@ -1,8 +1,16 @@
-body { font-family: 'Inter', Arial, sans-serif; }
-.title, .form-title {
-  font-family: 'Playfair Display', serif;
-  font-weight: 700;
+html, body {
+  width: 100vw !important;
+  min-width: 0 !important;
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
 }
+*, *::before, *::after {
+  box-sizing: inherit !important;
+}
+
 
 .form-title {
   font-size: 2.1rem;
