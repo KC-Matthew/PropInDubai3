@@ -79,6 +79,18 @@ function renderROITable(data) {
   });
 }
 
+function populateAreaDatalist(data) {
+  const datalist = document.getElementById("areas-list");
+  datalist.innerHTML = ""; // reset
+  data.forEach(entry => {
+    const opt = document.createElement("option");
+    opt.value = entry.area;
+    datalist.appendChild(opt);
+  });
+}
+populateAreaDatalist(exampleROIData);
+
+
 renderROITable(exampleROIData);
 
 // Rend tous les boutons "View Properties" cliquables vers ROI-click-click.html
