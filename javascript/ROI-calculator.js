@@ -1,3 +1,5 @@
+// ========== 1. FORMULAIRE ROI ==========
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("roi-form");
 
@@ -16,7 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       });
-      
 
       const result = await response.json();
       alert(`Estimated ROI: ${result.roi}%`);
@@ -26,6 +27,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+// ========== 2. TABLEAU EXEMPLE ==========
 
 const exampleROIData = [
   {
@@ -77,64 +80,114 @@ function renderROITable(data) {
 
     tableBody.appendChild(row);
   });
+
+  // Ajoute l'action sur les boutons
+  document.querySelectorAll(".view-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      window.location.href = "tableau-click.html";
+    });
+  });
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  renderROITable(exampleROIData);
+});
+
+// ========== 3. MENU HEADER BURGER ==========
+
+document.addEventListener('DOMContentLoaded', function() {
+  const buyDropdown = document.getElementById('buyDropdown');
+  const mainBuyBtn = document.getElementById('mainBuyBtn');
+
+  if (mainBuyBtn) {
+    mainBuyBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      buyDropdown.classList.toggle('open');
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!buyDropdown.contains(e.target)) {
+        buyDropdown.classList.remove('open');
+      }
+    });
+  }
+});
+
+// ========== 4. SYSTÈME MIN/MAX AREA ==========
+
+const areaSizes = [
+  300, 400, 500, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800,
+  2000, 2200, 2500, 3000, 3500, 4000, 5000, 6000, 7000, 8000, 10000
+];
+
+function setupAreaDropdowns() {
+  const minBtn = document.getElementById('minAreaBtn');
+  const maxBtn = document.getElementById('maxAreaBtn');
+  const minDropdown = document.getElementById('minAreaDropdown');
+  const maxDropdown = document.getElementById('maxAreaDropdown');
+
+  if (!minBtn || !maxBtn || !minDropdown || !maxDropdown) return;
+
+  // Remplit chaque dropdown
+  minDropdown.innerHTML = areaSizes.map(size =>
+    `<div class="area-option" tabindex="0" data-value="${size}">${size.toLocaleString()} sqft</div>`
+  ).join('');
+  maxDropdown.innerHTML = areaSizes.map(size =>
+    `<div class="area-option" tabindex="0" data-value="${size}">${size.toLocaleString()} sqft</div>`
+  ).join('');
+
+  // Sélection logique
+  minDropdown.querySelectorAll('.area-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      minBtn.textContent = "Min. " + opt.getAttribute('data-value') + " sqft";
+      minBtn.dataset.value = opt.getAttribute('data-value');
+      minDropdown.classList.remove('open');
+    });
+  });
+  maxDropdown.querySelectorAll('.area-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      maxBtn.textContent = "Max. " + opt.getAttribute('data-value') + " sqft";
+      maxBtn.dataset.value = opt.getAttribute('data-value');
+      maxDropdown.classList.remove('open');
+    });
+  });
+
+  // Ouverture/fermeture
+  minBtn.onclick = function(e) {
+    e.preventDefault();
+    minDropdown.classList.toggle('open');
+    maxDropdown.classList.remove('open');
+  };
+  maxBtn.onclick = function(e) {
+    e.preventDefault();
+    maxDropdown.classList.toggle('open');
+    minDropdown.classList.remove('open');
+  };
+
+  // Ferme dropdown si clic dehors
+  document.addEventListener('mousedown', function(e) {
+    if (!minDropdown.contains(e.target) && !minBtn.contains(e.target))
+      minDropdown.classList.remove('open');
+    if (!maxDropdown.contains(e.target) && !maxBtn.contains(e.target))
+      maxDropdown.classList.remove('open');
+  });
+}
+
+document.addEventListener("DOMContentLoaded", setupAreaDropdowns);
+
+// Suggestions pour le champ Tower/Area
 function populateAreaDatalist(data) {
   const datalist = document.getElementById("areas-list");
-  datalist.innerHTML = ""; // reset
+  if (!datalist) return;
+  datalist.innerHTML = "";
   data.forEach(entry => {
     const opt = document.createElement("option");
     opt.value = entry.area;
     datalist.appendChild(opt);
   });
 }
-populateAreaDatalist(exampleROIData);
 
-
-renderROITable(exampleROIData);
-
-// Rend tous les boutons "View Properties" cliquables vers ROI-click-click.html
-document.addEventListener("DOMContentLoaded", () => {
-  // Appelle renderROITable après le DOMContentLoaded déjà
-  setTimeout(() => { // s'assure que le DOM/tableau est bien injecté
-    document.querySelectorAll(".view-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        window.location.href = "tableau-click.html";
-      });
-    });
-  }, 0);
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-document.addEventListener('DOMContentLoaded', function() {
-  const buyDropdown = document.getElementById('buyDropdown');
-  const mainBuyBtn = document.getElementById('mainBuyBtn');
-
-  // Ouvre/Ferme le menu au clic
-  mainBuyBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    buyDropdown.classList.toggle('open');
-  });
-
-  // Ferme le menu si clic en dehors
-  document.addEventListener('click', function(e) {
-    if (!buyDropdown.contains(e.target)) {
-      buyDropdown.classList.remove('open');
-    }
-  });
-
-  // NO MORE preventDefault on dropdown-option!
-  // Les liens <a> du menu déroulant ouvrent bien la page maintenant
+// Au chargement, rempli avec la data du tableau exemple
+document.addEventListener("DOMContentLoaded", function() {
+  populateAreaDatalist(exampleROIData);
 });
