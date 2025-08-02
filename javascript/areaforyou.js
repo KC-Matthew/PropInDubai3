@@ -231,7 +231,7 @@ function setupFilters() {
 
 // ========= BURGER SIDEBAR MOBILE =========
 function setupMobileSidebar() {
-  const burger = document.getElementById("burger-menu");
+  const burger = document.getElementById("burgerMenu");
   const sidebar = document.querySelector(".multi-sidebar");
   const overlay = document.getElementById("sidebar-overlay");
   function closeSidebar() {
@@ -249,7 +249,7 @@ function setupMobileSidebar() {
   }
 }
 
-// ========= SPLITBAR MOBILE DRAG =========
+// ========= SPLITBAR MOBILE DRAG (Version Corrigée) =========
 function initMobileSplit() {
   if (window.innerWidth > 800) return;
   const header = document.querySelector('.header2');
@@ -257,6 +257,13 @@ function initMobileSplit() {
   const propsCol = document.getElementById('properties-col');
   const splitter = document.getElementById('splitterBar');
   if (!chatCol || !propsCol || !splitter || !header) return;
+
+  const minChat = 70;
+  const minProps = 70;
+
+  function getTotalH() {
+    return window.innerHeight - header.offsetHeight;
+  }
 
   let dragging = false, startY = 0, startChatHeight = 0;
 
@@ -277,14 +284,17 @@ function initMobileSplit() {
   function moveDrag(e) {
     if (!dragging) return;
     const y = (e.touches ? e.touches[0].clientY : e.clientY);
-    const delta = y - startY;
     const headerH = header.offsetHeight;
-    const totalH = window.innerHeight - headerH - splitter.offsetHeight;
-    const minChat = 100, minProps = 100;
-    let newChatH = Math.max(minChat, Math.min(totalH - minProps, startChatHeight + delta));
-    let newPropsH = totalH - newChatH;
-    chatCol.style.height = newChatH + "px";
-    propsCol.style.height = newPropsH + "px";
+    const totalH = getTotalH();
+
+    let splitterPos = y - headerH;
+    splitterPos = Math.max(minChat, Math.min(totalH - minProps, splitterPos));
+    const chatH = splitterPos;
+    const propsH = totalH - chatH;
+
+    chatCol.style.height = chatH + "px";
+    propsCol.style.height = propsH + "px";
+
     if (e.cancelable) e.preventDefault();
   }
   function endDrag() {
@@ -296,6 +306,15 @@ function initMobileSplit() {
     document.removeEventListener("mouseup", endDrag, false);
     document.removeEventListener("touchend", endDrag, false);
   }
+
+  function setInitialHeights() {
+    const totalH = getTotalH();
+    chatCol.style.height = Math.round(totalH * 0.58) + "px";
+    propsCol.style.height = Math.round(totalH * 0.38) + "px";
+  }
+
+  window.addEventListener('resize', setInitialHeights);
+  setInitialHeights();
 }
 
 // ========= DOM READY =========
@@ -327,42 +346,18 @@ document.addEventListener('DOMContentLoaded', () => {
   renderAll();
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Dropdown logic for buy/rent/commercial (déjà dans ton code)
 document.addEventListener('DOMContentLoaded', function() {
   const buyDropdown = document.getElementById('buyDropdown');
   const mainBuyBtn = document.getElementById('mainBuyBtn');
-
-  // Ouvre/Ferme le menu au clic
   mainBuyBtn.addEventListener('click', function(e) {
     e.preventDefault();
     buyDropdown.classList.toggle('open');
   });
-
-  // Ferme le menu si clic en dehors
   document.addEventListener('click', function(e) {
     if (!buyDropdown.contains(e.target)) {
       buyDropdown.classList.remove('open');
     }
   });
-
-  // NO MORE preventDefault on dropdown-option!
-  // Les liens <a> du menu déroulant ouvrent bien la page maintenant
 });
+
