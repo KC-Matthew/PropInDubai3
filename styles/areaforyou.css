@@ -946,3 +946,19 @@ html, body {
     display: none !important;
   }
 }
+
+.chat-pick-btn-v2 {
+  background: #fff0dc;
+  color: #ff9100;
+  border: 2px solid transparent;
+  transition: background 0.15s, color 0.15s, border 0.15s;
+}
+
+.chat-pick-btn-v2.active,
+.chat-pick-btn-v2:active,
+.chat-pick-btn-v2:focus {
+  background: #ff9100 !important;
+  color: #fff !important;
+  border: 2px solid #ff9100 !important;
+  box-shadow: 0 2px 9px rgba(255,145,0,0.11);
+}
