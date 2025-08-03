@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="styles/accueil.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
 </head>
+<div class="mobile-sidebar-overlay" id="sidebar-overlay"></div>
+
 <body>
 
 <div class="header2">
@@ -75,12 +77,24 @@
   <div class="main-content-v2">
     <div class="content-card-wrap" id="split-mobile-container">
       <div class="chat-col-v2" id="chat-col-v2">
-        <div class="multi-header">
-          <span id="current-chat-title">Chat</span>
-          <button id="reset-chat-btn" class="multi-reset-btn" title="Reset chat">
-            <i class="fa fa-rotate-left"></i>
-          </button>
-        </div>
+
+
+  <div class="multi-header">
+  <!-- Icône de chat à gauche -->
+  <button id="btn-open-chat-sidebar" class="chat-toggle-btn-mobile" title="Open chat menu">
+    <i class="fa fa-comments"></i>
+  </button>
+
+  <!-- Texte "New chat" centré -->
+  <span id="current-chat-title">New chat</span>
+
+  <!-- Bouton reset -->
+  <button id="reset-chat-btn" class="multi-reset-btn" title="Reset chat">
+    <i class="fa fa-rotate-left"></i>
+  </button>
+</div>
+
+
         <div class="chat-messages-scroll" id="chat-messages-scroll">
           <div id="chat-messages-container"></div>
         </div>
@@ -103,5 +117,11 @@
   </div>
 </div>
 <script src="javascript/areaforyou.js"></script>
+
+
+
+
+
+
 </body>
 </html>
