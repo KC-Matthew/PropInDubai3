@@ -232,20 +232,20 @@ function setupFilters() {
 // ========= BURGER SIDEBAR MOBILE =========
 function setupMobileSidebar() {
   const burger = document.getElementById("burgerMenu");
-  const sidebar = document.querySelector(".multi-sidebar");
-  const overlay = document.getElementById("sidebar-overlay");
-  function closeSidebar() {
-    sidebar.classList.remove("open");
-    overlay.classList.remove("active");
-  }
-  if (burger && sidebar && overlay) {
+  const mainSidebar = document.getElementById("mainSidebar");
+  const mainOverlay = document.getElementById("mainSidebarOverlay");
+
+  if (burger && mainSidebar && mainOverlay) {
     burger.addEventListener("click", function (e) {
       e.stopPropagation();
-      sidebar.classList.add("open");
-      overlay.classList.add("active");
+      mainSidebar.classList.add("open");
+      mainOverlay.classList.add("active");
     });
-    overlay.addEventListener("click", closeSidebar);
-    window.addEventListener("resize", closeSidebar);
+
+    mainOverlay.addEventListener("click", function () {
+      mainSidebar.classList.remove("open");
+      mainOverlay.classList.remove("active");
+    });
   }
 }
 
@@ -317,8 +317,10 @@ function initMobileSplit() {
   setInitialHeights();
 }
 
+
 // ========= DOM READY =========
 document.addEventListener('DOMContentLoaded', () => {
+  // --- Activation des boutons de la sidebar ---
   document.querySelectorAll('.sidebar-btn').forEach((btn, i) => {
     if (i === 0) btn.onclick = () => { window.location.href = "accueil.html"; };
     btn.addEventListener('click', function () {
@@ -326,38 +328,123 @@ document.addEventListener('DOMContentLoaded', () => {
       this.classList.add('active');
     });
   });
-  document.getElementById('new-chat-btn').onclick = () => addNewChat(true);
-  document.getElementById('chat-form').onsubmit = function (e) {
-    e.preventDefault();
-    const input = document.getElementById('user-input');
-    const msg = input.value.trim();
-    if (!msg) return;
-    addMessageToCurrentChat('user', msg);
-    input.value = '';
-    setTimeout(() => {
-      addMessageToCurrentChat('bot', "Thanks for your message! We will check properties accordingly.");
-    }, 700);
-  };
-  document.getElementById('reset-chat-btn').onclick = () => resetCurrentChat();
 
+  // --- Ajout d’un nouveau chat ---
+  const newChatBtn = document.getElementById('new-chat-btn');
+  if (newChatBtn) {
+    newChatBtn.onclick = () => addNewChat(true);
+  }
+
+  // --- Soumission du formulaire de chat ---
+  const chatForm = document.getElementById('chat-form');
+  const userInput = document.getElementById('user-input');
+  if (chatForm && userInput) {
+    chatForm.onsubmit = function (e) {
+      e.preventDefault();
+      const msg = userInput.value.trim();
+      if (!msg) return;
+      addMessageToCurrentChat('user', msg);
+      userInput.value = '';
+      setTimeout(() => {
+        addMessageToCurrentChat('bot', "Thanks for your message! We will check properties accordingly.");
+      }, 700);
+    };
+  }
+
+  // --- Réinitialisation du chat ---
+  const resetBtn = document.getElementById('reset-chat-btn');
+  if (resetBtn) resetBtn.onclick = () => resetCurrentChat();
+
+  // --- MENU BURGER PRINCIPAL (sidebar de gauche) ---
+  const burger = document.getElementById("burgerMenu");
+  const mainSidebar = document.getElementById("mainSidebar");
+  const mainOverlay = document.getElementById("mainSidebarOverlay");
+  if (burger && mainSidebar && mainOverlay) {
+    burger.addEventListener("click", function (e) {
+      e.stopPropagation();
+      mainSidebar.classList.add("open");
+      mainOverlay.classList.add("active");
+    });
+    mainOverlay.addEventListener("click", function () {
+      mainSidebar.classList.remove("open");
+      mainOverlay.classList.remove("active");
+    });
+  }
+
+  // --- MENU CHAT MOBILE (sidebar droite) ---
+  const chatToggleMobile = document.getElementById("btn-open-chat-sidebar");
+  const chatSidebar = document.querySelector(".multi-sidebar");
+  const chatOverlay = document.getElementById("sidebar-overlay");
+  if (chatToggleMobile && chatSidebar && chatOverlay) {
+    chatToggleMobile.addEventListener("click", (e) => {
+      e.stopPropagation();
+      chatSidebar.classList.add("open");
+      chatOverlay.classList.add("active");
+    });
+    chatOverlay.addEventListener("click", () => {
+      chatSidebar.classList.remove("open");
+      chatOverlay.classList.remove("active");
+    });
+  }
+
+  // --- Menu déroulant BUY / RENT ---
+  const buyDropdown = document.getElementById('buyDropdown');
+  const mainBuyBtn = document.getElementById('mainBuyBtn');
+  if (mainBuyBtn && buyDropdown) {
+    mainBuyBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      buyDropdown.classList.toggle('open');
+    });
+    document.addEventListener('click', function(e) {
+      if (!buyDropdown.contains(e.target) && e.target !== mainBuyBtn) {
+        buyDropdown.classList.remove('open');
+      }
+    });
+  }
+
+  // --- Initialisations supplémentaires ---
   setupFilters();
-  setupMobileSidebar();
+  setupMobileSidebar(); // si utilisé autre part aussi
   initMobileSplit();
   renderAll();
 });
 
-// Dropdown logic for buy/rent/commercial (déjà dans ton code)
+
+
+
+
+
+
 document.addEventListener('DOMContentLoaded', function() {
   const buyDropdown = document.getElementById('buyDropdown');
   const mainBuyBtn = document.getElementById('mainBuyBtn');
+  const burger = document.getElementById('burgerMenu');
+  const allButton = document.querySelector('.all-button');
+
+  // --- Menu BUY dropdown (desktop)
   mainBuyBtn.addEventListener('click', function(e) {
     e.preventDefault();
     buyDropdown.classList.toggle('open');
   });
+
   document.addEventListener('click', function(e) {
-    if (!buyDropdown.contains(e.target)) {
+    if (!buyDropdown.contains(e.target) && e.target !== mainBuyBtn) {
       buyDropdown.classList.remove('open');
     }
+
+    // Fermer menu mobile si on clique en dehors
+    if (
+      allButton.classList.contains('menu-open') &&
+      !allButton.contains(e.target) &&
+      !burger.contains(e.target)
+    ) {
+      allButton.classList.remove('menu-open');
+    }
+  });
+
+  // --- Burger toggle (mobile)
+  burger.addEventListener('click', function(e) {
+    e.stopPropagation(); // empêche le clic extérieur de le refermer directement
+    allButton.classList.toggle('menu-open');
   });
 });
-
