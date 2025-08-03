@@ -699,6 +699,96 @@ html, body {
 
 
 
+.chat-pick-btn-v2 {
+  background: #fff0dc;
+  color: #ff9100;
+  border: 2px solid transparent;
+  transition: background 0.15s, color 0.15s, border 0.15s;
+}
+
+.chat-pick-btn-v2.active,
+.chat-pick-btn-v2:active,
+.chat-pick-btn-v2:focus {
+  background: #ff9100 !important;
+  color: #fff !important;
+  border: 2px solid #ff9100 !important;
+  box-shadow: 0 2px 9px rgba(255,145,0,0.11);
+}
+
+
+
+
+/* Bouton chat mobile à droite de "Chat" */
+.chat-toggle-btn-mobile {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: #ff9900;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+@media (max-width: 800px) {
+  .chat-toggle-btn-mobile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+
+
+
+
+
+.multi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 12px;
+  background: #fff;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #181d1e;
+  border-bottom: 1.5px solid #f2e8dc;
+  min-height: 34px;
+  position: relative;
+}
+
+.multi-header #current-chat-title {
+  flex-grow: 1;
+  text-align: center;
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.chat-toggle-btn-mobile {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: #ff9900;
+  cursor: pointer;
+}
+
+@media (min-width: 801px) {
+  .chat-toggle-btn-mobile {
+    display: none;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* RESET de base */
 .header2, .all-button, .profil-block {
@@ -780,6 +870,7 @@ html, body {
 .dropdown {
   position: relative;
   display: inline-block;
+  z-index: 99;
 }
 
 .buy-button {
@@ -945,20 +1036,16 @@ html, body {
   .mobile-buy-menu {
     display: none !important;
   }
+
 }
 
-.chat-pick-btn-v2 {
-  background: #fff0dc;
-  color: #ff9100;
-  border: 2px solid transparent;
-  transition: background 0.15s, color 0.15s, border 0.15s;
+@media (max-width: 800px) {
+  .chat-pick-btn-v2:last-child {
+    margin-right: 12px;
+  }
 }
 
-.chat-pick-btn-v2.active,
-.chat-pick-btn-v2:active,
-.chat-pick-btn-v2:focus {
-  background: #ff9100 !important;
-  color: #fff !important;
-  border: 2px solid #ff9100 !important;
-  box-shadow: 0 2px 9px rgba(255,145,0,0.11);
-}
+
+
+
+
