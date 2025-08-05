@@ -191,3 +191,45 @@ function populateAreaDatalist(data) {
 document.addEventListener("DOMContentLoaded", function() {
   populateAreaDatalist(exampleROIData);
 });
+
+
+
+
+
+
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+  const burger = document.getElementById('burgerMenu');
+  const allButtons = document.querySelector('.all-button');
+  const mobileBuyMenu = document.querySelector('.mobile-buy-menu');
+
+  burger?.addEventListener('click', () => {
+    const isOpen = allButtons.classList.toggle('mobile-open');
+
+    // Activer / désactiver aussi le menu déroulant si nécessaire
+    if (mobileBuyMenu) {
+      mobileBuyMenu.style.display = isOpen ? 'block' : 'none';
+    }
+
+    // Désactiver le scroll quand le menu est ouvert
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  });
+
+  // Fermer si clic en dehors
+  document.addEventListener('click', (e) => {
+    const target = e.target;
+    if (
+      !burger.contains(target) &&
+      !allButtons.contains(target) &&
+      !mobileBuyMenu.contains(target)
+    ) {
+      allButtons.classList.remove('mobile-open');
+      if (mobileBuyMenu) mobileBuyMenu.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+  });
+});
