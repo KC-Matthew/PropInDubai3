@@ -235,33 +235,51 @@ recommendedProjects.forEach((project, idx) => {
 
 
 
+  document.addEventListener('DOMContentLoaded', () => {
+    const burger = document.getElementById('burgerMenu');
+    const allButtons = document.querySelector('.all-button');
+    const mobileBuyMenu = document.querySelector('.mobile-buy-menu');
+    const mainBuyBtn = document.getElementById('mainBuyBtn');
 
+    burger?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
 
+      const isOpen = allButtons.classList.toggle('menu-open');
 
+      // Cacher/afficher le menu mobile
+      if (mobileBuyMenu) {
+        mobileBuyMenu.style.display = isOpen ? 'flex' : 'none';
+      }
 
+      // Supprime le focus sur le bouton Buy pour éviter le flash
+      if (mainBuyBtn) {
+        mainBuyBtn.blur();
+      }
 
+      // Empêche les interactions pendant un court instant pour éviter les faux hover
+      if (isOpen) {
+        allButtons.classList.add('no-pointer');
+        setTimeout(() => {
+          allButtons.classList.remove('no-pointer');
+        }, 150);
+      }
 
+      // Gère le scroll du body
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    });
 
-
-
-
-document.addEventListener('DOMContentLoaded', function() {
-  const buyDropdown = document.getElementById('buyDropdown');
-  const mainBuyBtn = document.getElementById('mainBuyBtn');
-
-  // Ouvre/Ferme le menu au clic
-  mainBuyBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    buyDropdown.classList.toggle('open');
+    // Clique en dehors pour fermer
+    document.addEventListener('click', (e) => {
+      if (
+        !burger.contains(e.target) &&
+        !allButtons.contains(e.target) &&
+        !mobileBuyMenu.contains(e.target)
+      ) {
+        allButtons.classList.remove('menu-open');
+        mobileBuyMenu.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    });
   });
 
-  // Ferme le menu si clic en dehors
-  document.addEventListener('click', function(e) {
-    if (!buyDropdown.contains(e.target)) {
-      buyDropdown.classList.remove('open');
-    }
-  });
-
-  // NO MORE preventDefault on dropdown-option!
-  // Les liens <a> du menu déroulant ouvrent bien la page maintenant
-});
