@@ -505,7 +505,7 @@ html, body {
     padding: 18px 0 0 0;
     position: absolute;
     left: 0;
-    top: 55px;
+    top: 52px;
     z-index: 21;
     border-radius: 0 0 15px 15px;
     border-top: 1.5px solid #ececec;
@@ -716,6 +716,10 @@ html, body {
   .button-ROI {
     margin-bottom: 20px !important;
   }
+
+  .ensemble-top {
+  margin-top: 30px;
+  }
 }
 
 
@@ -872,5 +876,9 @@ html, body {
   font-size: 1.1em;
   font-weight: bold;
   color: #222;
-  margin: 0 4px;
+  margin: 0 0;
 }
+
+
+
+
