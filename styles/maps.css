@@ -669,7 +669,7 @@ body {
     padding: 6px 0 16px 0;
   }
   /* Deck positions */
-  .mobile-cards-deck.collapsed { top: 96vh; height: 30vh; }
+  .mobile-cards-deck.collapsed { top: 80vh; height: 30vh; }
   .mobile-cards-deck.half      { top: 50vh; height: 65vh; }
   .mobile-cards-deck.full      { top: 18vh;   height: 100vh; border-radius: 0; }
   /* cache le main desktop */
@@ -745,3 +745,4 @@ body {
 .price-inputs-group {
   position: relative; /* Important : pour positionner la dropdown */
 }
+
