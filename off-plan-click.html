@@ -169,7 +169,43 @@
 
   <script src="javascript/off-plan-click.js"></script>
 
-  
+
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const burger = document.getElementById('burgerMenu');
+    const allButtons = document.querySelector('.all-button');
+    const mobileBuyMenu = document.querySelector('.mobile-buy-menu');
+
+    burger?.addEventListener('click', () => {
+      const isOpen = allButtons.classList.toggle('menu-open');
+      if (mobileBuyMenu) {
+        mobileBuyMenu.style.display = isOpen ? 'flex' : 'none';
+      }
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    });
+
+    // Fermer le menu si on clique en dehors
+    document.addEventListener('click', (e) => {
+      const target = e.target;
+      if (
+        burger &&
+        allButtons &&
+        mobileBuyMenu &&
+        !burger.contains(target) &&
+        !allButtons.contains(target) &&
+        !mobileBuyMenu.contains(target)
+      ) {
+        allButtons.classList.remove('menu-open');
+        mobileBuyMenu.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    });
+  });
+</script>
+
 </body>
+
+
+
 
 </html>
