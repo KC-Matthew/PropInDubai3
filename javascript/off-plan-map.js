@@ -278,6 +278,7 @@ function drawPriceHistogram(min, max, [sliderMin, sliderMax]=[min,max]) {
   ctx.restore();
 }
 
+
 // --------- POPUP LEAFLET ---------
 function showProjectPopup(projet, latlng) {
   const popupContent = `
