@@ -510,6 +510,7 @@
     justify-content: center;
   }
 
+
   .top-tabs-filters {
     width: 100vw !important;
     max-width: 100vw !important;
@@ -575,13 +576,6 @@
     display: flex !important;
   }
 }
-
-
-
-
-
-
-
 
 
 
@@ -738,6 +732,7 @@
 .profil-block {
   margin-left: 16px;
 }
+
 
 /* Responsive : MOBILE (<900px) */
 @media (max-width: 900px) {
