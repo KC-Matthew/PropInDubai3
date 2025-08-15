@@ -457,6 +457,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
+
+
+
+
+
+
+
+
+
 document.addEventListener('DOMContentLoaded', function() {
   const buyDropdown = document.getElementById('buyDropdown');
   const mainBuyBtn = document.getElementById('mainBuyBtn');
@@ -477,4 +486,3 @@ document.addEventListener('DOMContentLoaded', function() {
   // NO MORE preventDefault on dropdown-option!
   // Les liens <a> du menu déroulant ouvrent bien la page maintenant
 });
-
