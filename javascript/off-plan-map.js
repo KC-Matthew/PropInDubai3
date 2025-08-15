@@ -487,3 +487,4 @@ document.addEventListener('DOMContentLoaded', function() {
   // NO MORE preventDefault on dropdown-option!
   // Les liens <a> du menu déroulant ouvrent bien la page maintenant
 });
+
