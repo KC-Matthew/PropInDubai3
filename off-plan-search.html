@@ -1,19 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
+
 <head>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>PropInDubai - Off Plan</title>
-  <link rel="stylesheet" href="styles/off-plan-search.css" />
-  <link rel="stylesheet" href="styles/accueil.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css">
-
+  <meta charset="UTF-8">
+  <title>PropIn Dubai - Carte Off Plan</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+      <link rel="stylesheet" href="styles/off-plan-map.css" />
+  <link rel="stylesheet" href="styles/accueil.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css"/>
 
 </head>
-<body>
-  <!-- HEADER -->
+
+
+<body class="offplan-map-page">
+
+  <!-- HEADER: NE PAS TOUCHER -->
+   
+<!-- HEADER -->
 <div class="header2">
   <div class="burger" id="burgerMenu">
     <span></span>
@@ -61,238 +68,123 @@
     <a href="login.html" class="login-button header-btn">Login</a>
   </div>
 </div>
+ 
 
 
 
-<div class="top-tabs-filters">
+  <!-- BARRE TABS + FILTRES -->
+  <div class="top-tabs-filters">
     <div class="tabs">
-      <button class="tab" id="tab-map">Active Map</button>
-      <button class="tab active" id="tab-listing">Listing</button></a>  
+      <button class="tab active" id="tab-map">Active Map</button>
+      <button class="tab" id="tab-listing">Listing</button>
     </div>
-    
+  <div class="filter-bar">
+  <!-- Status -->
+  <select id="handoverFilter" class="filter-btn">
+    <option value="">Handover or Launch</option>
+    <option value="handover">Handover Soon</option>
+    <option value="launch">Launch Soon</option>
+  </select>
+  <!-- Promoteur -->
+  <select id="promoteurFilter" class="filter-btn">
+    <option value="">Promoter</option>
+    <option value="Ellington">Ellington</option>
+    <option value="Emaar">Emaar</option>
+    <option value="Sobha">Sobha</option>
+    <option value="DAMAC">DAMAC</option>
+  </select>
+  <!-- Property Type -->
+  <select id="propertyTypeFilter" class="filter-btn">
+    <option value="">Property Type</option>
+    <option value="Apartment">Apartment</option>
+    <option value="Villa">Villa</option>
+    <option value="Townhouse">Townhouse</option>
+    <option value="Penthouse">Penthouse</option>
+    <!-- Ajoute d'autres types si besoin -->
+  </select>
+  <!-- Room -->
+  <select id="roomFilter" class="filter-btn">
+    <option value="">Rooms</option>
+    <option value="1">1 Room</option>
+    <option value="2">2 Rooms</option>
+    <option value="3">3 Rooms</option>
+    <option value="4">4+ Rooms</option>
+  </select>
+  <!-- Bathroom -->
+  <select id="bathroomFilter" class="filter-btn">
+    <option value="">Bathrooms</option>
+    <option value="1">1 Bathroom</option>
+    <option value="2">2 Bathrooms</option>
+    <option value="3">3 Bathrooms</option>
+    <option value="4">4+ Bathrooms</option>
+  </select>
+  <!-- Price -->
+<button id="openPriceFilter" type="button" class="filter-btn">
+  <i class="fas fa-tags"></i>
+  <span id="priceLabel">Price</span>
+</button>
 
+  <!-- Reset -->
+  <button id="resetFilters" type="button" class="filter-btn" style="background:#ffede1;color:#ff9100;">
+    <i class="fas fa-undo"></i> Reset
+  </button>
+</div>
+
+    <!-- POPUP PRIX -->
+    <div id="priceFilterPopup">
+      <div class="price-popup-inner">
+        <div class="price-popup-header">
+          <span>Price (AED)</span>
+          <button id="closePricePopup" aria-label="Close">&times;</button>
+        </div>
+        <canvas id="priceHistogram" width="320" height="42"></canvas>
+        <div class="price-hist-label">Distribution of properties by price</div>
+        <div class="price-inputs">
+          <input id="priceMinInput" type="text" autocomplete="off" />
+          <span style="color:#b6b6b6; font-size:1.2em;">—</span>
+          <input id="priceMaxInput" type="text" autocomplete="off" />
+        </div>
+        <div class="slider-labels">
+          <span id="sliderMinLabel"></span>
+          <span id="sliderMaxLabel"></span>
+        </div>
+        <div class="slider-main">
+          <div id="priceSlider"></div>
+        </div>
+        <div id="selectedPriceRange" class="selected-price-label"></div>
+        <button id="validatePriceBtn" class="validate-price-btn">Apply</button>
+      </div>
+    </div>
   </div>
 
-<div class="filter-bar">
-  <!-- Search bar toujours en haut -->
-<div class="search-autocomplete-wrapper">
-    <input type="text" placeholder="Location, project or developer" id="search" autocomplete="off" />
-    <div id="searchSuggestions" class="autocomplete-suggestions"></div>
-  </div>
-
-  <!-- Ligne filtres scrollable mobile -->
-  <div class="filter-row-scroll">
-    <select id="propertyType">
-      <option>Property Type</option>
-      <option>Apartment</option>
-      <option>Villa</option>
-      <option>Townhouse</option>
-      <option>Penthouse</option>
-      <option>Compound</option>
-      <option>Duplex</option>
-    </select>
-    <select id="bedrooms">
-      <option>Bedrooms</option>
-      <option>1+</option>
-      <option>2+</option>
-      <option>3+</option>
-      <option>4+</option>
-      <option>5+</option>
-      <option>6+</option>
-    </select>
-    <select id="bathrooms">
-      <option>Bathrooms</option>
-      <option>1+</option>
-      <option>2+</option>
-      <option>3+</option>
-      <option>4+</option>
-      <option>5+</option>
-      <option>6+</option>
-    </select>
-    <button id="openPriceFilter" type="button">Price</button>
-
-    <button id="openMoreFilter" type="button">More Filters</button>
+  <!-- CARTE -->
+  <div id="map"></div>
+  <div id="popup-container"></div>
 
 
-    <button id="searchBtn">Search</button>
-    <button id="clearBtn">Clear</button>
 
-    
 
-  </div>
 
-  <!-- INPUTS cachés pour JS (ne rien toucher) -->
-  <input type="hidden" id="priceMin" />
-  <input type="hidden" id="priceMax" />
 
-  <!-- POPUP du filtre prix -->
+
+
+
   
-</div>
-<div id="priceFilterPopup">
-    <div class="price-popup-inner">
-      <div class="price-popup-header">
-        <span>Price (AED)</span>
-        <button id="closePricePopup" aria-label="Close">&times;</button>
-      </div>
-      <canvas id="priceHistogram" width="320" height="42"></canvas>
-      <div class="price-hist-label">Distribution of properties by price</div>
-      <div class="price-inputs">
-        <input id="priceMinInput" type="text" autocomplete="off" />
-        <span style="color:#b6b6b6; font-size:1.2em;">—</span>
-        <input id="priceMaxInput" type="text" autocomplete="off" />
-      </div>
-      <div class="slider-labels">
-        <span id="sliderMinLabel"></span>
-        <span id="sliderMaxLabel"></span>
-      </div>
-      <div class="slider-main">
-        <div id="priceSlider"></div>
-      </div>
-      <div id="selectedPriceRange" class="selected-price-label"></div>
-      <button id="validatePriceBtn" class="validate-price-btn">Apply</button>
-    </div>
-  </div>
+<!-- Supabase client -->
+<script src="https://esm.sh/@supabase/supabase-js@2"></script>
 
+<!-- Init client (crée ce fichier) -->
+<script src="javascript/supabaseClient.js"></script>
+  <!-- SCRIPTS -->
+   <script>
+setTimeout(() => {
+  console.log('all-button display:', getComputedStyle(document.querySelector('.all-button')).display);
+  console.log('all-button classes:', document.querySelector('.all-button').className);
+}, 2500);
+</script>
 
-
-<!-- POPUP MORE FILTERS (simple & moderne) -->
-<div id="moreFilterPopup">
-  <div class="more-filter-inner">
-    <div class="more-filter-header">
-      <span>More Filters</span>
-      <button id="closeMoreFilter" aria-label="Close">&times;</button>
-    </div>
-    
-    <div class="filter-section">
-  <label style="font-size:1.22em; font-weight:700; color:#222; display:flex; align-items:center; gap:10px;">
-    <!-- Icône chantier SVG inline pour correspondre à ta capture -->
-    <svg width="29" height="23" viewBox="0 0 29 23" fill="none" style="margin-right:4px;flex-shrink:0;">
-      <path d="M3 20V7H26V20" stroke="#222" stroke-width="2" stroke-linecap="round"/>
-      <rect x="1" y="7" width="27" height="4" rx="2" stroke="#222" stroke-width="2"/>
-      <rect x="5" y="15" width="5" height="5" rx="1.5" stroke="#222" stroke-width="2"/>
-      <rect x="19" y="15" width="5" height="5" rx="1.5" stroke="#222" stroke-width="2"/>
-    </svg>
-    Delivery Date
-  </label>
-  <div class="delivery-date-options">
-    <button type="button" class="delivery-date-btn" data-value="all">All dates</button>
-    <button class="delivery-date-btn" data-value="q3 2025">Q3 2025</button>
-    <button class="delivery-date-btn" data-value="q4 2025">Q4 2025</button>
-    <button class="delivery-date-btn" data-value="2026">2026</button>
-    <button class="delivery-date-btn" data-value="2027">2027</button>
-
-  </div>
-</div>
-
-
-<div class="filter-section amenities-section">
-  <label>Amenities</label>
-  <div class="amenities-list">
-    <label><input type="checkbox" value="Central A/C"> Central A/C</label>
-    <label><input type="checkbox" value="Maids Room"> Maids Room</label>
-    <label><input type="checkbox" value="Balcony"> Balcony</label>
-    <label><input type="checkbox" value="Shared Pool"> Shared Pool</label>
-    <label><input type="checkbox" value="Shared Gym"> Shared Gym</label>
-    <label><input type="checkbox" value="Concierge Service"> Concierge Service</label>
-    <label><input type="checkbox" value="Covered Parking"> Covered Parking</label>
-    <label><input type="checkbox" value="View of Water"> View of Water</label>
-    <label><input type="checkbox" value="View of Landmark"> View of Landmark</label>
-    <label><input type="checkbox" value="Private Garden"> Private Garden</label>
-    <label><input type="checkbox" value="Pets Allowed"> Pets Allowed</label>
-    <label><input type="checkbox" value="Private Pool"> Private Pool</label>
-    <label><input type="checkbox" value="Built in Wardrobes"> Built in Wardrobes</label>
-    <label><input type="checkbox" value="Built in Kitchen Appliances"> Built in Kitchen Appliances</label>
-    <label><input type="checkbox" value="Barbecue Area"> Barbecue Area</label>
-    <!-- Ajoute ici les autres amenities que tu veux -->
-  </div>
-</div>
-
-
-
-    <div class="filter-section">
-      <label>Min Area (sqft)</label>
-      <input type="text" id="minAreaInput" placeholder="e.g. 800">
-    </div>
-    <div class="filter-section">
-      <label>Max Area (sqft)</label>
-      <input type="text" id="maxAreaInput" placeholder="e.g. 2000">
-    </div>
-    <div class="filter-section">
-      <label>Keywords</label>
-      <input type="text" id="keywordInput" placeholder="e.g. pool, chiller free">
-    </div>
-
-
-    <button id="applyMoreFiltersBtn" class="apply-filters-btn">Apply Filters</button>
-  </div>
-</div>
-
-
-  <!-- FILTER BAR (DYNAMIQUE via JS) -->
-
-  <!-- HOW OFFPLAN WORKS BANNER -->
-  <div class="how-offplan-works">
-    <h2>How does buying off-plan work in Dubai?</h2>
-    <div class="offplan-steps">
-      <div class="step"><i class="fa fa-check-circle"></i> Choose</div>
-      <i class="fa fa-arrow-right step-arrow"></i>
-      <div class="step"><i class="fa fa-credit-card"></i> Pay booking fee</div>
-      <i class="fa fa-arrow-right step-arrow"></i>
-      <div class="step"><i class="fa fa-money-bill-wave"></i> Make payments</div>
-    </div>
-  </div>
-
-<div class="main-content-wrapper">
-  <div class="main-column">
-    <div class="property-summary-wrapper">
-      <a href="offplan.html" target="_blank" class="chatboat-banner">
-        <i class="fa-solid fa-robot"></i>
-        Try our AI assistant to help you find the best off-plan project!
-      </a>
-
-
-      
-    <div class="property-count" id="propertyCount"></div>
-    </div>
-<div class="property-cards-row" id="propertyResults"></div>
-<div class="pagination" id="pagination"></div>
-
-  </div>
-</div>
-
-
-
-
-
-
-  <button id="scrollToTopBtn" title="Back to top">↑</button>
-
-  <!-- FOOTER -->
-  <footer class="site-footer">
-    <div class="footer-container">
-      <div class="footer-left">
-        <h3 class="footer-logo">PropInDubai</h3>
-        <p>Connecting you with the best new projects in Dubai.</p>
-      </div>
-      <div class="footer-links">
-        <a href="about-us.html">About Us</a>
-        <a href="contact-us.html">Contact us</a>
-        <a href="privacy-policy.html">Privacy Policy</a>
-        <a href="term-condition.html">Terms & Conditions</a>
-        <a href="cookies-policy.html">Cookies policy</a>
-        <a href="disclaimer.html">Disclaimer</a>
-      </div>
-      <div class="footer-socials">
-        <a href="#"><img src="styles/photo/facebook.png" alt="Facebook" /></a>
-        <a href="#"><img src="styles/photo/insta.png" alt="Instagram" /></a>
-        <a href="#"><img src="styles/photo/linkedin.png" alt="LinkedIn" /></a>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      © 2025 PropInDubai. All rights reserved.
-    </div>
-  </footer>
-  <script src="javascript/off-plan-search.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
+  <script src="javascript/off-plan-map.js"></script>
 </body>
 </html>
