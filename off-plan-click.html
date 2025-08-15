@@ -5,13 +5,13 @@
   <title>Off-Plan Project - PropInDubai</title>
 
   <link rel="stylesheet" href="styles/off-plan-click.css">
-    <link rel="stylesheet" href="styles/accueil.css">
+  <link rel="stylesheet" href="styles/accueil.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-
+  
 <div class="header2">
   <div class="burger" id="burgerMenu">
     <span></span>
@@ -20,109 +20,93 @@
   </div>
   <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
 
-
-
-
-<div class="all-button">
-  <a href="areaforyou.html" class="chat-button header-btn">Chat Property AI</a>
-  
-  <div class="dropdown header-btn" id="buyDropdown">
-    <a href="buy.html" class="buy-button header-btn" id="mainBuyBtn" tabindex="0">Buy <span class="arrow">&#9660;</span></a>
-    <div class="dropdown-content" id="dropdownContent">
+  <div class="all-button">
+    <a href="areaforyou.html" class="chat-button header-btn">Chat Property AI</a>
+    
+    <div class="dropdown header-btn" id="buyDropdown">
+      <a href="buy.html" class="buy-button header-btn" id="mainBuyBtn" tabindex="0">Buy <span class="arrow">&#9660;</span></a>
+      <div class="dropdown-content" id="dropdownContent">
         <a href="rent.html" data-link="rent.html" class="dropdown-option">Buy</a>
-      <a href="rent.html" data-link="rent.html" class="dropdown-option">Rent</a>
-      <a href="commercial.html" data-link="commercial.html" class="dropdown-option">Commercial</a>
-    </div>  
+        <a href="rent.html" data-link="rent.html" class="dropdown-option">Rent</a>
+        <a href="commercial.html" data-link="commercial.html" class="dropdown-option">Commercial</a>
+      </div>  
+    </div>
+    
+    <!-- Mobile version, hidden by default, visible only in mobile via CSS -->
+    <div class="mobile-buy-menu" style="display: none;">
+      <a href="buy.html">Buy</a>
+      <a href="rent.html">Rent</a>
+      <a href="commercial.html">Commercial</a>
+    </div>
+
+    <a href="off-plan-map.html" class="project-button header-btn">Off Plan</a>
+    <a href="roi-calculator.html" class="roi-button header-btn">ROI-Calculator</a>
+    <a href="maps.html" class="map-button header-btn">Map</a>
+    <a href="findagent.html" class="agent-button header-btn">Find agents</a>
   </div>
-  
-  <!-- Mobile version, hidden by default, visible only in mobile via CSS -->
-<div class="mobile-buy-menu" style="display: none;">
-  <a href="buy.html">Buy</a>
-  <a href="rent.html">Rent</a>
-  <a href="commercial.html">Commercial</a>
-</div>
-
-
-
-
-  <a href="off-plan-map.html" class="project-button header-btn">Off Plan</a>
-  <a href="roi-calculator.html" class="roi-button header-btn">ROI-Calculator</a>
-  <a href="maps.html" class="map-button header-btn">Map</a>
-  <a href="findagent.html" class="agent-button header-btn">Find agents</a>
-</div>
-
-
-
-
   
   <div class="profil-block">
     <a href="login.html" class="login-button header-btn">Login</a>
   </div>
 </div>
-
-
  
- 
- 
+<div class="project-header">
+  <h1 id="projectTitle"></h1>
+  <p><i class="fas fa-map-marker-alt"></i> <span id="projectLocation"></span></p>
+</div>
 
-  <div class="project-header">
-    <h1 id="projectTitle"></h1>
-    <p><i class="fas fa-map-marker-alt"></i> <span id="projectLocation"></span></p>
+<section class="project-main">
+  <div class="project-left">
+    <!-- CARROUSEL PRINCIPAL AVEC POINTS -->
+    <div class="project-image" id="mainImage" style="position:relative;">
+      <img src="" alt="Main Project Image" id="mainProjectImage">
+      <div class="image-count"><i class="fas fa-camera"></i> <span id="photoCount"></span></div>
+      <!-- Ici, le container à points du carrousel -->
+      <div id="carousel-indicators" class="carousel-indicators"></div>
+    </div>
+    <div class="agent-contact" id="agentContact"></div>
   </div>
 
-  <section class="project-main">
-    <div class="project-left">
-      <div class="project-image" id="mainImage">
-        <img src="" alt="Main Project Image" id="mainProjectImage">
-        <div class="image-count"><i class="fas fa-camera"></i> <span id="photoCount"></span></div>
-        <div class="image-arrows">
-          <button id="prevImage">❮</button>
-          <button id="nextImage">❯</button>
-        </div>
-      </div>
-      <div class="agent-contact" id="agentContact"></div>
+  <div class="project-details">
+    <p><strong>Developer:</strong> <span id="developer"></span></p>
+    <p><strong>Status:</strong> <span id="status"></span></p>
+    <p><strong>Estimated Handover:</strong> <span id="handover"></span></p>
+    <p><strong>Starting Price:</strong> <span id="price"></span></p>
+    <p><strong>Unit Types:</strong> <span id="units"></span></p>
+    <p><strong>Payment Plan:</strong> <span id="paymentPlan"></span>
+      <button id="paymentToggle">View Details</button>
+      <div id="paymentDetail"></div>
+    </p>
+    <p><strong>Description:</strong></p>
+    <p id="description"></p>
+    <div class="download-section">
+      <a id="brochureLink" href="#" target="_blank">Download Brochure</a>
     </div>
+  </div>
+</section>
 
-    <div class="project-details">
-      <p><strong>Developer:</strong> <span id="developer"></span></p>
-      <p><strong>Status:</strong> <span id="status"></span></p>
-      <p><strong>Estimated Handover:</strong> <span id="handover"></span></p>
-      <p><strong>Starting Price:</strong> <span id="price"></span></p>
-      <p><strong>Unit Types:</strong> <span id="units"></span></p>
-      <p><strong>Payment Plan:</strong> <span id="paymentPlan"></span>
-        <button id="paymentToggle">View Details</button>
-        <div id="paymentDetail"></div>
-      </p>
-      <p><strong>Description:</strong></p>
-      <p id="description"></p>
-      <div class="download-section">
-        <a id="brochureLink" href="#" target="_blank">Download Brochure</a>
-      </div>
-    </div>
-  </section>
+<section class="location-units">
+  <div class="location">
+    <h2>Location</h2>
+    <iframe src="https://www.google.com/maps?q=Dubai&output=embed"></iframe>
+  </div>
+  <div class="available-units">
+    <h2>Available Units</h2>
+    <table>
+      <thead>
+        <tr><th>Type</th><th>Size</th><th>Price</th><th>Available</th></tr>
+      </thead>
+      <tbody id="unitsTableBody"></tbody>
+    </table>
+  </div>
+</section>
 
-  <section class="location-units">
-    <div class="location">
-      <h2>Location</h2>
-      <iframe src="https://www.google.com/maps?q=Dubai&output=embed"></iframe>
-    </div>
-    <div class="available-units">
-      <h2>Available Units</h2>
-      <table>
-        <thead>
-          <tr><th>Type</th><th>Size</th><th>Price</th><th>Available</th></tr>
-        </thead>
-        <tbody id="unitsTableBody"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="developer-vision">
-    <h2>Developer Vision</h2>
-    <p id="developerVision"></p>
-    <h3>Other Projects</h3>
-    <ul id="developerProjects"></ul>
-  </section>
+<section class="developer-vision">
+  <h2>Developer Vision</h2>
+  <p id="developerVision"></p>
+  <h3>Other Projects</h3>
+  <ul id="developerProjects"></ul>
+</section>
 
 <div id="lightbox" class="lightbox">
   <div class="lightbox-overlay" id="lightboxOverlay"></div>
@@ -138,8 +122,7 @@
   <div id="recommendedList" class="recommended-list"></div>
 </section>
 
-
-  <footer class="site-footer">
+<footer class="site-footer">
   <div class="footer-container">
     <div class="footer-left">
       <h3 class="footer-logo">PropInDubai</h3>
@@ -167,45 +150,11 @@
   </div>
 </footer>
 
-  <script src="javascript/off-plan-click.js"></script>
+<!-- Supabase client -->
+<script src="https://esm.sh/@supabase/supabase-js@2"></script>
 
-
-  <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const burger = document.getElementById('burgerMenu');
-    const allButtons = document.querySelector('.all-button');
-    const mobileBuyMenu = document.querySelector('.mobile-buy-menu');
-
-    burger?.addEventListener('click', () => {
-      const isOpen = allButtons.classList.toggle('menu-open');
-      if (mobileBuyMenu) {
-        mobileBuyMenu.style.display = isOpen ? 'flex' : 'none';
-      }
-      document.body.style.overflow = isOpen ? 'hidden' : '';
-    });
-
-    // Fermer le menu si on clique en dehors
-    document.addEventListener('click', (e) => {
-      const target = e.target;
-      if (
-        burger &&
-        allButtons &&
-        mobileBuyMenu &&
-        !burger.contains(target) &&
-        !allButtons.contains(target) &&
-        !mobileBuyMenu.contains(target)
-      ) {
-        allButtons.classList.remove('menu-open');
-        mobileBuyMenu.style.display = 'none';
-        document.body.style.overflow = '';
-      }
-    });
-  });
-</script>
-
+<!-- Init client (crée ce fichier) -->
+<script src="javascript/supabaseClient.js"></script>
+<script src="javascript/off-plan-click.js"></script>
 </body>
-
-
-
-
 </html>
