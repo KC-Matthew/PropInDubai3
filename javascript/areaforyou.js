@@ -422,10 +422,15 @@ document.addEventListener('DOMContentLoaded', function() {
   const allButton = document.querySelector('.all-button');
 
   // --- Menu BUY dropdown (desktop)
-  mainBuyBtn.addEventListener('click', function(e) {
+mainBuyBtn.addEventListener('click', function(e) {
+  // On n'empêche la navigation que si on clique sur la flèche ▼
+  if (e.target.closest('.arrow')) {
     e.preventDefault();
     buyDropdown.classList.toggle('open');
-  });
+  }
+  // si on clique sur le texte "Buy", on laisse le lien aller vers buy.html
+});
+
 
   document.addEventListener('click', function(e) {
     if (!buyDropdown.contains(e.target) && e.target !== mainBuyBtn) {
@@ -448,3 +453,4 @@ document.addEventListener('DOMContentLoaded', function() {
     allButton.classList.toggle('menu-open');
   });
 });
+
