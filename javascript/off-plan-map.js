@@ -336,10 +336,9 @@
 setTimeout(() => {
   const clickable = document.querySelector('.popup-clickable');
   if (clickable) {
-    clickable.onclick = function () {
-      // Utilise la même utilitaire pour respecter le sous-dossier GitHub Pages
-      goto('off-plan-click.html');
-    };
+clickable.onclick = () => { window.location.href = new URL('off-plan-search.html', location.href).href; };
+
+  
   }
 }, 10);
 
@@ -429,41 +428,40 @@ setTimeout(() => {
         }
       });
     }
-// 6) Tabs navigation — robuste local + GitHub Pages
-(function () {
+
+// 6) Tabs navigation — simple et robuste (local + GitHub Pages)
+(() => {
   const tabMap = document.getElementById('tab-map');
   const tabListing = document.getElementById('tab-listing');
-  if (!tabMap && !tabListing) return;
 
-  // Construit un chemin dans le même dossier que la page courante
-  const base = location.pathname.replace(/[^/]+$/, ''); // ex: "/repo/" ou "/"
-  const to = (file) => base + file;
+  // Navigue vers un fichier dans le même dossier que la page actuelle
+  const go = (file) => new URL(file, window.location).href;
 
-  // Rebind propre: enlève d’éventuels anciens handlers (au cas où le script est injecté 2x)
-  const rebind = (el, handler) => {
-    if (!el) return;
-    const clone = el.cloneNode(true);
-    el.parentNode.replaceChild(clone, el);
-    clone.addEventListener('click', (e) => {
+  if (tabMap) {
+    tabMap.addEventListener('click', (e) => {
       e.preventDefault();
-      location.href = handler();
-    });
-    return clone;
-  };
+      window.location.href = go('off-plan-map.html');
+    }, { once: true });
+  }
 
-  rebind(tabMap,     () => to('off-plan-map.html'));
-  rebind(tabListing, () => to('off-plan-search.html'));
+  if (tabListing) {
+    tabListing.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.href = go('off-plan-search.html'); // <-- mets ici le nom EXACT de ta page listing
+    }, { once: true });
+  }
 
-  // Met à jour l’onglet actif selon la page
-  const path = location.pathname;
-  if (path.includes('off-plan-map')) {
+  // État actif
+  const p = location.pathname.toLowerCase();
+  if (p.endsWith('/off-plan-map.html')) {
     tabMap?.classList.add('active');
     tabListing?.classList.remove('active');
-  } else if (path.includes('off-plan-search')) {
+  } else if (p.endsWith('/off-plan-search.html')) {
     tabListing?.classList.add('active');
     tabMap?.classList.remove('active');
   }
 })();
+
 
     // 7. Markers et tout le reste
     applyAllFilters();
