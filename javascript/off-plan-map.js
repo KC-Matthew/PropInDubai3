@@ -440,7 +440,7 @@ clickable.onclick = () => { window.location.href = new URL('off-plan-search.html
   if (tabMap) {
     tabMap.addEventListener('click', (e) => {
       e.preventDefault();
-      window.location.href = go('off-plan-map.html');
+      window.location.href = go('off-plan-search.html');
     }, { once: true });
   }
 
@@ -453,7 +453,7 @@ clickable.onclick = () => { window.location.href = new URL('off-plan-search.html
 
   // État actif
   const p = location.pathname.toLowerCase();
-  if (p.endsWith('/off-plan-map.html')) {
+  if (p.endsWith('/off-plan-search.html')) {
     tabMap?.classList.add('active');
     tabListing?.classList.remove('active');
   } else if (p.endsWith('/off-plan-search.html')) {
