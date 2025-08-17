@@ -1,43 +1,85 @@
-// ========= UTILS & DONNÉES =========
+// ========= SUPABASE - FETCH PROPERTIES =========
+// ========= DETECTION DES COLONNES =========
+async function detectColumns(table) {
+  const { data, error } = await window.supabase.from(table).select("*").limit(1);
+  if (error) throw error;
+  const sample = (data && data[0]) || {};
+  const has = (k) => Object.prototype.hasOwnProperty.call(sample, k);
+  const pick = (...c) => c.find(has);
+  return {
+    id: pick("id", "uuid"),
+    title: pick("title", "titre", "name"),
+    location: pick("property_type", "location", "community"),
+    bedrooms: pick("bedrooms", "rooms"),
+    bathrooms: pick("bathrooms"),
+    price: pick("price"),
+    sqft: pick("sqft", "sqft (m²)"),
+    photo: pick("photo_bien_url", "photo_url", "image_url", "image"),
+    created_at: pick("created_at")
+  };
+}
+
+// ========= FETCH PROPERTIES =========
+async function fetchProperties({ type = "all", limit = 30 } = {}) {
+  let data = [];
+
+  const sources = {
+    rent: (type === "rent" || type === "all"),
+    buy: (type === "buy" || type === "all"),
+    commercial: (type === "commercial" || type === "all")
+  };
+
+  for (const [tableName, shouldFetch] of Object.entries(sources)) {
+    if (!shouldFetch) continue;
+
+    try {
+      const columns = await detectColumns(tableName);
+      const fields = [columns.id, columns.title, columns.location, columns.bedrooms, columns.bathrooms, columns.price, columns.sqft, columns.photo, columns.created_at]
+        .filter(Boolean)
+        .join(",");
+
+      const { data: tableData, error } = await window.supabase
+        .from(tableName)
+        .select(fields)
+        .order(columns.created_at, { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error(`Error fetching from ${tableName}`, error);
+        continue;
+      }
+
+      data = data.concat((tableData || []).map(p => ({
+        ...p,
+        location: p[columns.location] || "Dubai",
+        size: p[columns.sqft],
+        images: [p[columns.photo] || "https://via.placeholder.com/400x300"],
+        title: p[columns.title],
+        bedrooms: p[columns.bedrooms],
+        bathrooms: p[columns.bathrooms],
+        price: p[columns.price],
+        id: p[columns.id]
+      })));
+    } catch (e) {
+      console.error(`Failed to detect columns for ${tableName}`, e);
+    }
+  }
+
+  return data;
+}
+
+
+
+
+
+// ========= UTILS & LOCAL STORAGE =========
 function uuid() { return '_' + Math.random().toString(36).substr(2, 9); }
 function getChats() { return JSON.parse(localStorage.getItem('multiChatHistory') || '[]'); }
 function saveChats(chats) { localStorage.setItem('multiChatHistory', JSON.stringify(chats)); }
+function getFavs() { return JSON.parse(localStorage.getItem('favorites') || '[]'); }
+function saveFavs(arr) { localStorage.setItem('favorites', JSON.stringify(arr)); }
 
-// ---- FAVORIS ----
-function getFavs() {
-  return JSON.parse(localStorage.getItem('favorites') || '[]');
-}
-function saveFavs(arr) {
-  localStorage.setItem('favorites', JSON.stringify(arr));
-}
-
-// ========= DONNÉES TEST =========
-let propertiesData = [
-  {
-    id: "p1",
-    title: "Modern 2BR Apartment in Downtown",
-    location: "Downtown Dubai",
-    bedrooms: 2, bathrooms: 2, size: 1100,
-    description: "Spacious and elegant unit with Burj Khalifa view.",
-    price: "AED 2,400,000", images: ["styles/photo/insta.png"],
-  },
-  {
-    id: "p2",
-    title: "Studio in Business Bay", location: "Business Bay",
-    bedrooms: 1, bathrooms: 1, size: 520,
-    description: "Perfect for investment with high ROI.",
-    price: "AED 850,000", images: ["styles/photo/dubai-map.jpg"],
-  },
-  {
-    id: "p3",
-    title: "Luxury 3BR in Palm Jumeirah", location: "Palm Jumeirah",
-    bedrooms: 3, bathrooms: 3, size: 1830,
-    description: "Beach access and private pool included.",
-    price: "AED 6,200,000", images: ["https://via.placeholder.com/400x300"],
-  }
-];
-
-// ========= RENDUS =========
+// ========= RENDU DES BIENS =========
 function renderProperties(list) {
   const container = document.getElementById("property-cards-container");
   container.innerHTML = "";
@@ -46,9 +88,8 @@ function renderProperties(list) {
     const card = document.createElement("div");
     card.className = "property-card-ui-v2";
     card.style.cursor = "pointer";
-    card.style.position = "relative"; // important pour le cœur positionné
+    card.style.position = "relative";
 
-    // Coeur favori
     const isFav = favs.includes(property.id);
     const favBtn = `
       <button class="fav-btn${isFav ? " fav-active" : ""}" data-id="${property.id}" aria-label="Ajouter aux favoris">
@@ -66,7 +107,7 @@ function renderProperties(list) {
         <span><i class="fas fa-bath"></i> ${property.bathrooms}</span>
         <span><i class="fas fa-ruler-combined"></i> ${property.size} sqft</span>
       </div>
-      <div class="property-desc-ui-v2">${property.description}</div>
+      <div class="property-desc-ui-v2">${property.description || ''}</div>
       <div class="property-price-ui-v2">${property.price}</div>
       <div class="property-actions-ui-v2">
         <button type="button" onclick="event.stopPropagation();window.location.href='tel:+000000000';">Call</button>
@@ -98,6 +139,7 @@ function setupFavBtns() {
   });
 }
 
+// ========= RENDU CHAT =========
 function renderChatList(selectedId) {
   const list = document.getElementById('chat-list');
   const chats = getChats();
@@ -143,17 +185,22 @@ function renderChat(chat) {
   setTimeout(() => { scroll.scrollTop = scroll.scrollHeight; }, 50);
 }
 
-function renderAll() {
+async function renderAll() {
   let chats = getChats();
   let current = getCurrentChat();
   if (!chats.length) { addNewChat(); chats = getChats(); current = getCurrentChat(); }
   renderChatList(current ? current.id : null);
   renderChat(current);
-  renderProperties(propertiesData);
+
+  const data = await fetchProperties({ type: "all", limit: 30 });
+  renderProperties(data);
 }
 
-// ========= CHAT LOGIQUE =========
-function selectChat(id) { localStorage.setItem('multiCurrentChatId', id); renderAll(); }
+// ========= LOGIQUE CHAT =========
+function selectChat(id) {
+  localStorage.setItem('multiCurrentChatId', id);
+  renderAll();
+}
 function getCurrentChat() {
   const chats = getChats();
   const id = localStorage.getItem('multiCurrentChatId');
@@ -210,117 +257,24 @@ function deleteChat(chatId) {
   renderAll();
 }
 
-// ========= FILTRES CHAT =========
+// ========= FILTRES =========
 function setupFilters() {
   document.querySelectorAll('.chat-pick-btn-v2').forEach(btn => {
-    btn.addEventListener('click', function () {
+    btn.addEventListener('click', async function () {
       document.querySelectorAll('.chat-pick-btn-v2').forEach(b => b.classList.remove('active'));
       this.classList.add('active');
-      if (this.dataset.type === "rent") {
-        renderProperties(propertiesData.filter(x => x.title.toLowerCase().includes("apartment") || x.title.toLowerCase().includes("studio")));
-      } else if (this.dataset.type === "buy") {
-        renderProperties(propertiesData.filter(x => x.title.toLowerCase().includes("luxury") || x.title.toLowerCase().includes("apartment")));
-      } else if (this.dataset.type === "new") {
-        renderProperties(propertiesData);
-      } else {
-        renderProperties(propertiesData);
-      }
+
+      let type = this.dataset.type;
+      if (type === "new") type = "commercial";
+
+      const data = await fetchProperties({ type });
+      renderProperties(data);
     });
   });
 }
 
-// ========= BURGER SIDEBAR MOBILE =========
-function setupMobileSidebar() {
-  const burger = document.getElementById("burgerMenu");
-  const mainSidebar = document.getElementById("mainSidebar");
-  const mainOverlay = document.getElementById("mainSidebarOverlay");
-
-  if (burger && mainSidebar && mainOverlay) {
-    burger.addEventListener("click", function (e) {
-      e.stopPropagation();
-      mainSidebar.classList.add("open");
-      mainOverlay.classList.add("active");
-    });
-
-    mainOverlay.addEventListener("click", function () {
-      mainSidebar.classList.remove("open");
-      mainOverlay.classList.remove("active");
-    });
-  }
-}
-
-// ========= SPLITBAR MOBILE DRAG (Version Corrigée) =========
-function initMobileSplit() {
-  if (window.innerWidth > 800) return;
-  const header = document.querySelector('.header2');
-  const chatCol = document.getElementById('chat-col-v2');
-  const propsCol = document.getElementById('properties-col');
-  const splitter = document.getElementById('splitterBar');
-  if (!chatCol || !propsCol || !splitter || !header) return;
-
-  const minChat = 70;
-  const minProps = 70;
-
-  function getTotalH() {
-    return window.innerHeight - header.offsetHeight;
-  }
-
-  let dragging = false, startY = 0, startChatHeight = 0;
-
-  splitter.addEventListener("mousedown", startDrag, false);
-  splitter.addEventListener("touchstart", startDrag, false);
-
-  function startDrag(e) {
-    dragging = true;
-    startY = (e.touches ? e.touches[0].clientY : e.clientY);
-    startChatHeight = chatCol.offsetHeight;
-    document.body.style.userSelect = "none";
-    document.body.style.touchAction = "none";
-    document.addEventListener("mousemove", moveDrag, false);
-    document.addEventListener("touchmove", moveDrag, false);
-    document.addEventListener("mouseup", endDrag, false);
-    document.addEventListener("touchend", endDrag, false);
-  }
-  function moveDrag(e) {
-    if (!dragging) return;
-    const y = (e.touches ? e.touches[0].clientY : e.clientY);
-    const headerH = header.offsetHeight;
-    const totalH = getTotalH();
-
-    let splitterPos = y - headerH;
-    splitterPos = Math.max(minChat, Math.min(totalH - minProps, splitterPos));
-    const chatH = splitterPos;
-    const propsH = totalH - chatH;
-
-    chatCol.style.height = chatH + "px";
-    propsCol.style.height = propsH + "px";
-
-    if (e.cancelable) e.preventDefault();
-  }
-  function endDrag() {
-    dragging = false;
-    document.body.style.userSelect = "";
-    document.body.style.touchAction = "";
-    document.removeEventListener("mousemove", moveDrag, false);
-    document.removeEventListener("touchmove", moveDrag, false);
-    document.removeEventListener("mouseup", endDrag, false);
-    document.removeEventListener("touchend", endDrag, false);
-  }
-
-  function setInitialHeights() {
-    const totalH = getTotalH();
-    chatCol.style.height = Math.round(totalH * 0.58) + "px";
-    propsCol.style.height = Math.round(totalH * 0.38) + "px";
-  }
-
-  window.addEventListener('resize', setInitialHeights);
-  setInitialHeights();
-}
-
-
 // ========= DOM READY =========
 document.addEventListener('DOMContentLoaded', () => {
-  // --- Activation des boutons de la sidebar ---
   document.querySelectorAll('.sidebar-btn').forEach((btn, i) => {
     if (i === 0) btn.onclick = () => { window.location.href = "accueil.html"; };
     btn.addEventListener('click', function () {
@@ -329,128 +283,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // --- Ajout d’un nouveau chat ---
-  const newChatBtn = document.getElementById('new-chat-btn');
-  if (newChatBtn) {
-    newChatBtn.onclick = () => addNewChat(true);
-  }
+  document.getElementById('new-chat-btn').onclick = () => addNewChat(true);
 
-  // --- Soumission du formulaire de chat ---
-  const chatForm = document.getElementById('chat-form');
-  const userInput = document.getElementById('user-input');
-  if (chatForm && userInput) {
-    chatForm.onsubmit = function (e) {
-      e.preventDefault();
-      const msg = userInput.value.trim();
-      if (!msg) return;
-      addMessageToCurrentChat('user', msg);
-      userInput.value = '';
-      setTimeout(() => {
-        addMessageToCurrentChat('bot', "Thanks for your message! We will check properties accordingly.");
-      }, 700);
-    };
-  }
+  document.getElementById('chat-form').onsubmit = function (e) {
+    e.preventDefault();
+    const input = document.getElementById('user-input');
+    const msg = input.value.trim();
+    if (!msg) return;
+    addMessageToCurrentChat('user', msg);
+    input.value = '';
+    setTimeout(() => {
+      addMessageToCurrentChat('bot', "Thanks for your message! We will check properties accordingly.");
+    }, 700);
+  };
 
-  // --- Réinitialisation du chat ---
-  const resetBtn = document.getElementById('reset-chat-btn');
-  if (resetBtn) resetBtn.onclick = () => resetCurrentChat();
+  document.getElementById('reset-chat-btn').onclick = () => resetCurrentChat();
 
-  // --- MENU BURGER PRINCIPAL (sidebar de gauche) ---
-  const burger = document.getElementById("burgerMenu");
-  const mainSidebar = document.getElementById("mainSidebar");
-  const mainOverlay = document.getElementById("mainSidebarOverlay");
-  if (burger && mainSidebar && mainOverlay) {
-    burger.addEventListener("click", function (e) {
-      e.stopPropagation();
-      mainSidebar.classList.add("open");
-      mainOverlay.classList.add("active");
-    });
-    mainOverlay.addEventListener("click", function () {
-      mainSidebar.classList.remove("open");
-      mainOverlay.classList.remove("active");
-    });
-  }
-
-  // --- MENU CHAT MOBILE (sidebar droite) ---
-  const chatToggleMobile = document.getElementById("btn-open-chat-sidebar");
-  const chatSidebar = document.querySelector(".multi-sidebar");
-  const chatOverlay = document.getElementById("sidebar-overlay");
-  if (chatToggleMobile && chatSidebar && chatOverlay) {
-    chatToggleMobile.addEventListener("click", (e) => {
-      e.stopPropagation();
-      chatSidebar.classList.add("open");
-      chatOverlay.classList.add("active");
-    });
-    chatOverlay.addEventListener("click", () => {
-      chatSidebar.classList.remove("open");
-      chatOverlay.classList.remove("active");
-    });
-  }
-
-  // --- Menu déroulant BUY / RENT ---
-  const buyDropdown = document.getElementById('buyDropdown');
-  const mainBuyBtn = document.getElementById('mainBuyBtn');
-  if (mainBuyBtn && buyDropdown) {
-    mainBuyBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      buyDropdown.classList.toggle('open');
-    });
-    document.addEventListener('click', function(e) {
-      if (!buyDropdown.contains(e.target) && e.target !== mainBuyBtn) {
-        buyDropdown.classList.remove('open');
-      }
-    });
-  }
-
-  // --- Initialisations supplémentaires ---
   setupFilters();
-  setupMobileSidebar(); // si utilisé autre part aussi
-  initMobileSplit();
   renderAll();
 });
 
-
-
-
-
-
-
-document.addEventListener('DOMContentLoaded', function() {
+// ========= DROPDOWN =========
+document.addEventListener('DOMContentLoaded', function () {
   const buyDropdown = document.getElementById('buyDropdown');
   const mainBuyBtn = document.getElementById('mainBuyBtn');
-  const burger = document.getElementById('burgerMenu');
-  const allButton = document.querySelector('.all-button');
-
-  // --- Menu BUY dropdown (desktop)
-mainBuyBtn.addEventListener('click', function(e) {
-  // On n'empêche la navigation que si on clique sur la flèche ▼
-  if (e.target.closest('.arrow')) {
+  mainBuyBtn.addEventListener('click', function (e) {
     e.preventDefault();
     buyDropdown.classList.toggle('open');
-  }
-  // si on clique sur le texte "Buy", on laisse le lien aller vers buy.html
-});
-
-
-  document.addEventListener('click', function(e) {
-    if (!buyDropdown.contains(e.target) && e.target !== mainBuyBtn) {
+  });
+  document.addEventListener('click', function (e) {
+    if (!buyDropdown.contains(e.target)) {
       buyDropdown.classList.remove('open');
     }
-
-    // Fermer menu mobile si on clique en dehors
-    if (
-      allButton.classList.contains('menu-open') &&
-      !allButton.contains(e.target) &&
-      !burger.contains(e.target)
-    ) {
-      allButton.classList.remove('menu-open');
-    }
-  });
-
-  // --- Burger toggle (mobile)
-  burger.addEventListener('click', function(e) {
-    e.stopPropagation(); // empêche le clic extérieur de le refermer directement
-    allButton.classList.toggle('menu-open');
   });
 });
-
