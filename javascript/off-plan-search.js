@@ -1,335 +1,164 @@
-const projects = [
-  {
-    title: "330 Riverside Crescent",
-    location: "Sobha Hartand II - SOBHA",
-    developer: "SOBHA",
-    type: "Apartment",
-    bedrooms: 2,
-    bathrooms: 3,
-    badge: { label: "Best ROI", color: "red" },
-    price: 1490000,
-    priceLabel: "From AED 1,490,000",
-    tag: "1% monthly",
-    img: "styles/photo/330riverside.jpg",
-    action: "Affordable Projects",
-    actionColor: "orange",
-    delivery: "Q3 2025"
-  },
-  {
-    title: "The Sanctuary",
-    location: "Mohammed Bin Rash City - ELLINGTON",
-    developer: "ELLINGTON",
-    type: "Villa",
-    bedrooms: 4,
-    bathrooms: 5,
-    badge: { label: "Handover Soon", color: "orange" },
-    price: 4100000,
-    priceLabel: "From AED 4,100,000",
-    tag: "Gated community",
-    img: "styles/photo/sanctuary.jpg",
-    action: "Gaper project",
-    actionColor: "orange",
-    delivery: "2026"
-  },
-  {
-    title: "Emaar Beachfront",
-    location: "Dubai Marina – EMAAR",
-    developer: "EMAAR",
-    type: "Apartment",
-    bedrooms: 3,
-    bathrooms: 3,
-    badge: { label: "Sea View", color: "green" },
-    price: 2200000,
-    priceLabel: "From AED 2,200,000",
-    tag: "Sea View",
-    img: "styles/photo/beachfront.jpg",
-    action: "View Project",
-    actionColor: "orange",
-    delivery: "2027"
-  },
-  {
-    title: "Sobha One",
-    location: "Ras Al Khor - SOBHA",
-    developer: "SOBHA",
-    type: "Apartment",
-    bedrooms: 1,
-    bathrooms: 2,
-    badge: { label: "Investor Deal", color: "blue" },
-    price: 980000,
-    priceLabel: "From AED 980,000",
-    tag: "Golf Course View",
-    img: "styles/photo/sobhaone.jpg",
-    action: "Invest Now",
-    actionColor: "blue",
-    delivery: "Q4 2026"
-  },
-  {
-    title: "Ellington House",
-    location: "Dubai Hills - ELLINGTON",
-    developer: "ELLINGTON",
-    type: "Apartment",
-    bedrooms: 2,
-    bathrooms: 2,
-    badge: { label: "Best Seller", color: "red" },
-    price: 1950000,
-    priceLabel: "From AED 1,950,000",
-    tag: "Park View",
-    img: "styles/photo/ellingtonhouse.jpg",
-    action: "Discover Project",
-    actionColor: "red",
-    delivery: "Q2 2025"
-  },
-  {
-    title: "Waves Grande",
-    location: "Sobha Hartland - SOBHA",
-    developer: "SOBHA",
-    type: "Apartment",
-    bedrooms: 3,
-    bathrooms: 4,
-    badge: { label: "Ready Soon", color: "orange" },
-    price: 2450000,
-    priceLabel: "From AED 2,450,000",
-    tag: "Corner Unit",
-    img: "styles/photo/wavesgrande.jpg",
-    action: "Limited Offer",
-    actionColor: "orange",
-    delivery: "Q1 2025"
-  },
-  {
-    title: "Creek Vista",
-    location: "MBR City - SOBHA",
-    developer: "SOBHA",
-    type: "Apartment",
-    bedrooms: 1,
-    bathrooms: 1,
-    badge: { label: "Hot", color: "red" },
-    price: 850000,
-    priceLabel: "From AED 850,000",
-    tag: "Canal View",
-    img: "styles/photo/creekvista.jpg",
-    action: "See More",
-    actionColor: "red",
-    delivery: "Q4 2025"
-  },
-  {
-    title: "Wilton Park Residences",
-    location: "MBR City - ELLINGTON",
-    developer: "ELLINGTON",
-    type: "Apartment",
-    bedrooms: 2,
-    bathrooms: 2,
-    badge: { label: "Limited", color: "blue" },
-    price: 1200000,
-    priceLabel: "From AED 1,200,000",
-    tag: "Green Area",
-    img: "styles/photo/wiltonpark.jpg",
-    action: "See Details",
-    actionColor: "blue",
-    delivery: "2025"
-  },
-  {
-    title: "Villa Lux",
-    location: "Meydan - EMAAR",
-    developer: "EMAAR",
-    type: "Villa",
-    bedrooms: 5,
-    bathrooms: 6,
-    badge: { label: "Luxury", color: "green" },
-    price: 5200000,
-    priceLabel: "From AED 5,200,000",
-    tag: "Private Pool",
-    img: "styles/photo/villalux.jpg",
-    action: "Book Now",
-    actionColor: "green",
-    delivery: "2027"
-  },
-  {
-    title: "Palm Jumeirah Mansion",
-    location: "Palm Jumeirah - EMAAR",
-    developer: "EMAAR",
-    type: "Villa",
-    bedrooms: 6,
-    bathrooms: 8,
-    badge: { label: "Exclusive", color: "red" },
-    price: 27000000,
-    priceLabel: "From AED 27,000,000",
-    tag: "Palm View",
-    img: "styles/photo/palmmansion.jpg",
-    action: "Ultra Luxury",
-    actionColor: "red",
-    delivery: "2025"
-  },
-  {
-    title: "Upper House",
-    location: "JLT - ELLINGTON",
-    developer: "ELLINGTON",
-    type: "Apartment",
-    bedrooms: 3,
-    bathrooms: 3,
-    badge: { label: "New", color: "blue" },
-    price: 2350000,
-    priceLabel: "From AED 2,350,000",
-    tag: "Skyline View",
-    img: "styles/photo/upperhouse.jpg",
-    action: "Explore",
-    actionColor: "blue",
-    delivery: "2026"
-  },
-  {
-    title: "The Quayside",
-    location: "Business Bay - ELLINGTON",
-    developer: "ELLINGTON",
-    type: "Apartment",
-    bedrooms: 1,
-    bathrooms: 1,
-    badge: { label: "New Launch", color: "green" },
-    price: 1300000,
-    priceLabel: "From AED 1,300,000",
-    tag: "Canal View",
-    img: "styles/photo/quayside.jpg",
-    action: "Explore Now",
-    actionColor: "green",
-    delivery: "2027"
-  },
-  {
-    title: "Nima",
-    location: "The Valley - EMAAR",
-    developer: "EMAAR",
-    type: "Townhouse",
-    bedrooms: 3,
-    bathrooms: 4,
-    badge: { label: "Family", color: "blue" },
-    price: 1950000,
-    priceLabel: "From AED 1,950,000",
-    tag: "Community Park",
-    img: "styles/photo/nima.jpg",
-    action: "View Offer",
-    actionColor: "blue",
-    delivery: "2026"
-  },
-  {
-    title: "Elitz 3",
-    location: "JVC - DANUBE",
-    developer: "DANUBE",
-    type: "Apartment",
-    bedrooms: 1,
-    bathrooms: 2,
-    badge: { label: "Installment", color: "orange" },
-    price: 700000,
-    priceLabel: "From AED 700,000",
-    tag: "1% Monthly",
-    img: "styles/photo/elitz3.jpg",
-    action: "See Plan",
-    actionColor: "orange",
-    delivery: "Q2 2026"
-  },
-  {
-    title: "Hamilton Residence",
-    location: "Business Bay - SOBHA",
-    developer: "SOBHA",
-    type: "Apartment",
-    bedrooms: 2,
-    bathrooms: 3,
-    badge: { label: "Brand New", color: "blue" },
-    price: 1600000,
-    priceLabel: "From AED 1,600,000",
-    tag: "Downtown View",
-    img: "styles/photo/hamilton.jpg",
-    action: "Details",
-    actionColor: "blue",
-    delivery: "Q4 2025"
-  },
-  {
-    title: "Peninsula Five",
-    location: "Business Bay - SELECT GROUP",
-    developer: "SELECT GROUP",
-    type: "Apartment",
-    bedrooms: 2,
-    bathrooms: 2,
-    badge: { label: "Waterfront", color: "green" },
-    price: 2350000,
-    priceLabel: "From AED 2,350,000",
-    tag: "Burj View",
-    img: "styles/photo/peninsulafive.jpg",
-    action: "Show Units",
-    actionColor: "green",
-    delivery: "2025"
-  },
-  {
-    title: "Hillside Villas",
-    location: "Dubai Hills - EMAAR",
-    developer: "EMAAR",
-    type: "Villa",
-    bedrooms: 4,
-    bathrooms: 5,
-    badge: { label: "Premium", color: "orange" },
-    price: 4300000,
-    priceLabel: "From AED 4,300,000",
-    tag: "Park Side",
-    img: "styles/photo/hillsidevillas.jpg",
-    action: "See Villas",
-    actionColor: "orange",
-    delivery: "2026"
-  },
-  {
-    title: "Creek Palace",
-    location: "Dubai Creek Harbour - EMAAR",
-    developer: "EMAAR",
-    type: "Apartment",
-    bedrooms: 2,
-    bathrooms: 2,
-    badge: { label: "View", color: "blue" },
-    price: 2100000,
-    priceLabel: "From AED 2,100,000",
-    tag: "Creek View",
-    img: "styles/photo/creekpalace.jpg",
-    action: "See Apartments",
-    actionColor: "blue",
-    delivery: "2027"
+// ========= Données depuis Supabase (remplace l'ancien tableau en dur) =========
+let projects = []; // alimenté par Supabase
+
+// Helpers communs
+const num = (v) => {
+  if (v === null || v === undefined) return null;
+  const s = String(v).trim();
+  if (s === "") return null;
+  const n = typeof v === "number" ? v : Number(s.replace(/[^\d.]/g, ""));
+  return Number.isFinite(n) ? n : null;
+};
+const currencyAED = (n) => {
+  if (n == null) return "";
+  try { return new Intl.NumberFormat("en-AE",{style:"currency",currency:"AED",maximumFractionDigits:0}).format(n); }
+  catch { return `AED ${Number(n).toLocaleString()}`; }
+};
+async function waitForSupabase(timeout=8000){
+  if (window.supabase) return;
+  await new Promise((resolve, reject) => {
+    const t = setTimeout(()=>reject(new Error("Supabase not ready (timeout)")), timeout);
+    const onReady = () => { clearTimeout(t); window.removeEventListener("supabase:ready", onReady); resolve(); };
+    window.addEventListener("supabase:ready", onReady);
+  });
+}
+
+// Détection des noms de colonnes (basé sur tes captures)
+async function detectColumns(table){
+  const { data, error } = await window.supabase.from(table).select("*").limit(1);
+  if (error) throw error;
+  const sample = data?.[0] || {};
+  const has  = (k) => k && Object.prototype.hasOwnProperty.call(sample, k);
+  const pick = (...c) => c.find(has);
+
+  return {
+    id:        pick("id","uuid"),
+    title:     pick("titre","title","name"),
+    location:  pick("localisation","location"),
+    status:    pick("project status","project_status","status"),
+    handover:  pick("handover estimated","handover"),
+    price:     pick("price starting","price"),
+    dev:       pick("developer name","developer"),
+    logoUrl:   pick("developer photo_url","developer_logo","logo_url"),
+    imageUrl:  pick("photo_url","image_url","cover_url"),
+    payment:   pick("payment plan","payment_plan"),
+    desc:      pick("description","summary"),
+    type:      pick("units types","unit_types","unit_type","property_type"),
+    rooms:     pick("rooms","bedrooms","br"),
+    baths:     pick("bathrooms","baths","ba")
+  };
+}
+
+// Map 1 ligne DB -> format des cartes de listing
+function mapRowToCard(row, COL){
+  const priceNum   = num(row[COL.price]);
+  const statusRaw  = String(row[COL.status] ?? "").trim();
+  const handover   = String(row[COL.handover] ?? "").trim();
+
+  // phase + badge
+  const phase = /handover|ready|complete/i.test(statusRaw) || /\bQ[1-4]\s*20\d{2}\b/i.test(handover)
+               ? "handover" : "launch";
+  const badge = {
+    label: statusRaw || (phase === "handover" ? "Handover Soon" : "Launch Soon"),
+    color: phase === "handover" ? "orange" : "blue"
+  };
+
+  // petit tag (prend 1er bout du payment plan ou le type)
+  let tag = "";
+  if (row[COL.payment]) {
+    tag = String(row[COL.payment]).split(/[\n•;,;-]+/).map(s=>s.trim()).filter(Boolean)[0] || "";
   }
-];
+  if (!tag && row[COL.type]) tag = String(row[COL.type]);
+
+  return {
+    title:      row[COL.title]     || "Untitled",
+    location:   row[COL.location]  || "",
+    developer:  row[COL.dev]       || "",
+    type:       row[COL.type]      || "",
+    bedrooms:   row[COL.rooms]     ?? null,
+    bathrooms:  row[COL.baths]     ?? null,
+    badge,
+    price:      priceNum ?? 0,
+    priceLabel: priceNum ? `From ${currencyAED(priceNum)}` : "",
+    tag,
+    img:        row[COL.imageUrl] || row[COL.logoUrl] || "styles/photo/dubai-map.jpg",
+    action:     "View Project",
+    actionColor: badge.color,
+    delivery:   handover
+  };
+}
+
+// Récupération Supabase
+async function fetchOffplanForListing(){
+  const table = "offplan";
+  const COL = await detectColumns(table);
+  const { data, error } = await window.supabase.from(table).select("*").limit(500);
+  if (error) { console.warn("[Supabase] offplan:", error.message); return []; }
+  return (data || []).map(r => mapRowToCard(r, COL));
+}
+
+
+
+
+
+
+
 let selectedDeliveryDates = [];
 let currentPage = 1;
 
 // ===================== AFFICHAGE =====================
+// Remplace ENTIEREMENT ta fonction displayFlatProjects par ceci
 function displayFlatProjects(array) {
   const container = document.getElementById("propertyResults");
   container.innerHTML = "";
-  if (array.length === 0) {
+  if (!array.length) {
     container.innerHTML = '<div style="margin:40px auto;font-size:1.2em;color:#c44;text-align:center;">No project found</div>';
     return;
   }
-  array.forEach((p, i) => {
+
+  array.forEach((p) => {
+    // dev peut venir de la DB (p.dev) ou de l'ancien mock (p.developer)
+    const devName = p.dev || p.developer || "";
+    const sub = [p.location, devName].filter(Boolean).join(" - ");
+
+    // badge couleur
     let badgeClass = "card-badge";
     if (p.badge?.color === "orange") badgeClass += " orange";
     else if (p.badge?.color === "green") badgeClass += " green";
     else if (p.badge?.color === "blue") badgeClass += " blue";
     else if (p.badge?.color === "red") badgeClass += " red";
 
-    // Génère le HTML comme string classique
-    let html = `
+    const priceLabel = p.priceLabel || (p.price ? `From AED ${Number(p.price).toLocaleString()}` : "");
+
+    // image: essaye d'abord l'image projet, sinon le logo, sinon fallback
+    const imgSrc = p.image || p.img || p.logo || p.logoUrl || "styles/photo/dubai-map.jpg";
+
+    const html = `
       <div style="position:relative;">
-        <img src="${p.img}" alt="${p.title}" class="card-image-flat" />
-        ${p.badge ? `<span class="${badgeClass}">${p.badge.label}</span>` : ""}
+        ${p.statusLabel ? `<span class="card-badge orange">${p.statusLabel}</span>` : (p.badge ? `<span class="${badgeClass}">${p.badge.label}</span>` : "")}
+        <img src="${imgSrc}" alt="${p.title}" class="card-image-flat"
+             onerror="this.onerror=null;this.src='styles/photo/dubai-map.jpg';"/>
       </div>
       <div class="card-body-flat">
-        <div class="card-title-flat">${p.title}</div>
-        <div class="card-sub-flat">${p.location}</div>
-        <div class="card-price-flat">${p.priceLabel || (p.price ? `From AED ${p.price.toLocaleString()}` : "")}</div>
+        <div class="card-title-flat">${p.title || p.titre || "Untitled"}</div>
+        <div class="card-sub-flat">${sub}</div>
+        <div class="card-price-flat">${priceLabel}</div>
         <div class="card-icons-row">${p.tag ? `<span><i class="fa fa-check"></i> ${p.tag}</span>` : ""}</div>
-        <button class="card-action-btn">${p.action}</button>
+        <button class="card-action-btn">${p.action || "View Project"}</button>
       </div>
     `;
+
     const card = document.createElement("div");
     card.className = "property-card-flat";
     card.tabIndex = 0;
     card.innerHTML = html;
     card.addEventListener("click", () => {
-      window.location = 'off-plan-click.html?project=' + encodeURIComponent(p.title);
+      window.location = 'off-plan-click.html?project=' + encodeURIComponent(p.title || p.titre || "");
     });
     container.appendChild(card);
   });
 }
+
 
 
 // ===================== FILTRAGE + PAGINATION =====================
@@ -909,6 +738,30 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+
+// ========= BOOT =========
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    await waitForSupabase();
+    projects = await fetchOffplanForListing();
+
+    // si aucune donnée, on évite de casser le slider
+    if (!projects.length) {
+      document.getElementById("propertyResults").innerHTML =
+        '<div style="margin:40px auto;font-size:1.2em;color:#c44;text-align:center;">No project found</div>';
+      return;
+    }
+
+    // init filtres dépendants des prix
+    setupDeliveryDateButtons();
+    setupPriceFilter(projects);
+    filterAndDisplayProjects(1);
+  } catch (e) {
+    console.error(e);
+  }
+});
+
 
 
 
