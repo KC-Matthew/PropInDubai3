@@ -375,3 +375,4 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!buyDropdown.contains(e.target)) buyDropdown.classList.remove('open');
   });
 });
+
