@@ -1,236 +1,311 @@
-const data = {
-  title: "The Dasis",
-  location: "Dubai Hills",
-  developer: "Emaar",
-  status: "Off-Plan",
-  handover: "Q4 2027",
-  price: "From AED 6.5M",
-  units: "3-6 Bedroom Villas",
-  paymentPlan: "Flexible 80/20 Payment Plan",
-  brochure: "https://example.com/dasis-brochure.pdf",
-  description: "The Dasis is a new waterfront community offering world-class amenities and smartly designed villas in Dubai Hills. Ideal for families and investors.",
-  images: [
-    "styles/photo/dubai-map.jpg",
-    "styles/photo/findagent.png",
-    "styles/photo/fond.jpg"
-  ],
-  agent: {
-    name: "Sarah El Masri",
-    whatsapp: "+971 50 987 6543",
-    whatsappLink: "https://wa.me/971509876543",
-    email: "sarah.elmasri@propindubai.com"
-  },
-  paymentDetails: [
-    { month: "Jan 2025", amount: "20%" },
-    { month: "Jun 2025", amount: "10%" },
-    { month: "Jan 2026", amount: "20%" },
-    { month: "Q4 2027", amount: "50% on Handover" }
-  ],
-  availableUnits: [
-    { type: "3BR Villa", size: "3,200 sqft", price: "AED 6.5M", availability: "Available" },
-    { type: "4BR Villa", size: "4,100 sqft", price: "AED 7.9M", availability: "Few Units Left" },
-    { type: "5BR Mansion", size: "5,800 sqft", price: "AED 11.5M", availability: "Sold Out" }
-  ],
-  developerVision: "Emaar’s vision for this master development includes a marina, lush parks, retail zones, and educational hubs. Dasis is the first phase of this transformation.",
-  otherProjects: ["Creek Harbour", "The Valley", "Emaar South", "Downtown Views II"]
-};
+/* off-plan-click.js — fiche projet reliée à Supabase
+   Paramètres supportés :
+   - ?id=<uuid>  ✅ recommandé
+   - ?project=<titre>  (secours si pas d’id)
+*/
+(function () {
+  /* ============ Utils ============ */
+  const qs = new URLSearchParams(location.search);
+  const wantedId = qs.get("id");
+  const wantedTitle = (qs.get("project") || "").trim();
 
-document.getElementById('projectTitle').textContent = data.title;
-document.getElementById('projectLocation').textContent = data.location;
-document.getElementById('developer').textContent = data.developer;
-document.getElementById('status').textContent = data.status;
-document.getElementById('handover').textContent = data.handover;
-document.getElementById('price').textContent = data.price;
-document.getElementById('units').textContent = data.units;
-document.getElementById('paymentPlan').textContent = data.paymentPlan;
-document.getElementById('description').textContent = data.description;
-document.getElementById('mainProjectImage').src = data.images[0];
-document.getElementById('photoCount').textContent = data.images.length;
-document.getElementById('brochureLink').href = data.brochure;
-
-const agentContact = document.getElementById('agentContact');
-agentContact.innerHTML = `
-  <p><i class="fas fa-user"></i> <strong>Agent:</strong> ${data.agent.name}</p>
-  <p><i class="fab fa-whatsapp"></i> <a href="${data.agent.whatsappLink}" target="_blank">${data.agent.whatsapp}</a></p>
-  <p><i class="fas fa-envelope"></i> <a href="mailto:${data.agent.email}">${data.agent.email}</a></p>
-`;
-
-const unitsTableBody = document.getElementById('unitsTableBody');
-data.availableUnits.forEach(unit => {
-  const row = `<tr><td>${unit.type}</td><td>${unit.size}</td><td>${unit.price}</td><td>${unit.availability}</td></tr>`;
-  unitsTableBody.innerHTML += row;
-});
-
-const paymentToggle = document.getElementById('paymentToggle');
-const paymentDetail = document.getElementById('paymentDetail');
-paymentToggle.onclick = () => {
-  paymentDetail.classList.toggle('show');
-  if (paymentDetail.classList.contains('show')) {
-    paymentDetail.innerHTML = '<h4>Payment Schedule</h4><ul>' +
-      data.paymentDetails.map(p => `<li>${p.month} - ${p.amount}</li>`).join('') +'</ul>';
-  } else {
-    paymentDetail.innerHTML = '';
-  }
-};
-
-document.getElementById('developerVision').textContent = data.developerVision;
-const devList = document.getElementById('developerProjects');
-data.otherProjects.forEach(p => {
-  const li = document.createElement('li');
-  li.textContent = p;
-  devList.appendChild(li);
-});
-
-// ----------- Carousel principal avec points et swipe ------------
-
-let currentImageIndex = 0;
-const mainImage = document.getElementById('mainImage');
-const mainProjectImage = document.getElementById('mainProjectImage');
-const carouselIndicators = document.getElementById('carousel-indicators');
-const lightbox = document.getElementById('lightbox');
-const lightboxImg = document.getElementById('lightbox-img');
-
-function updateImage() {
-  mainProjectImage.src = data.images[currentImageIndex];
-  document.getElementById('photoCount').textContent = data.images.length;
-  updateIndicators();
-}
-
-function updateIndicators() {
-  // Les points s'affichent uniquement sur mobile (mais ils sont générés tout le temps, CSS gère l'affichage)
-  carouselIndicators.innerHTML = '';
-  for (let i = 0; i < data.images.length; i++) {
-    const dot = document.createElement('div');
-    dot.className = 'carousel-indicator-dot' + (i === currentImageIndex ? ' active' : '');
-    dot.addEventListener('click', (e) => {
-      e.stopPropagation();
-      currentImageIndex = i;
-      updateImage();
-    });
-    carouselIndicators.appendChild(dot);
-  }
-}
-
-function goToPrev() {
-  currentImageIndex = (currentImageIndex - 1 + data.images.length) % data.images.length;
-  updateImage();
-}
-function goToNext() {
-  currentImageIndex = (currentImageIndex + 1) % data.images.length;
-  updateImage();
-}
-
-// --- Swipe au doigt sur le carousel principal ---
-let touchStartX = 0;
-let touchEndX = 0;
-mainImage.addEventListener('touchstart', function(e) {
-  if (e.touches.length === 1) touchStartX = e.touches[0].clientX;
-});
-mainImage.addEventListener('touchmove', function(e) {
-  if (e.touches.length === 1) touchEndX = e.touches[0].clientX;
-});
-mainImage.addEventListener('touchend', function(e) {
-  const minDistance = 50;
-  if (touchStartX && touchEndX) {
-    const deltaX = touchEndX - touchStartX;
-    if (deltaX > minDistance) {
-      goToPrev();
-    } else if (deltaX < -minDistance) {
-      goToNext();
-    }
-  }
-  touchStartX = 0;
-  touchEndX = 0;
-});
-
-// Ouvre la lightbox au clic sur l’image principale
-mainProjectImage.onclick = (event) => {
-  lightbox.style.display = 'flex';
-  lightboxImg.src = data.images[currentImageIndex];
-};
-
-// --- SWIPE dans la lightbox (toujours flèches dans la lightbox) ---
-let lightboxTouchStartX = 0;
-let lightboxTouchEndX = 0;
-lightboxImg.addEventListener('touchstart', function(e) {
-  if (e.touches.length === 1) lightboxTouchStartX = e.touches[0].clientX;
-});
-lightboxImg.addEventListener('touchmove', function(e) {
-  if (e.touches.length === 1) lightboxTouchEndX = e.touches[0].clientX;
-});
-lightboxImg.addEventListener('touchend', function(e) {
-  const minDistance = 40;
-  if (lightboxTouchStartX && lightboxTouchEndX) {
-    const deltaX = lightboxTouchEndX - lightboxTouchStartX;
-    if (deltaX > minDistance) {
-      goToPrev();
-      lightboxImg.src = data.images[currentImageIndex];
-    } else if (deltaX < -minDistance) {
-      goToNext();
-      lightboxImg.src = data.images[currentImageIndex];
-    }
-  }
-  lightboxTouchStartX = 0;
-  lightboxTouchEndX = 0;
-});
-
-document.getElementById('lightboxOverlay').onclick = () => {
-  lightbox.style.display = 'none';
-};
-document.getElementById('lightbox-prev').onclick = () => {
-  goToPrev();
-  lightboxImg.src = data.images[currentImageIndex];
-};
-document.getElementById('lightbox-next').onclick = () => {
-  goToNext();
-  lightboxImg.src = data.images[currentImageIndex];
-};
-
-// Init
-updateImage();
-
-// --------- Cartes recommandées --------
-function extractNumeric(priceStr) {
-  return Number(priceStr.replace(/[^\d]/g, ""));
-}
-
-const recommendedProjects = [
-  // ... (pas modifié, laisse comme tu avais)
-];
-
-const recommendedList = document.getElementById("recommendedList");
-recommendedList.innerHTML = "";
-
-recommendedProjects.forEach((project, idx) => {
-  let minPrice = null, maxPrice = null;
-  if (project.units && project.units.length) {
-    const prices = project.units.map(u => extractNumeric(u.price));
-    minPrice = Math.min(...prices);
-    maxPrice = Math.max(...prices);
-  }
-  const rangePriceText = minPrice && maxPrice 
-    ? `Range Price: AED ${minPrice.toLocaleString()} - AED ${maxPrice.toLocaleString()}`
-    : "";
-
-  const card = document.createElement("div");
-  card.className = "recommended-card";
-  card.innerHTML = `
-    <img src="${project.image}" alt="${project.location}">
-    <div class="recommended-info">
-      <h3>${rangePriceText}</h3>
-      <p><i class="fas fa-bed"></i> ${project.beds} &nbsp; <i class="fas fa-bath"></i> ${project.baths} &nbsp; <i class="fas fa-vector-square"></i> ${project.size}</p>
-      <p class="location-text">${project.location}</p>
-      <p class="agency-text">${project.agency}</p>
-    </div>
-  `;
-  card.style.cursor = "pointer";
-  card.onclick = () => {
-    window.location.href = `off-plan-click.html?rec_id=${idx}`;
+  const num = (v) => {
+    if (v == null) return null;
+    const n = typeof v === "number" ? v : Number(String(v).replace(/[^\d.]/g, ""));
+    return Number.isFinite(n) ? n : null;
   };
-  recommendedList.appendChild(card);
-});
+  const currencyAED = (n) => {
+    if (n == null) return "";
+    try { return new Intl.NumberFormat("en-AE",{style:"currency",currency:"AED",maximumFractionDigits:0}).format(n); }
+    catch { return `AED ${Number(n).toLocaleString()}`; }
+  };
+  async function waitForSupabase(timeout=8000){
+    if (window.supabase) return;
+    await new Promise((resolve, reject) => {
+      const t = setTimeout(()=>reject(new Error("Supabase not ready (timeout)")), timeout);
+      const onReady = () => { clearTimeout(t); window.removeEventListener("supabase:ready", onReady); resolve(); };
+      window.addEventListener("supabase:ready", onReady);
+    });
+  }
+  const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || ""; };
 
-// (Garde ton code du menu burger/dropdown inchangé)
+  /* ============ Détection colonnes (offplan) ============ */
+  async function detectColumns(table){
+    const { data, error } = await window.supabase.from(table).select("*").limit(1);
+    if (error) throw error;
+    const sample = data?.[0] || {};
+    const has  = (k) => k && Object.prototype.hasOwnProperty.call(sample, k);
+    const pick = (...c) => c.find(has);
+    return {
+      id:        pick("id","uuid"),
+      title:     pick("titre","title","name"),
+      location:  pick("localisation","location"),
+      status:    pick("project status","project_status","status"),
+      handover:  pick("handover estimated","handover"),
+      price:     pick("price starting","price"),
+      dev:       pick("developer name","developer"),
+      imageUrl:  pick("photo_url","image_url","cover_url"),
+      logoUrl:   pick("developer photo_url","developer_logo","logo_url"),
+      brochure:  pick("brochure_url"),
+      payment:   pick("payment plan","payment_plan"),
+      units:     pick("units types","unit_types","unit_type","property_type"),
+      desc:      pick("description","summary"),
+      lat:       pick("lat","latitude"),
+      lon:       pick("lon","lng","longitude"),
+    };
+  }
 
+  /* ============ Fetch principal (1 projet) ============ */
+  async function fetchOffplanRow(){
+    const table = "offplan";
+    const COL = await detectColumns(table);
 
+    // 1) par ID
+    if (wantedId) {
+      const { data, error } = await window.supabase.from(table).select("*").eq(COL.id, wantedId).maybeSingle();
+      if (error) throw error;
+      if (data) return { row: data, COL };
+    }
 
+    // 2) par titre (casse ignorée)
+    if (wantedTitle) {
+      const { data, error } = await window.supabase.from(table).select("*").ilike(COL.title, wantedTitle);
+      if (error) throw error;
+      if (data && data.length) return { row: data[0], COL };
+    }
+
+    // 3) fallback : premier
+    const { data, error } = await window.supabase.from(table).select("*").limit(1).maybeSingle();
+    if (error) throw error;
+    return { row: data, COL };
+  }
+
+  /* ============ Fetch extras (table liée "offplan click") ============ */
+  async function fetchClickExtras(offplanId){
+    const { data, error } = await window.supabase
+      .from("offplan click")
+      .select("*")
+      .eq("offplan id", offplanId)
+      .limit(1)
+      .maybeSingle();
+    if (error) { console.warn("[offplan click]", error.message); return null; }
+    return data || null;
+  }
+
+  /* ============ Recommended (même développeur, sinon derniers) ============ */
+  async function fetchRecommended(devName, currentId, COL){
+    // ⚠️ pour éviter les soucis de colonnes avec espaces, on prend "*"
+    let q = window.supabase.from("offplan").select("*").neq(COL.id, currentId).limit(12);
+    if (devName) q = q.ilike(COL.dev || "developer name", `%${devName}%`);
+    let { data, error } = await q;
+    if (error) { console.warn("[recommended]", error.message); data = []; }
+
+    if (!data.length) {
+      const r = await window.supabase.from("offplan").select("*").order(COL.id, { ascending:false }).limit(6);
+      data = r.data || [];
+    }
+    return data;
+  }
+
+  async function renderRecommended(list, COL){
+    const wrap = document.getElementById("recommendedList");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+    list.slice(0,6).forEach(r => {
+      const id    = r[COL.id];
+      const title = r[COL.title] || "";
+      const loc   = r[COL.location] || "";
+      const price = num(r[COL.price]);
+      const img   = r[COL.imageUrl] || r[COL.logoUrl] || "styles/photo/dubai-map.jpg";
+
+      const card = document.createElement("div");
+      card.className = "recommended-card";
+      card.innerHTML = `
+        <img src="${img}" alt="${loc}" onerror="this.onerror=null;this.src='styles/photo/dubai-map.jpg'">
+        <div class="recommended-info">
+          <h3>${price ? `From ${currencyAED(price)}` : ""}</h3>
+          <p class="location-text">${title}</p>
+          <p class="agency-text">${loc}</p>
+        </div>`;
+      card.style.cursor = "pointer";
+      card.onclick = () => {
+        const url = new URL("off-plan-click.html", location.href);
+        url.searchParams.set("id", id);
+        url.searchParams.set("project", title);
+        window.location.href = url.toString();
+      };
+      wrap.appendChild(card);
+    });
+  }
+
+  /* ============ Tableau des unités (fallback intelligent) ============ */
+  function fillUnitsTable(row, COL){
+    const tbody = document.getElementById("unitsTableBody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    const unitsStr  = String(row[COL.units] || "").trim();
+    const priceNum  = num(row[COL.price]);
+    const priceText = priceNum ? `From ${currencyAED(priceNum)}` : "—";
+
+    if (!unitsStr) {
+      // Pas d’info en base → on montre au moins 1 ligne “générique”
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>Units Available</td><td>—</td><td>${priceText}</td><td>Contact us</td>`;
+      tbody.appendChild(tr);
+      return;
+    }
+
+    const tokens = unitsStr.split(/[,;/•\n]+/).map(s=>s.trim()).filter(Boolean);
+    const seen = new Set();
+    tokens.forEach(t => {
+      const k = t.toLowerCase();
+      if (seen.has(k)) return; seen.add(k);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${t}</td><td>—</td><td>${priceText}</td><td>Available</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ============ Rendu principal ============ */
+  function fillMain(row, COL, extras){
+    const title    = row[COL.title]     || "Untitled";
+    const location = row[COL.location]  || "";
+    const dev      = row[COL.dev]       || "";
+    const status   = row[COL.status]    || "";
+    const handover = row[COL.handover]  || "";
+    const priceNum = num(row[COL.price]);
+    const units    = row[COL.units]     || "";
+    const pay      = row[COL.payment]   || "";
+    const desc     = row[COL.desc]      || extras?.description || "";
+    const brochure = row[COL.brochure]  || "#";
+    const imgMain  = row[COL.imageUrl]  || row[COL.logoUrl] || "styles/photo/dubai-map.jpg";
+    const imgLogo  = row[COL.logoUrl];
+
+    setText("projectTitle", title);
+    setText("projectLocation", location);
+    setText("developer", dev);
+    setText("status", status);
+    setText("handover", handover);
+    setText("price", priceNum ? `From ${currencyAED(priceNum)}` : "");
+    setText("units", units);
+    setText("paymentPlan", pay);
+    setText("description", desc);
+
+    const a = document.getElementById("brochureLink");
+    if (a){
+      if (brochure && brochure !== "#") { a.href = brochure; a.style.display = ""; }
+      else { a.style.display = "none"; }
+    }
+
+    // --- images / carrousel (image + logo si dispo)
+    const images  = [imgMain, imgLogo].filter(Boolean);
+    const mainImg = document.getElementById("mainProjectImage");
+    const count   = document.getElementById("photoCount");
+    const indWrap = document.getElementById("carousel-indicators");
+    let idx = 0;
+
+    function drawIndicators(){
+      if (!indWrap) return;
+      indWrap.innerHTML = "";
+      for (let i=0;i<images.length;i++){
+        const dot = document.createElement("div");
+        dot.className = "carousel-indicator-dot" + (i===idx ? " active" : "");
+        dot.onclick = (e)=>{ e.stopPropagation(); idx = i; update(); };
+        indWrap.appendChild(dot);
+      }
+    }
+    function update(){
+      if (mainImg){
+        mainImg.src = images[idx];
+        mainImg.onerror = function(){ this.onerror=null; this.src="styles/photo/dubai-map.jpg"; };
+      }
+      if (count) count.textContent = String(images.length);
+      drawIndicators();
+    }
+    update();
+
+    // swipe
+    let tsX=0, teX=0;
+    const wrap = document.getElementById("mainImage");
+    if (wrap){
+      wrap.addEventListener("touchstart", e=>{ if (e.touches.length===1) tsX = e.touches[0].clientX; });
+      wrap.addEventListener("touchmove",  e=>{ if (e.touches.length===1) teX = e.touches[0].clientX; });
+      wrap.addEventListener("touchend",   ()=>{ const d=teX-tsX; if (d>50) idx=(idx-1+images.length)%images.length; if (d<-50) idx=(idx+1)%images.length; update(); tsX=teX=0; });
+    }
+
+    // lightbox
+    const lb = document.getElementById("lightbox");
+    const lbImg = document.getElementById("lightbox-img");
+    if (mainImg && lb && lbImg){
+      mainImg.onclick = ()=>{ lb.style.display="flex"; lbImg.src = images[idx]; };
+      document.getElementById("lightboxOverlay").onclick = ()=>{ lb.style.display="none"; };
+      document.getElementById("lightbox-prev").onclick   = ()=>{ idx=(idx-1+images.length)%images.length; lbImg.src=images[idx]; update(); };
+      document.getElementById("lightbox-next").onclick   = ()=>{ idx=(idx+1)%images.length; lbImg.src=images[idx]; update(); };
+    }
+
+    // payment details (si plusieurs lignes)
+    const lines = String(pay).split(/[\n•;,;-]+/).map(s=>s.trim()).filter(Boolean);
+    const paymentToggle = document.getElementById("paymentToggle");
+    const paymentDetail = document.getElementById("paymentDetail");
+    if (paymentToggle && paymentDetail){
+      paymentToggle.onclick = ()=>{
+        const open = paymentDetail.classList.toggle("show");
+        paymentDetail.innerHTML = open ? `<h4>Payment Schedule</h4><ul>${lines.map(x=>`<li>${x}</li>`).join("")}</ul>` : "";
+      };
+    }
+
+    // carte
+    const lat = row[COL.lat], lon = row[COL.lon];
+    if (lat != null && lon != null){
+      const iframe = document.querySelector(".location iframe");
+      if (iframe) iframe.src = `https://www.google.com/maps?q=${encodeURIComponent(lat)},${encodeURIComponent(lon)}&z=15&output=embed`;
+    }
+
+    // agent (placeholder)
+    const agentContact = document.getElementById("agentContact");
+    if (agentContact){
+      agentContact.innerHTML = `
+        <p><i class="fas fa-user"></i> <strong>Agent:</strong> PropInDubai Team</p>
+        <p><i class="fab fa-whatsapp"></i> <a href="https://wa.me/971585275834" target="_blank">+971 58 527 5834</a></p>
+        <p><i class="fas fa-envelope"></i> <a href="mailto:contact@propindubai.com">contact@propindubai.com</a></p>`;
+    }
+
+    // vision / autres projets (table liée)
+    setText("developerVision", extras?.["developer vision"] || "");
+    const devList = document.getElementById("developerProjects");
+    if (devList){
+      devList.innerHTML = "";
+      String(extras?.["other projects"] || "")
+        .split(/[,•;\n]+/)
+        .map(s=>s.trim()).filter(Boolean)
+        .forEach(p => {
+          const li = document.createElement("li");
+          li.textContent = p;
+          devList.appendChild(li);
+        });
+    }
+
+    // tableau unités
+    fillUnitsTable(row, COL);
+  }
+
+  /* ============ Boot ============ */
+  document.addEventListener("DOMContentLoaded", async () => {
+    try {
+      await waitForSupabase();
+      const { row, COL } = await fetchOffplanRow();
+      if (!row){ setText("projectTitle", "Project not found"); return; }
+
+      const id = row[COL.id];
+      const extras = await fetchClickExtras(id);
+      fillMain(row, COL, extras);
+
+      const rec = await fetchRecommended(row[COL.dev] || "", id, COL);
+      await renderRecommended(rec, COL);
+    } catch (e) {
+      console.error(e);
+      alert("Unable to load this project right now.");
+    }
+  });
+})();
