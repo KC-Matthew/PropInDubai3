@@ -116,6 +116,7 @@ function mapRow(row, COL){
   }
 
   return {
+    id:  row[COL.id],   
     lat: Number(row[COL.lat]),
     lon: Number(row[COL.lon]),
     statusPhase,                 // pour la couleur (launch|handover)
@@ -415,35 +416,35 @@ function drawPriceHistogram(min, max, [sliderMin, sliderMax]=[min,max]) {
   ctx.restore();
 }
 
-/* ======== POPUP LEAFLET (badge relié à la DB) ======== */
 /* ======== POPUP LEAFLET (zone cliquable -> fiche) ======== */
 function showProjectPopup(projet, latlng) {
   const popupContent = `
     <div style="width:250px;min-width:180px;padding-bottom:7px;box-shadow:0 4px 18px 0 rgba(32,32,32,0.14);border-radius:14px;background:#fff;overflow:hidden;position:relative;">
       <button class="popup-close" title="Fermer" onclick="closeLeafletPopup()" style="position:absolute;top:7px;left:8px;border:none;background:#fff;font-size:1.13rem;border-radius:8px;width:30px;height:30px;box-shadow:0 1px 8px #0001;cursor:pointer;z-index:3;">&times;</button>
-      <div class="popup-clickable" style="cursor:pointer;">
+      <div class="popup-clickable" role="button" tabindex="0" style="cursor:pointer;outline:none;">
         <div style="height:93px;overflow:hidden;">
-          <img src="${projet.image || projet.logo}" style="width:100%;height:93px;object-fit:cover;">
+          <img src="${projet.image || projet.logo}" style="width:100%;height:93px;object-fit:cover;"
+               onerror="this.onerror=null;this.src='styles/photo/dubai-map.jpg';" alt="${projet.titre || 'Project'}">
         </div>
         <div style="padding:10px 14px 0 14px;">
-          <div style="font-size:1.11rem;font-weight:700;margin-bottom:2px;">${projet.titre}</div>
+          <div style="font-size:1.11rem;font-weight:700;margin-bottom:2px;">${projet.titre || ''}</div>
           <div style="color:#999;font-size:1rem;margin-bottom:5px;">
             <img src="https://img.icons8.com/ios-filled/15/aaaaaa/marker.png" style="margin-bottom:-2px;opacity:.68;">
-            ${projet.location}
+            ${projet.location || ''}
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
-            <span style="color:#ff9100;font-weight:700;font-size:1.08rem;">${projet.prix}</span>
+            <span style="color:#ff9100;font-weight:700;font-size:1.08rem;">${projet.prix || '—'}</span>
             <span style="font-weight:600;border-radius:9px;padding:2.5px 13px;font-size:.98rem;
               background:${projet.statusPhase==='launch'?'#f6efff':'#fff6e0'};
               color:${projet.statusPhase==='launch'?'#8429d3':'#ff9100'};">
-              ${projet.statusLabel}
+              ${projet.statusLabel || ''}
             </span>
           </div>
           <div style="color:#757575;font-size:.99rem;margin-bottom:4px;">
-            <img src="https://img.icons8.com/ios-glyphs/16/aaaaaa/clock--v1.png" style="margin-bottom:-2px;opacity:.8;"> <b>${projet.handover}</b>
-            &nbsp; <img src="https://img.icons8.com/ios-glyphs/16/aaaaaa/worker-male--v2.png" style="margin-bottom:-2px;opacity:.7;"> <b>${projet.dev}</b>
+            <img src="https://img.icons8.com/ios-glyphs/16/aaaaaa/clock--v1.png" style="margin-bottom:-2px;opacity:.8;"> <b>${projet.handover || ''}</b>
+            &nbsp; <img src="https://img.icons8.com/ios-glyphs/16/aaaaaa/worker-male--v2.png" style="margin-bottom:-2px;opacity:.7;"> <b>${projet.dev || ''}</b>
           </div>
-          ${projet.details.map(d => `<div style="font-size:.98rem;color:#3d3d3d;">• ${d}</div>`).join('')}
+          ${(projet.details || []).map(d => `<div style="font-size:.98rem;color:#3d3d3d;">• ${d}</div>`).join('')}
         </div>
       </div>
     </div>
@@ -452,10 +453,12 @@ function showProjectPopup(projet, latlng) {
     </div>
   `;
 
+  // Ferme l’ancien popup s’il existe
   if (window._leafletCustomPopup) {
     map.closePopup(window._leafletCustomPopup);
     window._leafletCustomPopup = null;
   }
+
   const leafletPopup = L.popup({
     maxWidth: 290,
     closeButton: false,
@@ -463,18 +466,28 @@ function showProjectPopup(projet, latlng) {
     autoPan: true,
     offset: [0, -70]
   }).setLatLng(latlng).setContent(popupContent).openOn(map);
+
   window._leafletCustomPopup = leafletPopup;
 
-  // Toute la carte du popup (image + texte) → fiche
+  // Branche les events sur CE popup uniquement
   setTimeout(() => {
-    const clickable = document.querySelector('.popup-clickable');
-    if (clickable) {
-      clickable.onclick = (e) => {
-        e.stopPropagation();
-        window.location.href = new URL('off-plan-click.html', location.href).href;
-      };
-    }
-  }, 10);
+    const root = leafletPopup.getElement?.() || null;
+    const clickable = root ? root.querySelector('.popup-clickable') : null;
+    if (!clickable) return;
+
+    const goToDetail = (e) => {
+      e?.stopPropagation?.();
+      const url = new URL('off-plan-click.html', location.href);
+      if (projet.id) url.searchParams.set('id', String(projet.id));
+      if (projet.titre) url.searchParams.set('project', String(projet.titre));
+      window.location.href = url.toString();
+    };
+
+    clickable.addEventListener('click', goToDetail);
+    clickable.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goToDetail(e); }
+    });
+  }, 0);
 }
 
 
@@ -588,4 +601,3 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
 });
-
