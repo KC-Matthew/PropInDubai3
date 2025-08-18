@@ -71,6 +71,7 @@ function mapRowToCard(row, COL){
   if (!tag && row[COL.type]) tag = String(row[COL.type]);
 
   return {
+    id:         row[COL.id],  
     title:      row[COL.title]     || "Untitled",
     location:   row[COL.location]  || "",
     developer:  row[COL.dev]       || "",
@@ -111,14 +112,14 @@ let currentPage = 1;
 function displayFlatProjects(array) {
   const container = document.getElementById("propertyResults");
   container.innerHTML = "";
+
   if (!array.length) {
     container.innerHTML = '<div style="margin:40px auto;font-size:1.2em;color:#c44;text-align:center;">No project found</div>';
     return;
   }
 
   array.forEach((p) => {
-    // dev peut venir de la DB (p.dev) ou de l'ancien mock (p.developer)
-    const devName = p.dev || p.developer || "";
+    const devName = p.developer || "";                     // <- champ standardisé par mapRowToCard
     const sub = [p.location, devName].filter(Boolean).join(" - ");
 
     // badge couleur
@@ -130,13 +131,14 @@ function displayFlatProjects(array) {
 
     const priceLabel = p.priceLabel || (p.price ? `From AED ${Number(p.price).toLocaleString()}` : "");
 
-    // image: essaye d'abord l'image projet, sinon le logo, sinon fallback
+    // image: projet > img > logo > fallback
     const imgSrc = p.image || p.img || p.logo || p.logoUrl || "styles/photo/dubai-map.jpg";
 
     const html = `
       <div style="position:relative;">
-        ${p.statusLabel ? `<span class="card-badge orange">${p.statusLabel}</span>` : (p.badge ? `<span class="${badgeClass}">${p.badge.label}</span>` : "")}
-        <img src="${imgSrc}" alt="${p.title}" class="card-image-flat"
+        ${p.statusLabel ? `<span class="card-badge orange">${p.statusLabel}</span>` 
+                        : (p.badge ? `<span class="${badgeClass}">${p.badge.label}</span>` : "")}
+        <img src="${imgSrc}" alt="${p.title || 'Project image'}" class="card-image-flat"
              onerror="this.onerror=null;this.src='styles/photo/dubai-map.jpg';"/>
       </div>
       <div class="card-body-flat">
@@ -144,7 +146,7 @@ function displayFlatProjects(array) {
         <div class="card-sub-flat">${sub}</div>
         <div class="card-price-flat">${priceLabel}</div>
         <div class="card-icons-row">${p.tag ? `<span><i class="fa fa-check"></i> ${p.tag}</span>` : ""}</div>
-        <button class="card-action-btn">${p.action || "View Project"}</button>
+        <button class="card-action-btn" type="button">${p.action || "View Project"}</button>
       </div>
     `;
 
@@ -152,16 +154,31 @@ function displayFlatProjects(array) {
     card.className = "property-card-flat";
     card.tabIndex = 0;
     card.innerHTML = html;
-    card.addEventListener("click", () => {
-      window.location = 'off-plan-click.html?project=' + encodeURIComponent(p.title || p.titre || "");
+
+    // URL builder (id prioritaire, project en fallback/SEO)
+    const goToDetail = () => {
+      const url = new URL("off-plan-click.html", location.href);
+      if (p.id) url.searchParams.set("id", p.id);
+      if (p.title || p.titre) url.searchParams.set("project", p.title || p.titre);
+      window.location.href = url.toString();
+    };
+
+    // clic carte + Enter/Space au clavier
+    card.addEventListener("click", goToDetail);
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goToDetail(); }
     });
+
+    // bouton “View Project”
+    const btn = card.querySelector(".card-action-btn");
+    btn.addEventListener("click", (e) => { e.stopPropagation(); goToDetail(); });
+
     container.appendChild(card);
   });
 }
 
 
 
-// ===================== FILTRAGE + PAGINATION =====================
 // ===================== FILTRAGE + PAGINATION =====================
 function filterAndDisplayProjects(page = 1) {
   const query = document.getElementById('search')?.value.trim().toLowerCase() || '';
