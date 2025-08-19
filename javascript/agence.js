@@ -1,257 +1,329 @@
-// --- DATA STRUCTURE ---
-const agencyData = {
-  logo: "styles/photo/dubai-map.jpg",
-  name: "Al Hilal Property",
-  orn: "12109",
-  location: "Office shop 8&9, Building Golden Mile 9, Palm Jumeirah, Dubai",
-  email: "contact@alhilal.com",
-  phone: "+97143210910",
-  about: `Al Hilal Property was established in 2013 and since its inception has grown from strength to strength, opening a 3,000 sqft office on the Golden Mile, Palm Jumeirah, in September 2018.
-  The multilingual team at Al Hilal Homes, with all their years of experience and talents combined, are competent and able to deal with every Real Estate eventuality and work with one simple philosophy; "Every action must be an honest one".`,
-  listings: [
-    {
-      images: ["styles/photo/property1-1.jpg","styles/photo/property1-2.jpg"],
-      type: "Apartment",
-      location: "Downtown Dubai",
-      beds: 2,
-      baths: 1,
-      size: 1100,
-      price: 2000000,
-      priceUnit: "AED",
-      agent: { name: "John Doe", photo: "styles/photo/agent-john.jpg" },
-      for: "buy"
-    },
-    {
-      images: ["styles/photo/villa1-1.jpg", "styles/photo/villa1-2.jpg"],
-      type: "Villa",
-      location: "Palm Jumeirah",
-      beds: 3,
-      baths: 2,
-      size: 1113,
-      price: 2120000,
-      priceUnit: "AED",
-      agent: { name: "Jane Smith", photo: "styles/photo/agent-jane.jpg" },
-      for: "buy"
-    },
-    {
-      images: ["styles/photo/rent1.jpg"],
-      type: "Apartment",
-      location: "Business Bay",
-      beds: 1,
-      baths: 2,
-      size: 900,
-      price: 120000,
-      priceUnit: "AED/year",
-      agent: { name: "Moe Salah", photo: "styles/photo/agent-moe.jpg" },
-      for: "rent"
-    },
-    {
-      images: ["styles/photo/commercial-buy1.jpg"],
-      type: "Shop",
-      location: "Al Barsha",
-      beds: 0,
-      baths: 2,
-      size: 2200,
-      price: 4400000,
-      priceUnit: "AED",
-      agent: { name: "Commercial Guy", photo: "styles/photo/agent-john.jpg" },
-      for: "commercial-buy"
-    },
-    {
-      images: ["styles/photo/commercial-rent1.jpg"],
-      type: "Office",
-      location: "Business Bay",
-      beds: 0,
-      baths: 2,
-      size: 1850,
-      price: 210000,
-      priceUnit: "AED/year",
-      agent: { name: "Commercial Girl", photo: "styles/photo/agent-jane.jpg" },
-      for: "commercial-rent"
-    }
-  ],
-  agents: [
-    {
-      img: "styles/photo/agent-john.jpg",
-      name: "John Doe",
-      role: "Client Manager • SuperAgent ⭐ 5.0",
-      meta: "Lebanon • Languages: English, Arabic, French",
-      link: "#"
-    },
-    {
-      img: "styles/photo/agent-jane.jpg",
-      name: "Jane Smith",
-      role: "Agent • ⭐ 5.0",
-      meta: "UK • Languages: English, Arabic",
-      link: "#"
-    }
-  ]
+// javascript/agence.js — Page AGENCE 100% branchée sur Supabase
+
+/* ========= Utils ========= */
+const FALLBACK_LOGO = "styles/photo/profil.png";
+const FALLBACK_IMG  = "styles/photo/dubai-map.jpg";
+
+const $  = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+const clean = (v) => (v == null ? "" : String(v).trim());
+const toNum = (v, d=0) => {
+  const n = typeof v === "number" ? v : Number(String(v).replace(/[^\d.-]/g,""));
+  return Number.isFinite(n) ? n : d;
+};
+const onlyDigits = (v) => clean(v).replace(/[^\d+]/g,"");
+const AED = (n) => {
+  const x = typeof n === "number" ? n : Number(String(n).replace(/[^\d.-]/g,""));
+  if (!Number.isFinite(x)) return "—";
+  try { return new Intl.NumberFormat("en-AE",{style:"currency",currency:"AED",maximumFractionDigits:0}).format(x); }
+  catch { return `AED ${Math.round(x).toLocaleString()}`; }
 };
 
-// --- HEADER / INFOS ---
-document.getElementById('agency-logo').src = agencyData.logo;
-document.getElementById('agency-name').textContent = agencyData.name;
-document.getElementById('about-agency-name').textContent = agencyData.name;
-document.getElementById('listing-count').textContent = agencyData.listings.length;
-document.getElementById('agent-count').textContent = agencyData.agents.length;
-document.getElementById('agency-orn').textContent = agencyData.orn;
-document.getElementById('agency-location').textContent = agencyData.location;
-document.getElementById('about-text').textContent = agencyData.about;
-
-document.getElementById('email-btn').onclick = () => location.href = "mailto:" + agencyData.email;
-document.getElementById('call-btn').onclick = () => location.href = "tel:" + agencyData.phone;
-
-// --- ABOUT / READ MORE ---
-const aboutDiv = document.getElementById('about-text');
-const readMoreBtn = document.getElementById('read-more-btn');
-let expanded = false;
-function updateReadMore() {
-  if(aboutDiv.scrollHeight > 100 && !expanded) {
-    readMoreBtn.style.display = 'block';
-    aboutDiv.classList.remove('expanded');
-    readMoreBtn.textContent = "Read more";
-  } else if(expanded) {
-    aboutDiv.classList.add('expanded');
-    readMoreBtn.textContent = "Show less";
-  } else {
-    readMoreBtn.style.display = 'none';
-  }
-}
-readMoreBtn.onclick = function() {
-  expanded = !expanded;
-  updateReadMore();
-};
-window.onload = updateReadMore;
-
-// --- TABS ---
-window.showTab = function(tab) {
-  document.getElementById('tab-properties').classList.remove('active');
-  document.getElementById('tab-agents').classList.remove('active');
-  document.getElementById('properties-tab-content').style.display = 'none';
-  document.getElementById('agents-tab-content').style.display = 'none';
-
-  if(tab === 'properties') {
-    document.getElementById('tab-properties').classList.add('active');
-    document.getElementById('properties-tab-content').style.display = '';
-  } else {
-    document.getElementById('tab-agents').classList.add('active');
-    document.getElementById('agents-tab-content').style.display = '';
-  }
-}
-
-// --- PROPERTY FILTER + LISTING + CAROUSEL ---
-let currentFilter = "rent";
-function renderProperties(filterType) {
-  currentFilter = filterType;
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.type === filterType);
+function waitForSupabase(timeout=8000){
+  if (window.supabase) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(()=>reject(new Error("Supabase not ready (timeout)")), timeout);
+    const onReady = () => { clearTimeout(t); window.removeEventListener("supabase:ready", onReady); resolve(); };
+    window.addEventListener("supabase:ready", onReady);
   });
+}
+function pickFrom(sample, ...cands){
+  const has = (k) => k && Object.prototype.hasOwnProperty.call(sample, k);
+  return cands.find(has);
+}
 
-  const filtered = agencyData.listings.filter(p => p.for === filterType);
-  const container = document.getElementById('property-list');
-  if(filtered.length === 0) {
-    container.innerHTML = "<div style='padding:40px 0 0 0;color:#aaa;font-size:1.2rem;'>No properties found for this type.</div>";
+/* ========= Détections colonnes (tolérant aux noms avec espaces) ========= */
+async function detectAgencyCols(){
+  const { data, error } = await window.supabase.from("agency").select("*").limit(1);
+  if (error) throw error;
+  const s = data?.[0] || {};
+  return {
+    id:       pickFrom(s, "id","uuid"),
+    name:     pickFrom(s, "name agency","name","company_name"),
+    logo_url: pickFrom(s, "logo_url","logo","photo_url"),
+    about:    pickFrom(s, "about the agency","about","description"),
+    address:  pickFrom(s, "address","addr","location"),
+    orn:      pickFrom(s, "orn","RERA","rera_orn"),
+    email:    pickFrom(s, "email","contact_email"),
+    phone:    pickFrom(s, "phone","contact_phone"),
+  };
+}
+async function detectAgentCols(){
+  const { data, error } = await window.supabase.from("agent").select("*").limit(1);
+  if (error) throw error;
+  const s = data?.[0] || {};
+  return {
+    id:        pickFrom(s, "id","uuid"),
+    name:      pickFrom(s, "name"),
+    photo_url: pickFrom(s, "photo agent_url","photo_agent_url","photo_url","avatar_url"),
+    email:     pickFrom(s, "email"),
+    phone:     pickFrom(s, "phone"),
+    whatsapp:  pickFrom(s, "whatsapp","wa"),
+    agency_id: pickFrom(s, "agency_id","agency","agence_id"),
+    rating:    pickFrom(s, "rating","stars"),
+    superagent:pickFrom(s, "superagent","is_superagent","super"),
+    languages: pickFrom(s, "languages","language","langs"),
+    nationality: pickFrom(s, "nationality","country"),
+  };
+}
+async function detectPropertyCols(table){
+  const { data, error } = await window.supabase.from(table).select("*").limit(1);
+  if (error) throw error;
+  const s = data?.[0] || {};
+  return {
+    id:        pickFrom(s, "id","uuid"),
+    created_at:pickFrom(s, "created_at"),
+    title:     pickFrom(s, "title","name"),
+    type:      pickFrom(s, "property type","property_type","type"),
+    bedrooms:  pickFrom(s, "bedrooms","br"),
+    bathrooms: pickFrom(s, "bathrooms","ba"),
+    price:     pickFrom(s, "price"),
+    sqft:      pickFrom(s, "sqft","area_sqft"),
+    photo:     pickFrom(s, "photo bien_url","photo_bien_url","photo_url","image_url","cover_url"),
+    agent_id:  pickFrom(s, "agent_id","agent"),
+    location:  pickFrom(s, "localisation","location","community","area"),
+    rental_period: pickFrom(s, "rental period","rental_period"),
+  };
+}
+
+/* ========= Chargements depuis l’URL ========= */
+async function loadAgencyFromURL(){
+  const params = new URLSearchParams(location.search);
+  const idParam = clean(params.get("id"));
+  const nameParam = clean(params.get("name"));
+
+  const AC = await detectAgencyCols();
+
+  let agencyRow = null;
+  if (idParam){
+    const { data } = await window.supabase.from("agency").select("*").eq(AC.id, idParam).limit(1);
+    agencyRow = data?.[0] || null;
+  }
+  if (!agencyRow && nameParam){
+    const { data } = await window.supabase.from("agency").select("*").ilike(AC.name, `%${nameParam}%`).limit(1);
+    agencyRow = data?.[0] || null;
+  }
+  if (!agencyRow){
+    const { data } = await window.supabase.from("agency").select("*").limit(1);
+    agencyRow = data?.[0] || null;
+  }
+  if (!agencyRow) throw new Error("No agency");
+
+  const agency = {
+    id:   agencyRow[AC.id],
+    name: clean(agencyRow[AC.name]),
+    logo: clean(agencyRow[AC.logo_url]) || FALLBACK_LOGO,
+    about: clean(agencyRow[AC.about]),
+    address: clean(agencyRow[AC.address]),
+    orn: clean(agencyRow[AC.orn]) || "—",
+    email: clean(agencyRow[AC.email]),
+    phone: clean(agencyRow[AC.phone]),
+  };
+  return { agency, AC };
+}
+
+async function loadAgentsForAgency(agencyId){
+  const AG = await detectAgentCols();
+  const { data } = await window.supabase.from("agent").select("*").eq(AG.agency_id, agencyId).limit(1000);
+  const agents = (data||[]).map(r=>({
+    id: r[AG.id],
+    name: clean(r[AG.name]),
+    photo: clean(r[AG.photo_url]) || FALLBACK_LOGO,
+    email: clean(r[AG.email]),
+    phone: clean(r[AG.phone]),
+    whatsapp: clean(r[AG.whatsapp]) || clean(r[AG.phone]),
+    rating: clean(r[AG.rating]) || "—",
+    superagent: !!r[AG.superagent],
+    languages: clean(r[AG.languages]),
+    nationality: clean(r[AG.nationality]),
+  }));
+  return { agents, agentsById: new Map(agents.map(a=>[a.id,a])) };
+}
+
+async function fetchAgencyProperties(agentIds){
+  const tables = [
+    { name:"rent",       bucket:"rent" },
+    { name:"buy",        bucket:"buy" },
+    { name:"commercial", bucket:"commercial" },
+  ];
+  const all = [];
+
+  for (const t of tables){
+    try{
+      const PC = await detectPropertyCols(t.name);
+      if (!PC.agent_id) continue;
+
+      const { data } = await window.supabase.from(t.name).select("*").in(PC.agent_id, agentIds).limit(1000);
+      (data||[]).forEach(r=>{
+        let bucket = t.bucket;
+        if (t.name === "commercial") bucket = clean(r[PC.rental_period]) ? "commercial-rent" : "commercial-buy";
+
+        all.push({
+          table: t.name,
+          bucket,
+          id: r[PC.id],
+          title: clean(r[PC.title]) || "—",
+          type: clean(r[PC.type]),
+          location: clean(r[PC.location]),
+          price: r[PC.price],
+          bedrooms: toNum(r[PC.bedrooms], null),
+          bathrooms: toNum(r[PC.bathrooms], null),
+          sqft: toNum(r[PC.sqft], null),
+          img: clean(r[PC.photo]) || FALLBACK_IMG,
+          rental_period: clean(r[PC.rental_period] || ""),
+          agent_id: r[PC.agent_id],
+        });
+      });
+    }catch(e){ console.warn(`Fail fetching ${t.name}:`, e?.message||e); }
+  }
+  return all;
+}
+
+/* ========= Rendus ========= */
+function fillHeader(agency, agents, totalListings){
+  const logo = $("#agency-logo");
+  logo.src = agency.logo || FALLBACK_LOGO;
+  logo.onerror = () => { logo.src = FALLBACK_LOGO; };
+
+  $("#agency-name").textContent = agency.name;
+  $("#about-agency-name").textContent = agency.name;
+  $("#agency-location").textContent = agency.address || "—";
+  $("#agency-orn").textContent = agency.orn;
+  $("#agent-count").textContent = agents.length;
+  $("#listing-count").textContent = totalListings;
+
+  const aboutDiv = $("#about-text");
+  const readBtn = $("#read-more-btn");
+  aboutDiv.textContent = agency.about || "—";
+  let expanded = false;
+  const upd = () => {
+    if (aboutDiv.scrollHeight > 100 && !expanded) { readBtn.style.display="block"; aboutDiv.classList.remove("expanded"); readBtn.textContent="Read more"; }
+    else if (expanded) { aboutDiv.classList.add("expanded"); readBtn.textContent="Show less"; }
+    else { readBtn.style.display="none"; }
+  };
+  readBtn.onclick = ()=>{ expanded=!expanded; upd(); };
+  setTimeout(upd, 0);
+
+  // Contact: si pas de contact agence → 1er agent disponible
+  let email = agency.email, phone = agency.phone;
+  if (!email || !phone){
+    const a = agents.find(x => x.email || x.phone);
+    email = email || a?.email || "";
+    phone = phone || a?.phone || "";
+  }
+  $("#email-btn").onclick = ()=> email ? location.href=`mailto:${email}` : null;
+  $("#call-btn").onclick  = ()=> phone ? location.href=`tel:${onlyDigits(phone)}` : null;
+}
+
+function renderAgencyAgents(agents){
+  $("#agent-list").innerHTML = agents.map(a => `
+    <div class="agent-card">
+      <img class="agent-photo" src="${a.photo}" alt="${a.name}" onerror="this.onerror=null;this.src='${FALLBACK_LOGO}'">
+      <div class="agent-info">
+        <div class="agent-name">${a.name}</div>
+        <div class="agent-role">${a.superagent ? "SuperAgent • " : ""}⭐ ${a.rating}</div>
+        <div class="agent-meta">${[a.nationality, a.languages && ("Languages: " + a.languages)].filter(Boolean).join(" • ")}</div>
+      </div>
+      <a href="infoagent.html?id=${encodeURIComponent(a.id)}" class="search-btn">View</a>
+    </div>
+  `).join("");
+}
+
+let ALL_PROPS = [];
+let PROPS_BY = { rent:[], buy:[], "commercial-rent":[], "commercial-buy":[] };
+let CURRENT_FILTER = "rent";
+
+function regroupProps(){
+  PROPS_BY = { rent:[], buy:[], "commercial-rent":[], "commercial-buy":[] };
+  ALL_PROPS.forEach(p => { (PROPS_BY[p.bucket] ||= []).push(p); });
+}
+
+function renderProperties(filterType, agentsById){
+  CURRENT_FILTER = filterType;
+  $$(".filter-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.type === filterType));
+
+  const list = PROPS_BY[filterType] || [];
+  const box = $("#property-list");
+
+  if (!list.length){
+    box.innerHTML = `<div style="padding:40px 0;color:#aaa;font-size:1.1rem;">No properties found for this type.</div>`;
     return;
   }
-  container.innerHTML = filtered.map((property, i) => {
-    const imgCount = property.images.length;
+
+  box.innerHTML = list.map((p,i)=>{
+    const a = agentsById.get(p.agent_id);
+    const priceText = (filterType.includes("rent"))
+      ? `${AED(p.price)} <span style="font-weight:400;">/ ${p.rental_period || "year"}</span>`
+      : AED(p.price);
+
+    const beds  = (p.bedrooms ?? "") !== "" ? `<span class="icon">🛏️</span> ${p.bedrooms}&nbsp;` : "";
+    const baths = (p.bathrooms ?? "") !== "" ? `<span class="icon">🛁</span> ${p.bathrooms}&nbsp;` : "";
+    const area  = (p.sqft ?? "") !== "" ? `<span class="icon">📐</span> ${Math.round(p.sqft).toLocaleString()} sqft` : "";
+    const agentHtml = a ? `
+      <div class="property-agent">
+        <img src="${a.photo}" alt="${a.name}" class="agent-photo-v2" onerror="this.onerror=null;this.src='${FALLBACK_LOGO}'">
+        ${a.name}
+      </div>` : "";
+
     return `
       <div class="property-card-v2" data-index="${i}">
         <div class="property-image-block">
-          <button class="carousel-btn left" onclick="moveCarousel(${i},-1,event)">&lt;</button>
-          <img class="property-carousel-img" id="property-img-${i}" src="${property.images[0]}" alt="Property">
-          <button class="carousel-btn right" onclick="moveCarousel(${i},1,event)">&gt;</button>
-          <div class="property-img-count"><span class="icon">📷</span> ${imgCount}</div>
+          <img class="property-carousel-img" src="${p.img}" alt="${p.title}" onerror="this.onerror=null;this.src='${FALLBACK_IMG}'">
+          <div class="property-img-count"><span class="icon">📷</span> 1</div>
         </div>
         <div class="property-info-block">
-          <div class="property-type-title">${property.type}</div>
-          <div class="property-location"><span class="icon">📍</span> ${property.location}</div>
-          <div class="property-specs">
-            <span class="icon">🛏️</span> ${property.beds} &nbsp;
-            <span class="icon">🛁</span> ${property.baths} &nbsp;
-            <span class="icon">📐</span> ${property.size} sqft
-          </div>
-          <div class="property-price">${property.price.toLocaleString()} <span style="font-weight:400;">${property.priceUnit}</span></div>
-          <div class="property-agent">
-            <img src="${property.agent.photo}" alt="${property.agent.name}" class="agent-photo-v2">
-            ${property.agent.name}
-          </div>
+          <div class="property-type-title">${p.type || ""}</div>
+          <div class="property-location"><span class="icon">📍</span> ${p.location || ""}</div>
+          <div class="property-specs">${beds}${baths}${area}</div>
+          <div class="property-price">${priceText}</div>
+          ${agentHtml}
           <div class="property-action-bar">
-            <button class="property-action-btn">Call</button>
-            <button class="property-action-btn">Email</button>
-            <button class="property-action-btn">WhatsApp</button>
+            <button class="property-action-btn" ${a?.phone ? `onclick="location.href='tel:${onlyDigits(a.phone)}'"`:"disabled"}>Call</button>
+            <button class="property-action-btn" ${a?.email ? `onclick="location.href='mailto:${a.email}'"`:"disabled"}>Email</button>
+            <button class="property-action-btn" ${a?.whatsapp ? `onclick="location.href='https://wa.me/${onlyDigits(a.whatsapp)}'"`:"disabled"}>WhatsApp</button>
           </div>
         </div>
       </div>
     `;
   }).join("");
-  filtered.forEach((property, i) => {
-    window["carouselIndex"+i] = 0;
-  });
 }
-window.moveCarousel = function(cardIndex, dir, event) {
-  event.stopPropagation();
-  const filtered = agencyData.listings.filter(p => p.for === currentFilter);
-  const imgs = filtered[cardIndex].images;
-  let idx = window["carouselIndex"+cardIndex] || 0;
-  idx = (idx + dir + imgs.length) % imgs.length;
-  window["carouselIndex"+cardIndex] = idx;
-  document.getElementById("property-img-"+cardIndex).src = imgs[idx];
-}
-// --- INIT FILTER BTN EVENTS ---
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.onclick = function() {
-      renderProperties(this.dataset.type);
-    };
-  });
-  renderProperties("rent");
-});
 
-// --- AGENTS LISTING ---
-const agentList = document.getElementById('agent-list');
-agentList.innerHTML = agencyData.agents.map(agent => `
-  <div class="agent-card">
-    <img class="agent-photo" src="${agent.img}" alt="${agent.name}">
-    <div class="agent-info">
-      <div class="agent-name">${agent.name}</div>
-      <div class="agent-role">${agent.role}</div>
-      <div class="agent-meta">${agent.meta}</div>
-    </div>
-    <a href="${agent.link}" class="search-btn">View</a>
-  </div>
-`).join('');
+/* ========= Onglets (comme dans ton HTML) ========= */
+window.showTab = function(tab){
+  $("#tab-properties").classList.remove("active");
+  $("#tab-agents").classList.remove("active");
+  $("#properties-tab-content").style.display = "none";
+  $("#agents-tab-content").style.display = "none";
+  if (tab === "properties"){ $("#tab-properties").classList.add("active"); $("#properties-tab-content").style.display=""; }
+  else { $("#tab-agents").classList.add("active"); $("#agents-tab-content").style.display=""; }
+};
 
+/* ========= Boot ========= */
+document.addEventListener("DOMContentLoaded", async () => {
+  try{
+    await waitForSupabase();
 
+    // 1) Agence
+    const { agency } = await loadAgencyFromURL();
 
+    // 2) Agents
+    const { agents, agentsById } = await loadAgentsForAgency(agency.id);
 
+    // 3) Propriétés (buy, rent, commercial) pour tous ces agents
+    ALL_PROPS = await fetchAgencyProperties(agents.map(a=>a.id));
+    regroupProps();
 
+    // 4) Header + compteurs
+    fillHeader(agency, agents, ALL_PROPS.length);
 
+    // 5) Rendus
+    renderAgencyAgents(agents);
+    renderProperties("rent", agentsById); // filtre par défaut
 
-
-
-
-
-
-
-
-document.addEventListener('DOMContentLoaded', function() {
-  const buyDropdown = document.getElementById('buyDropdown');
-  const mainBuyBtn = document.getElementById('mainBuyBtn');
-
-  // Ouvre/Ferme le menu au clic
-  mainBuyBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    buyDropdown.classList.toggle('open');
-  });
-
-  // Ferme le menu si clic en dehors
-  document.addEventListener('click', function(e) {
-    if (!buyDropdown.contains(e.target)) {
-      buyDropdown.classList.remove('open');
-    }
-  });
-
-  // NO MORE preventDefault on dropdown-option!
-  // Les liens <a> du menu déroulant ouvrent bien la page maintenant
+    // 6) Filtres propriété
+    $$(".filter-btn").forEach(btn => btn.onclick = () => renderProperties(btn.dataset.type, agentsById));
+  }catch(e){
+    console.error(e);
+    $("#property-list").innerHTML = `<div style="padding:20px;color:#b00;">Unable to load agency.</div>`;
+  }
 });
