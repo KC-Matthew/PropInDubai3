@@ -33,11 +33,10 @@ async function loadPropertiesFromDB() {
   // 2) Agencies (pour récupérer l’address + logo)
   const { data: agencyRows, error: agencyErr } = await sb
     .from('agency')
-    .select('id,logo_url,address'); // on évite les colonnes avec espaces
+    .select('id,logo_url,address');
   if (agencyErr) { console.error(agencyErr); }
   const agenciesById = Object.fromEntries((agencyRows || []).map(a => [a.id, a]));
 
-  // Helper pour lier agent -> agency
   function getAgencyForAgent(agentId) {
     const ag = agentsById[agentId];
     return ag ? agenciesById[ag.agency_id] : undefined;
@@ -55,39 +54,35 @@ async function loadPropertiesFromDB() {
     .select('id,title,property_type,bedrooms,bathrooms,price,sqft,photo_url,agent_id,created_at');
   if (rentErr) console.error(rentErr);
 
-  // 5) Biens COMMERCIAL (le champ peut être "property_type" ou "property type" selon ton schéma)
+  // 5) Biens COMMERCIAL
   const { data: comRows, error: comErr } = await sb
     .from('commercial')
     .select('id,title,rental_period,property_type,"property type",bedrooms,bathrooms,price,sqft,photo_url,agent_id,created_at');
   if (comErr) console.error(comErr);
 
-  // -- Normalisation vers l’objet attendu par l’UI --
   const out = [];
 
-  // mappe une ligne (table quelconque) vers la structure UI
   function rowToProperty(row, tableName) {
     const agent = agentsById[row.agent_id] || {};
     const agency = getAgencyForAgent(row.agent_id) || {};
-    // property_type peut s’appeler "property_type" ou "property type"
     const ptype = row.property_type ?? row['property type'] ?? 'Unknown';
     const mainPhoto = row.photo_bien_url || row.photo_url || null;
 
     const images = [];
     if (mainPhoto) images.push(mainPhoto);
-    if (agency.logo_url) images.push(agency.logo_url);
+    if (agency?.logo_url) images.push(agency.logo_url);
 
     return {
-      // ⚠️ L’UI actuelle attend le type dans "title" (affiché gros + résumé des types)
+      // données affichage
       title: ptype,
       price: Number(row.price) || 0,
-      // Pas de colonne "location" côté biens => on prend l’adresse de l’agence (depuis la BDD)
-      location: agency.address || "",
+      location: agency?.address || "",
       bedrooms: Number(row.bedrooms) || 0,
       bathrooms: Number(row.bathrooms) || 0,
       size: Number(row.sqft) || 0,
-      furnished: undefined,             // pas de champ en BDD -> on ne fabrique rien
-      amenities: [],                    // pas de champ en BDD -> tableau vide
-      images,                           // 0, 1 ou 2 images, toutes issues de la BDD
+      furnished: undefined,
+      amenities: [],
+      images,
       agent: {
         name: agent.name || "",
         avatar: agent.photo_agent_url || "",
@@ -96,10 +91,11 @@ async function loadPropertiesFromDB() {
         whatsapp: agent.whatsapp || "",
         rating: agent.rating ?? null
       },
-      // On conserve le vrai titre de l’annonce dans description (utile pour recherche par mots-clés)
       description: row.title || "",
-      // info meta
-      _table: tableName,
+
+      // meta (IMPORTANT pour bien.html)
+      _id: row.id,          // <-- on garde l'ID ici
+      _table: tableName,    // buy | rent | commercial
       _created_at: row.created_at
     };
   }
@@ -207,7 +203,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
   document.getElementById("closePricePopup")?.addEventListener("click", closePricePopup);
 
-  // SUGGESTIONS SEARCH live (sur l’adresse d’agence)
+  // SUGGESTIONS SEARCH
   document.getElementById("search")?.addEventListener("input", showSearchSuggestions);
   function showSearchSuggestions(e) {
     const val = e.target.value.trim().toLowerCase();
@@ -359,14 +355,15 @@ function displayProperties(propsArray, page) {
       </div>
     `;
 
-    // Redirection si on clique sur la card (mais pas les flèches)
-    card.addEventListener("click", (e) => {
-      if (e.target.classList.contains('prev') || e.target.classList.contains('next')) return;
-      // À toi de mettre l’URL de détail si besoin
-      // window.location.href = "bien.html";
-    });
-
     container.appendChild(card);
+
+    // ►►► Redirection vers bien.html au clic sur la carte (sauf boutons/flèches du carrousel)
+    card.addEventListener("click", (e) => {
+      if (e.target.closest('.carousel-btn')) return; // ne pas déclencher depuis les flèches
+      const detail = { id: property._id, type: property._table || 'buy' };
+      sessionStorage.setItem('selected_property', JSON.stringify(detail));
+      window.location.href = `bien.html?id=${encodeURIComponent(detail.id)}&type=${encodeURIComponent(detail.type)}`;
+    });
 
     // === CAROUSEL LOGIC ===
     const images = card.querySelectorAll(".carousel img");
@@ -524,7 +521,7 @@ function handleSearchOrFilter() {
 
   filteredProperties = arr;
   displayProperties(filteredProperties, 1);
-  updatePriceSliderAndHistogram(properties); // Histogramme global
+  updatePriceSliderAndHistogram(properties);
 }
 
 function handleClearFilters() {
@@ -670,9 +667,10 @@ document.addEventListener('DOMContentLoaded', function () {
       buyDropdown.classList.remove('open');
     }
   });
+
 });
 
-// --------- Filtres via query params (léger ajustement : title = type, bedrooms) ----------
+// --------- Filtres via query params ----------
 window.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
   const search = urlParams.get('search')?.toLowerCase();
@@ -684,7 +682,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const filtered = (properties || []).filter(p => {
     const matchSearch = !search || (p.location || '').toLowerCase().includes(search);
-    const matchType = !type || (p.title || '').toLowerCase() === type; // p.title contient le type
+    const matchType = !type || (p.title || '').toLowerCase() === type;
     const matchBeds = !beds || String(p.bedrooms).toLowerCase().includes(beds);
     return matchSearch && matchType && matchBeds;
   });
