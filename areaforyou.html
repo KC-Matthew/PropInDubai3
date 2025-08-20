@@ -103,12 +103,13 @@
   </div>
 </div>
 <!-- Supabase client -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase client (module) -->
+<script type="module" src="javascript/supabaseClient.js"></script>
 
-<!-- Init client (crée ce fichier) -->
-<script src="javascript/supabaseClient.js"></script>
-
-<!-- Ton script existant -->
+<!-- Page logic (classique) -->
 <script src="javascript/areaforyou.js"></script>
+
+<!-- ScrollReveal (optionnel) -->
+<script src="https://unpkg.com/scrollreveal"></script>
 </body>
 </html>
