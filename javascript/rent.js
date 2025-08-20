@@ -8,6 +8,8 @@ let globalMinPrice=0, globalMaxPrice=0;
 const PRICE_STEP=10000;
 let priceSlider=null;
 
+
+
 // Utils
 const telLink = v => `tel:${String(v||"").replace(/\s+/g,"")}`;
 const waLink  = v => `https://wa.me/${String(v||"").replace(/[^\d+]/g,"")}`;
@@ -150,6 +152,16 @@ function displayProperties(arr, page){
       </div>
     `;
     container.appendChild(card);
+
+    // >>> OUVRIR LA PAGE DÉTAIL AU CLIC SUR LA CARTE
+  card.addEventListener('click', () => {
+  const detail = { id: p._id, type: 'rent' };
+  // on stocke aussi côté session (secours)
+  sessionStorage.setItem('selected_property', JSON.stringify(detail));
+  // on passe id + type à bien.html
+  window.location.href = `bien.html?id=${encodeURIComponent(detail.id)}&type=${encodeURIComponent(detail.type)}`;
+});
+
 
     const images=card.querySelectorAll(".carousel img"); let idx=0;
     card.querySelector(".prev").addEventListener("click",e=>{
@@ -425,4 +437,3 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     btnTop.addEventListener('click', ()=>window.scrollTo({top:0,behavior:'smooth'}));
   }
 });
-
