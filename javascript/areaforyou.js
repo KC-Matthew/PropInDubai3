@@ -19,6 +19,7 @@ async function detectColumns(table) {
   };
 }
 
+
 // ========= FETCH PROPERTIES =========
 async function fetchProperties({ type = "all", limit = 30 } = {}) {
   let data = [];
@@ -52,13 +53,14 @@ async function fetchProperties({ type = "all", limit = 30 } = {}) {
       return [];
     }
 
+    // On mappe pour réutiliser ton UI SANS rien changer ailleurs
     data = (off || []).map(p => ({
       id: p.id,
       title: p["titre"] || "",
       location: p["localisation"] || "Dubai",
-      bedrooms: p["units types"] || "",       // info utile pour l’icône lit
-      bathrooms: p["project status"] || "",   // statut = deuxième puce
-      size: "",                               // pas de sqft
+      bedrooms: p["units types"] || "",       // ex: "Studios–3BR"
+      bathrooms: p["project status"] || "",   // ex: "Launched"
+      size: "",                               // offplan n’a pas de sqft
       price:
         p["price starting"] != null && !Number.isNaN(Number(p["price starting"]))
           ? `From ${Number(p["price starting"]).toLocaleString()} AED`
@@ -68,7 +70,7 @@ async function fetchProperties({ type = "all", limit = 30 } = {}) {
       brochure_url: p.brochure_url || "",
       lat: p.lat ?? null,
       lon: p.lon ?? null,
-      source: "offplan"                       // <<< tag pour la navigation
+      source: "offplan"                       // <-- on garde offplan indépendant
     }));
 
     return data;
@@ -110,7 +112,8 @@ async function fetchProperties({ type = "all", limit = 30 } = {}) {
         bedrooms: p[columns.bedrooms],
         bathrooms: p[columns.bathrooms],
         price: p[columns.price],
-        id: p[columns.id]
+        id: p[columns.id],
+        _table: tableName                  // <-- (AJOUT MINIMAL) on marque la table d’origine
       })));
     } catch (e) {
       console.error(`Failed to detect columns for ${tableName}`, e);
@@ -168,32 +171,23 @@ function renderProperties(list) {
       </div>
     `;
 
-    // --- Navigation : Offplan => off-plan-click.html?id=..., sinon => bien.html
-    card.addEventListener("click", async () => {
-      try {
-        if (property.source === "offplan") {
-          // log (facultatif)
-          try {
-            await window.supabase.from("offplan click").insert({
-              "offplan id": property.id,
-              description: "open from area-for-you"
-            });
-          } catch (_) {}
+    // >>> OUVERTURE DÉTAIL : rent/buy => bien.html ; offplan reste indépendant
+  // >>> OUVERTURE DÉTAIL : rent/buy/commercial => bien.html ; offplan => off-plan-click.html
+card.addEventListener("click", () => {
+  if (property.source === 'offplan') {
+    // Off plan reste indépendant, on renvoie vers ta page dédiée
+    const detail = { id: property.id, type: 'offplan' };
+    sessionStorage.setItem('selected_offplan', JSON.stringify(detail));
+    window.location.href = `off-plan-click.html?id=${encodeURIComponent(property.id)}`;
+    return;
+  }
 
-          // garder un petit cache si tu veux
-          sessionStorage.setItem("offplan_selected", JSON.stringify({ id: property.id, title: property.title }));
+  // Sinon: rent / buy / commercial -> bien.html
+  const type = property._table || 'buy';
+  sessionStorage.setItem('selected_property', JSON.stringify({ id: property.id, type }));
+  window.location.href = `bien.html?id=${encodeURIComponent(property.id)}&type=${encodeURIComponent(type)}`;
+});
 
-          window.location.href = `off-plan-click.html?id=${encodeURIComponent(property.id)}`;
-        } else {
-          window.location.href = "bien.html";
-        }
-      } catch (e) {
-        console.error(e);
-        window.location.href = (property.source === "offplan")
-          ? `off-plan-click.html?id=${encodeURIComponent(property.id)}`
-          : "bien.html";
-      }
-    });
 
     container.appendChild(card);
   });
@@ -336,6 +330,7 @@ function deleteChat(chatId) {
   renderAll();
 }
 
+
 // ========= FILTRES =========
 function setupFilters() {
   document.querySelectorAll('.chat-pick-btn-v2').forEach(btn => {
@@ -345,16 +340,17 @@ function setupFilters() {
 
       let type = this.dataset.type;
 
-      // map clair pour les boutons
+      // Map propre -> table Supabase
       const map = {
         offplan: 'offplan',
         off: 'offplan',
-        new: 'offplan',        // <— Off Plan
+        new: 'offplan',        // <— "new" = offplan (on laisse offplan indépendant)
         buy: 'buy',
         rent: 'rent',
         commercial: 'commercial',
         all: 'all'
       };
+
       type = map[type] || 'all';
 
       const data = await fetchProperties({ type });
@@ -362,6 +358,7 @@ function setupFilters() {
     });
   });
 }
+
 
 // ========= DOM READY =========
 document.addEventListener('DOMContentLoaded', () => {
