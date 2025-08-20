@@ -25,7 +25,6 @@ async function fetchProperties({ type = "all", limit = 30 } = {}) {
 
   // -------- OFF PLAN 100% INDÉPENDANT --------
   if (type === "offplan") {
-    // Colonnes avec espaces => on les met entre guillemets
     const selectOffplan = [
       "id",
       `"titre"`,
@@ -53,15 +52,13 @@ async function fetchProperties({ type = "all", limit = 30 } = {}) {
       return [];
     }
 
-    // On mappe pour réutiliser ton UI SANS rien changer ailleurs
     data = (off || []).map(p => ({
       id: p.id,
       title: p["titre"] || "",
       location: p["localisation"] || "Dubai",
-      // pas de vraies bedrooms/bathrooms sur offplan : on affiche de l'info utile
-      bedrooms: p["units types"] || "",       // ex: "Studios–3BR"
-      bathrooms: p["project status"] || "",   // ex: "Launched"
-      size: "",                               // offplan n’a pas de sqft
+      bedrooms: p["units types"] || "",       // info utile pour l’icône lit
+      bathrooms: p["project status"] || "",   // statut = deuxième puce
+      size: "",                               // pas de sqft
       price:
         p["price starting"] != null && !Number.isNaN(Number(p["price starting"]))
           ? `From ${Number(p["price starting"]).toLocaleString()} AED`
@@ -71,7 +68,7 @@ async function fetchProperties({ type = "all", limit = 30 } = {}) {
       brochure_url: p.brochure_url || "",
       lat: p.lat ?? null,
       lon: p.lon ?? null,
-      source: "offplan"
+      source: "offplan"                       // <<< tag pour la navigation
     }));
 
     return data;
@@ -170,7 +167,34 @@ function renderProperties(list) {
         <button type="button" onclick="event.stopPropagation();window.open('https://wa.me/', '_blank');">WhatsApp</button>
       </div>
     `;
-    card.addEventListener("click", () => { window.location.href = "bien.html"; });
+
+    // --- Navigation : Offplan => off-plan-click.html?id=..., sinon => bien.html
+    card.addEventListener("click", async () => {
+      try {
+        if (property.source === "offplan") {
+          // log (facultatif)
+          try {
+            await window.supabase.from("offplan click").insert({
+              "offplan id": property.id,
+              description: "open from area-for-you"
+            });
+          } catch (_) {}
+
+          // garder un petit cache si tu veux
+          sessionStorage.setItem("offplan_selected", JSON.stringify({ id: property.id, title: property.title }));
+
+          window.location.href = `off-plan-click.html?id=${encodeURIComponent(property.id)}`;
+        } else {
+          window.location.href = "bien.html";
+        }
+      } catch (e) {
+        console.error(e);
+        window.location.href = (property.source === "offplan")
+          ? `off-plan-click.html?id=${encodeURIComponent(property.id)}`
+          : "bien.html";
+      }
+    });
+
     container.appendChild(card);
   });
   setupFavBtns();
@@ -313,7 +337,6 @@ function deleteChat(chatId) {
 }
 
 // ========= FILTRES =========
-// ========= FILTRES =========
 function setupFilters() {
   document.querySelectorAll('.chat-pick-btn-v2').forEach(btn => {
     btn.addEventListener('click', async function () {
@@ -322,17 +345,16 @@ function setupFilters() {
 
       let type = this.dataset.type;
 
-      // Map propre -> table Supabase
+      // map clair pour les boutons
       const map = {
         offplan: 'offplan',
         off: 'offplan',
-        new: 'offplan',        // <— avant c’était "commercial"
+        new: 'offplan',        // <— Off Plan
         buy: 'buy',
         rent: 'rent',
         commercial: 'commercial',
         all: 'all'
       };
-
       type = map[type] || 'all';
 
       const data = await fetchProperties({ type });
@@ -340,7 +362,6 @@ function setupFilters() {
     });
   });
 }
-
 
 // ========= DOM READY =========
 document.addEventListener('DOMContentLoaded', () => {
