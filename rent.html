@@ -252,13 +252,16 @@
   </div>
 </footer>
 
-<!-- Supabase client -->
-<script src="https://esm.sh/@supabase/supabase-js@2"></script>
-
-<!-- Init client (crée ce fichier) -->
-<script src="javascript/supabaseClient.js"></script>
 <!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <!-- Supabase client -->
+<!-- Supabase client (module) -->
+<script type="module" src="javascript/supabaseClient.js"></script>
+
+<!-- Page logic (classique) -->
 <script src="javascript/rent.js"></script>
-</body>
+
+<!-- ScrollReveal (optionnel) -->
+<script src="https://unpkg.com/scrollreveal"></script>
+
+
 </html>
