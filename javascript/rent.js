@@ -395,6 +395,7 @@ function bindBurger(){
 document.addEventListener('DOMContentLoaded', async ()=>{
   properties = await loadBuyFromDB();
   filteredProperties = properties.slice();
+    bindHeaderDropdown();   
 
   const allPrices = properties.map(p=>p.price).filter(v=>isFinite(v));
   globalMinPrice = allPrices.length ? Math.min(...allPrices) : 0;
@@ -421,3 +422,35 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   applyQueryParamsAndSearch();
   bindBurger();
 });
+
+
+
+
+
+// --- Header dropdown "Commercial" ---
+function bindHeaderDropdown() {
+  const dd = document.getElementById('buyDropdown');
+  const btn = document.getElementById('mainBuyBtn');
+  if (!dd || !btn) return;
+
+  // Toggle au clic sur le bouton principal (pas de navigation)
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dd.classList.toggle('open');
+  });
+
+  // Accessibilité clavier
+  btn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      dd.classList.toggle('open');
+    }
+    if (e.key === 'Escape') dd.classList.remove('open');
+  });
+
+  // Fermer quand on clique en dehors
+  document.addEventListener('click', (e) => {
+    if (!dd.contains(e.target)) dd.classList.remove('open');
+  });
+}
