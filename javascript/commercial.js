@@ -358,9 +358,13 @@ function bindOpenableFilters(){
 
 /* ---------- DOM READY ---------- */
 document.addEventListener('DOMContentLoaded',async()=>{
+
+   
+
   // 1) charge BDD
   properties = await loadCommercialFromDB();
   filteredProperties = properties.slice();
+    bindHeaderDropdown();   
 
   // 2) bornes prix & premier rendu
   const allPrices=getAllPrices(properties);
@@ -387,3 +391,32 @@ document.addEventListener('DOMContentLoaded',async()=>{
     top.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
   }
 });
+
+
+// --- Header dropdown "Commercial" ---
+function bindHeaderDropdown() {
+  const dd = document.getElementById('buyDropdown');
+  const btn = document.getElementById('mainBuyBtn');
+  if (!dd || !btn) return;
+
+  // Toggle au clic sur le bouton principal (pas de navigation)
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dd.classList.toggle('open');
+  });
+
+  // Accessibilité clavier
+  btn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      dd.classList.toggle('open');
+    }
+    if (e.key === 'Escape') dd.classList.remove('open');
+  });
+
+  // Fermer quand on clique en dehors
+  document.addEventListener('click', (e) => {
+    if (!dd.contains(e.target)) dd.classList.remove('open');
+  });
+}
