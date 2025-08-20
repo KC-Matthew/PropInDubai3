@@ -23,6 +23,61 @@ async function detectColumns(table) {
 async function fetchProperties({ type = "all", limit = 30 } = {}) {
   let data = [];
 
+  // -------- OFF PLAN 100% INDÉPENDANT --------
+  if (type === "offplan") {
+    // Colonnes avec espaces => on les met entre guillemets
+    const selectOffplan = [
+      "id",
+      `"titre"`,
+      `"localisation"`,
+      `"price starting"`,
+      `"units types"`,
+      `"project status"`,
+      "photo_url",
+      `"developer photo_url"`,
+      "brochure_url",
+      "description",
+      "lat",
+      "lon",
+      "created_at"
+    ].join(",");
+
+    const { data: off, error } = await window.supabase
+      .from("offplan")
+      .select(selectOffplan)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error("Error fetching offplan", error);
+      return [];
+    }
+
+    // On mappe pour réutiliser ton UI SANS rien changer ailleurs
+    data = (off || []).map(p => ({
+      id: p.id,
+      title: p["titre"] || "",
+      location: p["localisation"] || "Dubai",
+      // pas de vraies bedrooms/bathrooms sur offplan : on affiche de l'info utile
+      bedrooms: p["units types"] || "",       // ex: "Studios–3BR"
+      bathrooms: p["project status"] || "",   // ex: "Launched"
+      size: "",                               // offplan n’a pas de sqft
+      price:
+        p["price starting"] != null && !Number.isNaN(Number(p["price starting"]))
+          ? `From ${Number(p["price starting"]).toLocaleString()} AED`
+          : "",
+      images: [p.photo_url || p["developer photo_url"] || "https://via.placeholder.com/400x300"],
+      description: p.description || "",
+      brochure_url: p.brochure_url || "",
+      lat: p.lat ?? null,
+      lon: p.lon ?? null,
+      source: "offplan"
+    }));
+
+    return data;
+  }
+  // -------------------------------------------
+
   const sources = {
     rent: (type === "rent" || type === "all"),
     buy: (type === "buy" || type === "all"),
@@ -258,6 +313,7 @@ function deleteChat(chatId) {
 }
 
 // ========= FILTRES =========
+// ========= FILTRES =========
 function setupFilters() {
   document.querySelectorAll('.chat-pick-btn-v2').forEach(btn => {
     btn.addEventListener('click', async function () {
@@ -265,13 +321,26 @@ function setupFilters() {
       this.classList.add('active');
 
       let type = this.dataset.type;
-      if (type === "new") type = "commercial";
+
+      // Map propre -> table Supabase
+      const map = {
+        offplan: 'offplan',
+        off: 'offplan',
+        new: 'offplan',        // <— avant c’était "commercial"
+        buy: 'buy',
+        rent: 'rent',
+        commercial: 'commercial',
+        all: 'all'
+      };
+
+      type = map[type] || 'all';
 
       const data = await fetchProperties({ type });
       renderProperties(data);
     });
   });
 }
+
 
 // ========= DOM READY =========
 document.addEventListener('DOMContentLoaded', () => {
