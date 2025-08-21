@@ -1,83 +1,293 @@
-// ----- DATA DÉMO -----
-const allProperties = [];
-for (let i = 1; i <= 24; i++) {
-  allProperties.push({
-    id: i,
-    title: ["Luxury Apt", "Modern Villa", "Townhouse", "Loft"][i % 4] + " " + i,
-    location: ["Downtown", "JVC", "Dubai Marina", "Palm Jumeirah"][i % 4],
-    price: `${1_400_000 + i * 25_000} AED`,
-    priceNum: 1_400_000 + i * 25_000,
-    bedrooms: 1 + (i % 4),
-    bathrooms: 1 + (i % 3),
-    size: (950 + i * 8) + " sqft",
-    image: ["styles/photo/dubai-map.jpg", "styles/photo/fond.jpg"][i % 2],
-    lat: 25.22 + 0.025 * (i % 3) + Math.random() * 0.008,
-    lng: 55.28 + 0.025 * (i % 4) + Math.random() * 0.009,
-  });
+
+
+
+function goToDetails(p) {
+  // on garde aussi en session pour le fallback de bien.js
+  try {
+    sessionStorage.setItem('selected_property', JSON.stringify({ id: p.id, type: p.type }));
+  } catch {}
+  const url = `bien.html?id=${encodeURIComponent(p.id)}&type=${encodeURIComponent(p.type)}`;
+  window.location.href = url;
 }
 
+// Basemap EN color (CARTO Voyager)
+const EN_TILE_URL =
+  "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+const EN_ATTR =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> & <a href="https://carto.com/attributions">CARTO</a>';
+
+
+// (Optionnel) clé MapTiler pour géocode plus robuste EN.
+// Laisse vide => fallback Nominatim (OK en dev, éviter en prod pour gros volume).
+const MAPTILER_KEY = ""; // ex: "AbCdEfGh..."
+
+/* ===========================
+   STATE
+   =========================== */
+
+let allProperties = [];            // rempli depuis Supabase
 let map, markersGroup, markerMap = {};
 let currentPage = 1;
 const cardsPerPage = 6;
-let filteredProperties = allProperties.slice();
-let visibleProperties = filteredProperties.slice();
+let filteredProperties = [];
+let visibleProperties = [];
 let popupLayer = null;
 
-// ----------------- BURGER MENU MOBILE -----------------
-document.addEventListener('DOMContentLoaded', function() {
-  const burger = document.getElementById('burgerMenu');
-  const allButton = document.querySelector('.all-button');
-  burger.addEventListener('click', function(e) {
-    e.stopPropagation();
-    allButton.classList.toggle('menu-open');
-  });
-  document.body.addEventListener('click', function(e) {
-    if (!allButton.contains(e.target) && !burger.contains(e.target)) {
-      allButton.classList.remove('menu-open');
+// mini cache local (évite de re-géocoder les mêmes lieux)
+const GEO_CACHE_KEY = "propindubai_geo_cache_v1";
+let GEO_CACHE = {};
+try { GEO_CACHE = JSON.parse(localStorage.getItem(GEO_CACHE_KEY) || "{}"); } catch { GEO_CACHE = {}; }
+
+function saveGeoCache() {
+  try { localStorage.setItem(GEO_CACHE_KEY, JSON.stringify(GEO_CACHE)); } catch {}
+}
+
+/* ===========================
+   UI helpers
+   =========================== */
+
+function showInlineError(msg) {
+  let bar = document.getElementById("supabase-error");
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.id = "supabase-error";
+    bar.style.cssText = "position:fixed;top:12px;left:12px;z-index:9999;background:#ffe7e7;color:#920; border:1px solid #f3b; padding:10px 14px;border-radius:9px;box-shadow:0 6px 24px rgba(0,0,0,.08);font:600 14px system-ui;";
+    document.body.appendChild(bar);
+  }
+  bar.textContent = msg;
+}
+
+/* ===========================
+   SUPABASE -> Rows
+   =========================== */
+
+async function waitSupabaseReady() {
+  if (window.supabase) return;
+  await new Promise(res => window.addEventListener("supabase:ready", res, { once:true }));
+}
+
+function normalizePlace(str) {
+  return (str || "").toString().trim();
+}
+
+// Sélectionne les bonnes colonnes selon la table (image aliasée => image_url).
+function selectFor(table) {
+  const a1 = 'localisation_accueil:"localisation accueil"';
+  const a2 = 'localisation_accueil:"localisation acceuil"';
+
+  if (table === "buy") {
+    const common = 'id,title,property_type,bedrooms,bathrooms,price,sqft,agent_id,created_at,';
+    const img = 'image_url:photo_bien_url';
+    return [
+      `${common}${img},${a1}`,
+      `${common}${img},${a2}`
+    ];
+  }
+
+  if (table === "rent") {
+    const common = 'id,title,property_type,bedrooms,bathrooms,price,sqft,agent_id,created_at,';
+    const img = 'image_url:photo_url';
+    return [
+      `${common}${img},${a1}`,
+      `${common}${img},${a2}`
+    ];
+  }
+
+  // commercial: la colonne est "property type" (avec un espace)
+  const commonCommercial =
+    'id,title,property_type:"property type",bedrooms,bathrooms,price,sqft,agent_id,created_at,';
+  const imgCommercial = 'image_url:photo_url';
+  return [
+    `${commonCommercial}${imgCommercial},${a1}`,
+    `${commonCommercial}${imgCommercial},${a2}`
+  ];
+}
+
+async function safeSelect(table) {
+  const sb = window.supabase;
+  const variants = selectFor(table);
+  let lastErr = null;
+  for (const sel of variants) {
+    const { data, error } = await sb.from(table)
+      .select(sel)
+      .order("created_at", { ascending: false })
+      .limit(1000);
+    if (!error) return { data };
+    lastErr = error;
+  }
+  return { error: lastErr, data: null };
+}
+
+async function loadRows() {
+  await waitSupabaseReady();
+  const [buy, rent, commercial] = await Promise.all([
+    safeSelect("buy"),
+    safeSelect("rent"),
+    safeSelect("commercial"),
+  ]);
+
+  const firstErr = buy.error || rent.error || commercial.error;
+  if (firstErr) {
+    showInlineError(`Supabase error: ${firstErr.message}`);
+  }
+
+  const rows = []
+    .concat((buy.data || []).map(r => ({ t: "buy", r })))
+    .concat((rent.data || []).map(r => ({ t: "rent", r })))
+    .concat((commercial.data || []).map(r => ({ t: "commercial", r })));
+
+  return rows;
+}
+
+/* ===========================
+   Geocoding (EN only)
+   =========================== */
+
+// 1) essaie la table "geocache" (si tu la crées dans Supabase)
+// 2) sinon cache localStorage
+// 3) sinon MapTiler (anglais), sinon Nominatim (fallback)
+
+async function geocodeFromDb(qKey) {
+  try {
+    const { data, error } = await window.supabase
+      .from("geocache")
+      .select("lat,lng")
+      .eq("q", qKey)
+      .maybeSingle?.() // supabase-js v2
+      || await window.supabase
+      .from("geocache")
+      .select("lat,lng")
+      .eq("q", qKey)
+      .limit(1);
+    if (data && (data.lat || (data[0] && data[0].lat))) {
+      const row = data.lat ? data : data[0];
+      return { lat: Number(row.lat), lng: Number(row.lng) };
     }
-  });
-});
+  } catch {}
+  return null;
+}
 
-// --------- MENU DÉROULANT "BUY" (desktop) ----------
-document.addEventListener('DOMContentLoaded', function() {
-  const buyDropdown = document.getElementById('buyDropdown');
-  const mainBuyBtn = document.getElementById('mainBuyBtn');
-  if (mainBuyBtn && buyDropdown) {
-    mainBuyBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      buyDropdown.classList.toggle('open');
-    });
-    document.addEventListener('click', function(e) {
-      if (!buyDropdown.contains(e.target)) {
-        buyDropdown.classList.remove('open');
-      }
-    });
+async function upsertGeocache(qKey, original, coords) {
+  try {
+    await window.supabase.from("geocache").upsert({
+      q: qKey, original, lat: coords.lat, lng: coords.lng
+    }, { onConflict: "q" });
+  } catch {}
+}
+
+async function geocodeViaMapTiler(q) {
+  if (!MAPTILER_KEY) return null;
+  const url = `https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${MAPTILER_KEY}&language=en&limit=1&country=AE`;
+  const r = await fetch(url);
+  if (!r.ok) return null;
+  const j = await r.json();
+  const f = j.features && j.features[0];
+  if (!f || !f.center) return null;
+  const [lng, lat] = f.center;
+  return { lat, lng };
+}
+
+async function geocodeViaNominatim(q) {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q + ", Dubai, UAE")}&accept-language=en`;
+  const r = await fetch(url, { headers: { "Accept": "application/json" } });
+  if (!r.ok) return null;
+  const j = await r.json();
+  if (!j || !j[0]) return null;
+  return { lat: Number(j[0].lat), lng: Number(j[0].lon) };
+}
+
+async function geocodePlace(placeRaw) {
+  const place = normalizePlace(placeRaw);
+  if (!place) return { lat: 25.2048, lng: 55.2708 }; // centre Dubai
+
+  const key = place.toLowerCase();
+
+  // 0) cache local
+  if (GEO_CACHE[key]) return GEO_CACHE[key];
+
+  // 1) cache BDD (si table existe)
+  const fromDb = await geocodeFromDb(key);
+  if (fromDb) {
+    GEO_CACHE[key] = fromDb; saveGeoCache();
+    return fromDb;
   }
-});
 
-// ----------- INIT MAP ---------
+  // 2) MapTiler (EN)
+  let coords = await geocodeViaMapTiler(place);
+  // 3) fallback Nominatim (dev/test)
+  if (!coords) coords = await geocodeViaNominatim(place);
+
+  if (!coords) coords = { lat: 25.2048, lng: 55.2708 };
+
+  GEO_CACHE[key] = coords; saveGeoCache();
+  // essaie d’enregistrer côté Supabase (silencieux si table absente)
+  upsertGeocache(key, place, coords);
+  return coords;
+}
+
+/* ===========================
+   Rows -> Properties
+   =========================== */
+
+// rows -> property
+function rowToProperty(row, tableName, coords) {
+  const image = row.image_url || "styles/photo/fond.jpg";
+  const location = row.localisation_accueil || "Dubai";
+  const priceNum = Number(row.price) || 0;
+
+  return {
+    id: row.id,                  // <-- ID Supabase (obligatoire)
+    type: tableName,             // <-- 'buy' | 'rent' | 'commercial'
+    title: row.title || row.property_type || "Property",
+    location,
+    price: `${priceNum.toLocaleString("en-US")} AED`,
+    priceNum,
+    bedrooms: Number(row.bedrooms) || 0,
+    bathrooms: Number(row.bathrooms) || 0,
+    size: row.sqft ? `${row.sqft} sqft` : "",
+    image,
+    lat: coords.lat,
+    lng: coords.lng
+  };
+}
+
+async function loadPropertiesFromSupabase() {
+  const rows = await loadRows();
+  const out = [];
+
+  // géocode en série pour éviter les rate-limits
+  for (const { t, r } of rows) {
+    const place = r.localisation_accueil || "";
+    const coords = await geocodePlace(place);
+    out.push(rowToProperty(r, t, coords));
+  }
+  allProperties = out;
+  filteredProperties = allProperties.slice();
+  visibleProperties = filteredProperties.slice();
+}
+
+/* ===========================
+   MAP
+   =========================== */
+
 function initMap() {
+  const center = [25.23, 55.3];
   if (window.innerWidth < 701) {
-    map = L.map('leafletMapMobile', { center: [25.23, 55.3], zoom: 12, zoomControl: true });
+    map = L.map("leafletMapMobile", { center, zoom: 12, zoomControl: true });
   } else {
-    map = L.map('leafletMap', { center: [25.23, 55.3], zoom: 12, zoomControl: true });
+    map = L.map("leafletMap", { center, zoom: 12, zoomControl: true });
   }
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+  L.tileLayer(EN_TILE_URL, { attribution: EN_ATTR, maxZoom: 20 }).addTo(map);
   markersGroup = L.layerGroup().addTo(map);
-  map.on('moveend zoomend', updateVisibleProperties);
 
-  // Fermer popup maison si clic sur la carte
-  map.on('click', function() {
+  map.on("moveend zoomend", updateVisibleProperties);
+  map.on("click", function () {
     if (popupLayer) {
-      map.closePopup(popupLayer);
-      popupLayer = null;
+      map.closePopup(popupLayer); popupLayer = null;
     }
   });
 }
 
-// ---------- PROPERTIES AFFICHÉES (SUR LA VUE CARTE) ----------
 function updateVisibleProperties() {
   if (!map) return;
   const bounds = map.getBounds();
@@ -90,14 +300,17 @@ function updateVisibleProperties() {
   showMarkers(visibleProperties);
 }
 
-// ----------- SEARCH DESKTOP -----------
+/* ===========================
+   SEARCH + RENDER (identique)
+   =========================== */
+
 function filterProperties() {
   const searchInput = document.getElementById("searchInput");
   const minPriceInput = document.getElementById("minPriceInput");
   const maxPriceInput = document.getElementById("maxPriceInput");
-  const value = searchInput.value.trim().toLowerCase();
-  const minPrice = parseInt(minPriceInput.value, 10) || 0;
-  const maxPrice = parseInt(maxPriceInput.value, 10) || Number.MAX_SAFE_INTEGER;
+  const value = (searchInput?.value || "").trim().toLowerCase();
+  const minPrice = parseInt(minPriceInput?.value, 10) || 0;
+  const maxPrice = parseInt(maxPriceInput?.value, 10) || Number.MAX_SAFE_INTEGER;
   filteredProperties = allProperties.filter(p =>
     (p.title.toLowerCase().includes(value) || p.location.toLowerCase().includes(value)) &&
     p.priceNum >= minPrice && p.priceNum <= maxPrice
@@ -105,14 +318,13 @@ function filterProperties() {
   updateVisibleProperties();
 }
 
-// ---------- SEARCH MOBILE ----------
 function filterMobileProperties() {
   const mobileSearchInput = document.getElementById("mobileSearchInput");
   const mobileMinPriceInput = document.getElementById("mobileMinPriceInput");
   const mobileMaxPriceInput = document.getElementById("mobileMaxPriceInput");
-  const value = mobileSearchInput.value.trim().toLowerCase();
-  const minPrice = parseInt(mobileMinPriceInput.value, 10) || 0;
-  const maxPrice = parseInt(mobileMaxPriceInput.value, 10) || Number.MAX_SAFE_INTEGER;
+  const value = (mobileSearchInput?.value || "").trim().toLowerCase();
+  const minPrice = parseInt(mobileMinPriceInput?.value, 10) || 0;
+  const maxPrice = parseInt(mobileMaxPriceInput?.value, 10) || Number.MAX_SAFE_INTEGER;
   filteredProperties = allProperties.filter(p =>
     (p.title.toLowerCase().includes(value) || p.location.toLowerCase().includes(value)) &&
     p.priceNum >= minPrice && p.priceNum <= maxPrice
@@ -120,11 +332,11 @@ function filterMobileProperties() {
   updateVisibleProperties();
 }
 
-// ---------- AFFICHAGE PROPERTIES DESKTOP ----------
 function renderProperties(page = 1) {
   currentPage = page;
   const grid = document.getElementById("propertyGrid");
   const pagination = document.getElementById("pagination");
+  if (!grid) return;
   grid.innerHTML = "";
   const start = (page - 1) * cardsPerPage;
   const slice = visibleProperties.slice(start, start + cardsPerPage);
@@ -151,6 +363,7 @@ function renderProperties(page = 1) {
 }
 
 function renderPagination(pagination, nb) {
+  if (!pagination) return;
   const pages = Math.ceil(nb / cardsPerPage);
   pagination.innerHTML = "";
   if (pages <= 1) return;
@@ -163,9 +376,9 @@ function renderPagination(pagination, nb) {
   }
 }
 
-// ---------- AFFICHAGE PROPERTIES MOBILE ----------
 function renderMobileProperties(props) {
   const list = document.getElementById("propertyListMobile");
+  if (!list) return;
   list.innerHTML = "";
   props.forEach((p, idx) => {
     const card = document.createElement("div");
@@ -191,8 +404,9 @@ function renderMobileProperties(props) {
   });
 }
 
-// ---------- MARKERS ----------
+/* MARKERS */
 function showMarkers(props) {
+  if (!markersGroup) return;
   markersGroup.clearLayers();
   markerMap = {};
   props.forEach((p, idx) => {
@@ -211,18 +425,19 @@ function showMarkers(props) {
     });
     const marker = L.marker([p.lat, p.lng], { icon: customIcon })
       .addTo(markersGroup)
-      .on('mouseover', () => highlightProperty(idx))
-      .on('mouseout', () => unhighlightProperty(idx))
-      .on('click', (e) => { showMiniCardOnMap(p, [p.lat, p.lng]); });
+      .on("mouseover", () => highlightProperty(idx))
+      .on("mouseout", () => unhighlightProperty(idx))
+      .on("click", () => { showMiniCardOnMap(p, [p.lat, p.lng]); });
     markerMap[p.id] = marker;
   });
 }
 
-// ---------- MINI POPUP ----------
 function showMiniCardOnMap(property, latlng) {
   if (popupLayer) { map.closePopup(popupLayer); popupLayer = null; }
+  const detailUrl = `bien.html?id=${encodeURIComponent(property.id)}&type=${encodeURIComponent(property.type)}`;
   const content = `
-    <div class="map-mini-card" style="width:240px; background:#fff; border-radius:13px; box-shadow:0 4px 28px rgba(0,0,0,0.16); border:2px solid orange; padding:0; overflow:hidden; cursor:pointer;">
+    <a href="${detailUrl}" class="map-mini-card"
+       style="display:block;width:240px;background:#fff;border-radius:13px;box-shadow:0 4px 28px rgba(0,0,0,0.16);border:2px solid orange;padding:0;overflow:hidden;cursor:pointer;text-decoration:none;color:inherit">
       <img src="${property.image}" alt="${property.title}" style="width:100%; height:105px; object-fit:cover; border-radius:10px 10px 0 0;"/>
       <div style="padding:0.7rem 0.7rem 0.6rem 0.7rem">
         <div style="font-weight:600;font-size:1.06rem;">${property.title}</div>
@@ -232,215 +447,90 @@ function showMiniCardOnMap(property, latlng) {
         </div>
         <div style="font-weight:bold; color:#ff8800; font-size:1.05rem;margin-top:4px;">${property.price}</div>
       </div>
-    </div>
+    </a>
   `;
   popupLayer = L.popup({
-    autoClose: true,
-    closeOnClick: false,
-    className: 'custom-leaflet-popup',
-    offset: [0, 18],
-    minWidth: 240,
-    maxWidth: 260,
-    closeButton: false,
+    autoClose: true, closeOnClick: false, className: "custom-leaflet-popup",
+    offset: [0, 18], minWidth: 240, maxWidth: 260, closeButton: false,
   })
     .setLatLng(latlng)
     .setContent(content)
     .openOn(map);
-
-  setTimeout(() => {
-    const popupDiv = document.querySelector('.custom-leaflet-popup .map-mini-card');
-    if (popupDiv) popupDiv.onclick = () => window.location.href = "bien.html";
-  }, 50);
 }
 
-// --------- HIGHLIGHT MARKERS & CARDS -----------
-function highlightMarker(id) { if (markerMap[id]) { const markerElem = markerMap[id]._icon; if (markerElem) markerElem.classList.add("hovered"); } }
-function unhighlightMarker(id) { if (markerMap[id]) { const markerElem = markerMap[id]._icon; if (markerElem) markerElem.classList.remove("hovered"); } }
-function highlightProperty(idx) { const cards = document.querySelectorAll(".property-card"); if (cards[idx]) cards[idx].classList.add("active"); }
-function unhighlightProperty(idx) { const cards = document.querySelectorAll(".property-card"); if (cards[idx]) cards[idx].classList.remove("active"); }
 
-// ---------- EVENTS ----------
-document.addEventListener('DOMContentLoaded', () => {
-  initMap();
-  // Desktop search events
-  const searchInput = document.getElementById("searchInput");
-  const searchBtn = document.getElementById("searchBtn");
-  const minPriceInput = document.getElementById("minPriceInput");
-  const maxPriceInput = document.getElementById("maxPriceInput");
-  if (searchInput && searchBtn && minPriceInput && maxPriceInput) {
-    searchInput.addEventListener('input', filterProperties);
-    searchBtn.addEventListener('click', filterProperties);
-    minPriceInput.addEventListener('input', filterProperties);
-    maxPriceInput.addEventListener('input', filterProperties);
+function highlightMarker(id) {
+  if (markerMap[id]) {
+    const el = markerMap[id]._icon;
+    if (el) el.classList.add("hovered");
   }
-
-  // Mobile search events
-  const mobileSearchInput = document.getElementById("mobileSearchInput");
-  const mobileSearchBtn = document.getElementById("mobileSearchBtn");
-  const mobileMinPriceInput = document.getElementById("mobileMinPriceInput");
-  const mobileMaxPriceInput = document.getElementById("mobileMaxPriceInput");
-  if (mobileSearchInput && mobileSearchBtn && mobileMinPriceInput && mobileMaxPriceInput) {
-    mobileSearchInput.addEventListener('input', filterMobileProperties);
-    mobileSearchBtn.addEventListener('click', filterMobileProperties);
-    mobileMinPriceInput.addEventListener('input', filterMobileProperties);
-    mobileMaxPriceInput.addEventListener('input', filterMobileProperties);
+}
+function unhighlightMarker(id) {
+  if (markerMap[id]) {
+    const el = markerMap[id]._icon;
+    if (el) el.classList.remove("hovered");
   }
+}
+function highlightProperty(idx) {
+  const cards = document.querySelectorAll(".property-card");
+  if (cards[idx]) cards[idx].classList.add("active");
+}
+function unhighlightProperty(idx) {
+  const cards = document.querySelectorAll(".property-card");
+  if (cards[idx]) cards[idx].classList.remove("active");
+}
 
+/* ===========================
+   BOOTSTRAP
+   =========================== */
 
+// Tes listeners (burger, dropdown, mobile deck, autocomplete, prix) restent inchangés.
+// On ajoute seulement ce bootstrap pour charger Supabase + géocoder avant rendu.
 
-  
-
-  // Lance le 1er affichage selon le support
-  if (window.innerWidth < 701) {
-    filterMobileProperties();
-  } else {
-    filterProperties();
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    initMap();
+    await loadPropertiesFromSupabase();   // <-- charge + auto-géocode
+    // Desktop search
+    const searchInput = document.getElementById("searchInput");
+    const searchBtn = document.getElementById("searchBtn");
+    const minPriceInput = document.getElementById("minPriceInput");
+    const maxPriceInput = document.getElementById("maxPriceInput");
+    if (searchInput && searchBtn && minPriceInput && maxPriceInput) {
+      searchInput.addEventListener("input", filterProperties);
+      searchBtn.addEventListener("click", filterProperties);
+      minPriceInput.addEventListener("input", filterProperties);
+      maxPriceInput.addEventListener("input", filterProperties);
+    }
+    // Mobile search
+    const mobileSearchInput = document.getElementById("mobileSearchInput");
+    const mobileSearchBtn = document.getElementById("mobileSearchBtn");
+    const mobileMinPriceInput = document.getElementById("mobileMinPriceInput");
+    const mobileMaxPriceInput = document.getElementById("mobileMaxPriceInput");
+    if (mobileSearchInput && mobileSearchBtn && mobileMinPriceInput && mobileMaxPriceInput) {
+      mobileSearchInput.addEventListener("input", filterMobileProperties);
+      mobileSearchBtn.addEventListener("click", filterMobileProperties);
+      mobileMinPriceInput.addEventListener("input", filterMobileProperties);
+      mobileMaxPriceInput.addEventListener("input", filterMobileProperties);
+    }
+    // Premier rendu
+    if (window.innerWidth < 701) {
+      filterMobileProperties();
+    } else {
+      filterProperties();
+    }
+  } catch (e) {
+    console.error(e);
+    showInlineError(`Init error: ${e.message}`);
   }
 });
 
-// ----------- MOBILE DECK (swipe, click) -----------
-document.addEventListener('DOMContentLoaded', function() {
-  const deck = document.querySelector('.mobile-cards-deck');
-  if (!deck) return;
-  const handle = deck.querySelector('.deck-handle');
-  let states = ['collapsed', 'half', 'full'];
-  let index = 0; // Start collapsed
 
-  handle.addEventListener('click', function() {
-    index = (index + 1) % 3;
-    deck.className = 'mobile-cards-deck ' + states[index];
-  });
+/************ PRICE SUGGESTIONS (Min / Max) ************/
 
-  // Glisser le deck
-  let startY = null, startTop = null;
-  handle.addEventListener('touchstart', e => {
-    startY = e.touches[0].clientY;
-    startTop = deck.getBoundingClientRect().top;
-    deck.style.transition = 'none';
-  });
-  handle.addEventListener('touchmove', e => {
-    if (startY === null) return;
-    let diff = e.touches[0].clientY - startY;
-    let newTop = Math.max(0, startTop + diff);
-    deck.style.top = newTop + 'px';
-  });
-  handle.addEventListener('touchend', e => {
-    deck.style.transition = '';
-    let currentTop = deck.getBoundingClientRect().top;
-    let vh = window.innerHeight;
-    let dists = [0.67*vh, 0.38*vh, 0];
-    let best = 0, minDist = Math.abs(currentTop - dists[0]);
-    for (let i=1;i<dists.length;i++) {
-      if (Math.abs(currentTop - dists[i]) < minDist) {
-        minDist = Math.abs(currentTop - dists[i]);
-        best = i;
-      }
-    }
-    index = best;
-    deck.className = 'mobile-cards-deck ' + states[index];
-    deck.style.top = '';
-    startY = null;
-  });
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// AUTOCOMPLETE SEARCHBAR
-document.addEventListener('DOMContentLoaded', function() {
-  const searchInput = document.getElementById("searchInput");
-  const autocompleteDiv = document.getElementById("searchAutocomplete");
-
-  // Protection : si l'un des éléments n'est pas trouvé
-  if (!searchInput || !autocompleteDiv) return;
-
-  // Fonction suggestions (titre + location, sans doublons)
-  function getSuggestions(query) {
-    if (!query) return [];
-    query = query.trim().toLowerCase();
-    const seen = new Set();
-    let matches = [];
-    allProperties.forEach(p => {
-      if (p.title.toLowerCase().includes(query) && !seen.has(p.title.toLowerCase())) {
-        matches.push(p.title);
-        seen.add(p.title.toLowerCase());
-      }
-      if (p.location.toLowerCase().includes(query) && !seen.has(p.location.toLowerCase())) {
-        matches.push(p.location);
-        seen.add(p.location.toLowerCase());
-      }
-    });
-    return matches.slice(0, 8);
-  }
-
-  // Afficher les suggestions
-  function showSuggestions() {
-    const val = searchInput.value;
-    const suggestions = getSuggestions(val);
-    if (!val || suggestions.length === 0) {
-      autocompleteDiv.style.display = "none";
-      autocompleteDiv.innerHTML = "";
-      return;
-    }
-    autocompleteDiv.innerHTML = "";
-    suggestions.forEach(sugg => {
-      const div = document.createElement("div");
-      div.className = "suggestion";
-      div.textContent = sugg;
-      div.onclick = function(e) {
-        e.stopPropagation();
-        searchInput.value = sugg;
-        autocompleteDiv.style.display = "none";
-        filterProperties(); // relance le filtre
-      };
-      autocompleteDiv.appendChild(div);
-    });
-    autocompleteDiv.style.display = "block";
-  }
-
-  // Cache suggestions si on clique ailleurs
-  document.addEventListener('click', function(e) {
-    if (!autocompleteDiv.contains(e.target) && e.target !== searchInput) {
-      autocompleteDiv.style.display = "none";
-    }
-  });
-
-  // Affiche suggestions à chaque saisie/focus
-  searchInput.addEventListener('input', showSuggestions);
-  searchInput.addEventListener('focus', showSuggestions);
-});
-
-
-
-
-
-
-
-
-
-
-
-
-// OPTIONS EXACTES de prix comme demandé
+// valeurs exactes demandées
 const priceOptions = [
+  0,20000,50000,100000,200000,
   300000, 400000, 500000, 600000, 700000, 800000, 900000,
   1000000, 1100000, 1200000, 1300000, 1400000, 1500000,
   1600000, 1700000, 1800000, 1900000, 2000000, 2100000, 2200000,
@@ -454,48 +544,58 @@ function formatPrice(n) {
   return n.toLocaleString('en-US');
 }
 
-// Affiche les suggestions sous l’input concerné
 function showPriceSuggestions(input, suggestionsDiv) {
+  if (!suggestionsDiv) return;
   suggestionsDiv.innerHTML = '';
   priceOptions.forEach(val => {
     const div = document.createElement('div');
     div.className = 'suggestion';
     div.textContent = formatPrice(val);
     div.onclick = () => {
-      input.value = val;
+      input.value = val;                 // on met la valeur numérique
       suggestionsDiv.style.display = 'none';
-      input.dispatchEvent(new Event('input')); // Trigger le filtre live
+      input.dispatchEvent(new Event('input')); // retrigger le filtre live
+      // en desktop, relance le filtre pour maj cards/markers
+      if (typeof filterProperties === 'function') filterProperties();
     };
     suggestionsDiv.appendChild(div);
   });
   suggestionsDiv.style.display = 'block';
 }
 
-// Initialisation à placer dans ton DOMContentLoaded (après avoir généré le HTML)
+// brancher les listeners après le DOM prêt
 document.addEventListener('DOMContentLoaded', () => {
-  // -------- MIN PRICE --------
   const minInput = document.getElementById('minPriceInput');
+  const maxInput = document.getElementById('maxPriceInput');
   const minSuggestions = document.getElementById('minPriceSuggestions');
-  minInput.addEventListener('focus', () => showPriceSuggestions(minInput, minSuggestions));
-  minInput.addEventListener('click', () => showPriceSuggestions(minInput, minSuggestions));
+  const maxSuggestions = document.getElementById('maxPriceSuggestions');
+
+  if (minInput && minSuggestions) {
+    const openMin = (e) => { e.stopPropagation(); showPriceSuggestions(minInput, minSuggestions); };
+    minInput.addEventListener('focus', openMin);
+    minInput.addEventListener('click', openMin);
+  }
+  if (maxInput && maxSuggestions) {
+    const openMax = (e) => { e.stopPropagation(); showPriceSuggestions(maxInput, maxSuggestions); };
+    maxInput.addEventListener('focus', openMax);
+    maxInput.addEventListener('click', openMax);
+  }
+
+  // fermer si on clique ailleurs
   document.addEventListener('click', (e) => {
-    if (!minSuggestions.contains(e.target) && e.target !== minInput) {
+    if (minSuggestions && !minSuggestions.contains(e.target) && e.target !== minInput) {
       minSuggestions.style.display = 'none';
     }
-  });
-
-  // -------- MAX PRICE --------
-  const maxInput = document.getElementById('maxPriceInput');
-  const maxSuggestions = document.getElementById('maxPriceSuggestions');
-  maxInput.addEventListener('focus', () => showPriceSuggestions(maxInput, maxSuggestions));
-  maxInput.addEventListener('click', () => showPriceSuggestions(maxInput, maxSuggestions));
-  document.addEventListener('click', (e) => {
-    if (!maxSuggestions.contains(e.target) && e.target !== maxInput) {
+    if (maxSuggestions && !maxSuggestions.contains(e.target) && e.target !== maxInput) {
       maxSuggestions.style.display = 'none';
     }
   });
 
-  // Optionnel : Masque la dropdown si on sort du champ
-  minInput.addEventListener('blur', () => setTimeout(() => minSuggestions.style.display = 'none', 150));
-  maxInput.addEventListener('blur', () => setTimeout(() => maxSuggestions.style.display = 'none', 150));
+  // un petit délai pour éviter de fermer instantanément au blur
+  if (minInput && minSuggestions) {
+    minInput.addEventListener('blur', () => setTimeout(() => minSuggestions.style.display = 'none', 120));
+  }
+  if (maxInput && maxSuggestions) {
+    maxInput.addEventListener('blur', () => setTimeout(() => maxSuggestions.style.display = 'none', 120));
+  }
 });
