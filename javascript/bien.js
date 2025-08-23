@@ -9,49 +9,105 @@ function AED(n){const x=Number(n);return Number.isFinite(x)?`AED ${x.toLocaleStr
 function getQS(n){return new URLSearchParams(location.search).get(n);}
 function q(name){if(!name)return null;return /[\s()\-]/.test(name)?`"${String(name).replace(/"/g,'""')}"`:name;}
 
+
+// --- Basemap EN (fallback raster si pas de clé)
+const EN_TILE_URL =
+  "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+const EN_ATTR =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> & <a href="https://carto.com/attributions">CARTO</a>';
+
+// Mets ta clé MapTiler ici pour labels 100% EN à tous les zooms
+const MAPTILER_KEY = ""; // ex: "AbCdEfGh..."
+
+function addEnglishBasemap(map){
+  if (MAPTILER_KEY && L.maplibreGL) {
+    // Style vectoriel MapTiler avec langue forcée en anglais
+    L.maplibreGL({
+      style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}&language=en`,
+      attribution: '&copy; MapTiler &copy; OpenStreetMap contributors'
+    }).addTo(map);
+  } else {
+    // Fallback raster (peut repasser en langue locale en zoom fort)
+    L.tileLayer(EN_TILE_URL, { attribution: EN_ATTR, maxZoom: 20 }).addTo(map);
+    if (!MAPTILER_KEY) {
+      console.warn("MAPTILER_KEY vide: impossible de garantir l’anglais à tous les zooms (fallback CARTO).");
+    }
+    if (!L.maplibreGL) {
+      console.warn("Plugin leaflet-maplibre-gl manquant: fallback CARTO.");
+    }
+  }
+}
+
+
 // -------- Détection de colonnes ----------
 async function detectCols(table){
-  const {data,error}=await window.supabase.from(table).select("*").limit(1);
-  if(error) throw error;
-  const row=data?.[0]||{};
-  const has=k=>Object.prototype.hasOwnProperty.call(row,k);
-  const pick=(...c)=>c.find(has);
+  const { data, error } = await window.supabase.from(table).select("*").limit(1);
+  if (error) throw error;
+  const row = data?.[0] || {};
+  const has  = k => Object.prototype.hasOwnProperty.call(row, k);
+  const pick = (...c) => c.find(has);
+
   return {
-    id: pick("id","uuid"),
-    title: pick("title","titre","name"),
+    id:           pick("id","uuid"),
+    title:        pick("title","titre","name"),
     propertyType: pick("property_type","property type"),
-    bedrooms: pick("bedrooms","rooms"),
-    bathrooms: pick("bathrooms"),
-    price: pick("price"),
-    sqft: pick("sqft","sqft (m²)"),
-    photo: pick("photo_bien_url","photo_url","image_url","image"),
-    // pour la description: si elle n'existe pas, on fera un fallback
-    description: pick("description","property details","property_details","details"),
-    created_at: pick("created_at"),
-    agent_id: pick("agent_id")
+    bedrooms:     pick("bedrooms","rooms"),
+    bathrooms:    pick("bathrooms"),
+    price:        pick("price"),
+    sqft:         pick("sqft","sqft (m²)"),
+    photo:        pick("photo_bien_url","photo_url","image_url","image"),
+    description:  pick("description","property details","property_details","details"),
+    created_at:   pick("created_at"),
+    agent_id:     pick("agent_id"),
+
+    // 👇 NOUVEAU: on détecte la colonne "localisation" (avec ou sans faute)
+    localisationAccueil: pick("localisation accueil","localisation acceuil","localisation_accueil")
   };
 }
 
+
 // -------- Lecture d’un bien ----------
-async function fetchOneById(table,id){
-  const cols=await detectCols(table);
-  const fields=[cols.id,cols.title,cols.propertyType,cols.bedrooms,cols.bathrooms,cols.price,cols.sqft,cols.photo,cols.description,cols.created_at,cols.agent_id]
-    .filter(Boolean).map(q).join(",");
-  const {data,error}=await window.supabase.from(table).select(fields).eq(cols.id,id).single();
-  if(error) throw error;
-  return {data,cols};
+async function fetchOneById(table, id){
+  const cols = await detectCols(table);
+  const fields = [
+    cols.id, cols.title, cols.propertyType, cols.bedrooms, cols.bathrooms,
+    cols.price, cols.sqft, cols.photo, cols.description, cols.created_at,
+    cols.agent_id,
+    cols.localisationAccueil             // 👈 on l’inclut SI elle existe
+  ].filter(Boolean).map(q).join(",");
+
+  const { data, error } = await window.supabase
+    .from(table)
+    .select(fields)
+    .eq(cols.id, id)
+    .single();
+
+  if (error) throw error;
+  return { data, cols };
 }
+
 
 // secours: dernier bien si pas d’id
 async function fetchLatest(table){
-  const cols=await detectCols(table);
-  const fields=[cols.id,cols.title,cols.propertyType,cols.bedrooms,cols.bathrooms,cols.price,cols.sqft,cols.photo,cols.description,cols.created_at,cols.agent_id]
-    .filter(Boolean).map(q).join(",");
-  const orderCol=cols.created_at||cols.id;
-  const {data,error}=await window.supabase.from(table).select(fields).order(orderCol,{ascending:false}).limit(1);
-  if(error) throw error;
-  return {data:data?.[0],cols};
+  const cols = await detectCols(table);
+  const fields = [
+    cols.id, cols.title, cols.propertyType, cols.bedrooms, cols.bathrooms,
+    cols.price, cols.sqft, cols.photo, cols.description, cols.created_at,
+    cols.agent_id,
+    cols.localisationAccueil             // 👈 idem
+  ].filter(Boolean).map(q).join(",");
+
+  const orderCol = cols.created_at || cols.id;
+  const { data, error } = await window.supabase
+    .from(table)
+    .select(fields)
+    .order(orderCol, { ascending:false })
+    .limit(1);
+
+  if (error) throw error;
+  return { data: data?.[0], cols };
 }
+
 
 // -------- Agent ----------
 async function fetchAgent(agentId){
@@ -81,15 +137,27 @@ async function fetchSimilar(table,currentId,cols,limit=12){
   }));
 }
 
+
 /* =========================
    Données UI (remplies dynamiquement)
    ========================= */
-const propertyData={
-  price:"",bedrooms:"",bathrooms:"",size:"",location:"",description:"",
-  images:[],propertyType:"Apartment"
+const propertyData = {
+  price: "",
+  bedrooms: "",
+  bathrooms: "",
+  size: "",
+  location: "",      // titre/heading existant
+  locationText: "",  // NOUVEAU : texte "localisation accueil" à afficher sous le prix
+  description: "",
+  images: [],
+  propertyType: "Apartment"
 };
-let agentData=null;
-let currentIndex=0;
+let agentData = null;
+let currentIndex = 0;
+
+
+
+
 
 // ========== CAROUSEL PRINCIPAL ==========
 function updateMainCarousel(){
@@ -201,69 +269,115 @@ function setupMobileSwipeOnMainImage(){
   mainImage.addEventListener('touchend',e=>{if(!isTouch) return; const dx=e.changedTouches[0].clientX-startX; if(Math.abs(dx)>40){ currentIndex=(currentIndex+(dx<0?1:-1)+Math.max(propertyData.images.length,1))%Math.max(propertyData.images.length,1); updateMainCarousel(); } isTouch=false;});
 }
 
+
+
+// --- Geocode ultra-light depuis "localisation accueil" (approx EN)
+async function geocodeSimple(place){
+  const q = (place || "").toString().trim();
+  if (!q) return { lat: 25.2048, lng: 55.2708 }; // Dubai center
+
+  const url = 'https://nominatim.openstreetmap.org/search'
+            + '?format=json&limit=1&accept-language=en'
+            + '&q=' + encodeURIComponent(q + ', Dubai, UAE');
+
+  try{
+    const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!r.ok) throw new Error('geocode http');
+    const j = await r.json();
+    if (j && j[0]) return { lat: Number(j[0].lat), lng: Number(j[0].lon) };
+  }catch(e){ /* silencieux */ }
+
+  return { lat: 25.2048, lng: 55.2708 }; // fallback
+}
+
+
 /* =========================
    MAIN
    ========================= */
 async function main(){
   // Contexte (id/type)
-  let id=getQS('id'); let type=getQS('type');
+  let id = getQS('id'); let type = getQS('type');
   if(!id || !type){
-    try{ const saved=JSON.parse(sessionStorage.getItem('selected_property')||'{}'); if(saved?.id&&saved?.type){ id=saved.id; type=saved.type; } }catch{}
+    try{
+      const saved = JSON.parse(sessionStorage.getItem('selected_property') || '{}');
+      if(saved?.id && saved?.type){ id = saved.id; type = saved.type; }
+    }catch{}
   }
-  const allowed=['buy','rent','commercial'];
-  if(!type || !allowed.includes(type)) type='buy';
+  const allowed = ['buy','rent','commercial'];
+  if(!type || !allowed.includes(type)) type = 'buy';
 
   // Charge le bien
   let rec, cols;
   try{
-    if(id){ const r=await fetchOneById(type,id); rec=r.data; cols=r.cols; }
-    else{ const r=await fetchLatest(type); rec=r.data; cols=r.cols; id=rec?.[cols.id]; }
-  }catch(e){ console.error("Load error:",e); }
+    if(id){ const r = await fetchOneById(type, id); rec = r.data; cols = r.cols; }
+    else { const r = await fetchLatest(type); rec = r.data; cols = r.cols; id = rec?.[cols.id]; }
+  }catch(e){ console.error("Load error:", e); }
 
   // Normalise pour l’UI
-  let images=[];
-  if(rec){
-    const rawImg=cols.photo?rec[cols.photo]:null;
-    images=Array.isArray(rawImg)?rawImg:(rawImg?[rawImg]:[]);
-    propertyData.images=images.length?images:["https://via.placeholder.com/800x500"];
-    propertyData.location=rec[cols.title] || "Dubai";
-    const priceRaw=cols.price?rec[cols.price]:null;
-    propertyData.price = AED(priceRaw) + (type==='rent'&&priceRaw ? ' /year' : '');
-    propertyData.bedrooms = cols.bedrooms ? (rec[cols.bedrooms] ?? '') : '';
-    propertyData.bathrooms = cols.bathrooms ? (rec[cols.bathrooms] ?? '') : '';
-    propertyData.size = cols.sqft && rec[cols.sqft] ? `${rec[cols.sqft]} sqft` : '';
-    propertyData.propertyType = cols.propertyType ? (rec[cols.propertyType] || 'Apartment') : 'Apartment';
+// Normalise pour l’UI
+let images = [];
+if (rec){
+  const rawImg = cols.photo ? rec[cols.photo] : null;
+  images = Array.isArray(rawImg) ? rawImg : (rawImg ? [rawImg] : []);
+  propertyData.images = images.length ? images : ["https://via.placeholder.com/800x500"];
 
-    // Description : vraie colonne si présente, sinon fallback lisible
-    const dbDesc = cols.description ? (rec[cols.description] || "") : "";
-    propertyData.description = dbDesc || [
-      propertyData.propertyType || "Property",
-      propertyData.bedrooms ? `• ${propertyData.bedrooms} BR` : "",
-      propertyData.bathrooms ? `• ${propertyData.bathrooms} BA` : "",
-      propertyData.size ? `• ${propertyData.size}` : ""
-    ].filter(Boolean).join(" ");
-  } else {
-    // Fallback total
-    propertyData.images=["https://via.placeholder.com/800x500"];
-    propertyData.location="Dubai";
-    propertyData.description="";
-  }
+  // H2 (titre d’annonce)
+  propertyData.location = rec[cols.title] || "Dubai";
+
+  const priceRaw = cols.price ? rec[cols.price] : null;
+  propertyData.price = AED(priceRaw) + (type === 'rent' && priceRaw ? ' /year' : '');
+
+  propertyData.bedrooms  = cols.bedrooms  ? (rec[cols.bedrooms]  ?? '') : '';
+  propertyData.bathrooms = cols.bathrooms ? (rec[cols.bathrooms] ?? '') : '';
+  propertyData.size      = (cols.sqft && rec[cols.sqft]) ? `${rec[cols.sqft]} sqft` : '';
+  propertyData.propertyType = cols.propertyType ? (rec[cols.propertyType] || 'Apartment') : 'Apartment';
+
+  // Description (ou fallback)
+  const dbDesc = cols.description ? (rec[cols.description] || "") : "";
+  propertyData.description = dbDesc || [
+    propertyData.propertyType || "Property",
+    propertyData.bedrooms ? `• ${propertyData.bedrooms} BR` : "",
+    propertyData.bathrooms ? `• ${propertyData.bathrooms} BA` : "",
+    propertyData.size ? `• ${propertyData.size}` : ""
+  ].filter(Boolean).join(" ");
+
+  // 👇 Localisation accueil (lu dans le même SELECT principal)
+  propertyData.locationText = cols.localisationAccueil ? (rec[cols.localisationAccueil] || "") : "";
+} else {
+  // Fallback total
+  propertyData.images = ["https://via.placeholder.com/800x500"];
+  propertyData.location = "Dubai";
+  propertyData.locationText = "";
+  propertyData.description = "";
+}
+
 
   // Agent
-  let ag=null;
-  try{ const agentId=cols?.agent_id ? rec?.[cols.agent_id] : null; ag=await fetchAgent(agentId); }catch{}
+  let ag = null;
+  try{
+    const agentId = cols?.agent_id ? rec?.[cols.agent_id] : null;
+    ag = await fetchAgent(agentId);
+  }catch{}
   agentData = ag ? {
-    name: ag.name || "", rating: ag.rating || "",
-    photo: ag.photo_agent_url || "", phoneNumber: ag.phone || "", whatsappNumber: ag.whatsapp || ag.phone || ""
+    name: ag.name || "",
+    rating: ag.rating || "",
+    photo: ag.photo_agent_url || "",
+    phoneNumber: ag.phone || "",
+    whatsappNumber: ag.whatsapp || ag.phone || ""
   } : null;
 
   // Rendu UI
   updateMainCarousel(); createMainArrows(); setupCarouselEvents(); setupMobileSwipeOnMainImage();
 
-  const info=document.getElementById('property-info');
-  info.innerHTML=`
+  const info = document.getElementById('property-info');
+  info.innerHTML = `
     <h2>${propertyData.location}</h2>
     <div class="price">${propertyData.price}</div>
+${propertyData.locationText
+  ? `<p class="location-line"><i class="fas fa-map-marker-alt" style="margin-right:8px;color:#555;"></i>${propertyData.locationText}</p>`
+  : ""}
+
+
     <div class="details">
       ${propertyData.bedrooms!=='' ? `<span>🛏️ ${propertyData.bedrooms} Bedrooms</span>`:''}
       ${propertyData.bathrooms!=='' ? `<span>🛁 ${propertyData.bathrooms} Bathrooms</span>`:''}
@@ -279,20 +393,43 @@ async function main(){
   renderAgentInfo();
 
   // Similaires
-  const wrap=document.querySelector('.similar-properties-wrapper'); wrap.innerHTML="";
-  const sims=await fetchSimilar(type, rec?.[cols?.id], cols||{}, 12);
-  sims.forEach(p=>wrap.appendChild(createSimilarPropertyCard(p)));
+  const wrap = document.querySelector('.similar-properties-wrapper'); wrap.innerHTML = "";
+  const sims = await fetchSimilar(type, rec?.[cols?.id], cols || {}, 12);
+  sims.forEach(p => wrap.appendChild(createSimilarPropertyCard(p)));
 
-  // Map (fallback Dubai)
-  const mapElement=document.getElementById("map");
-  if(mapElement){
-    mapElement.style.height="400px";
-    const dubai=[25.2048,55.2708];
-    const map=L.map("map").setView(dubai,13);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
-    L.marker(dubai).addTo(map).bindPopup("Propriété située ici").openPopup();
+   // Map (géocodée depuis "localisation accueil")
+  {
+    const mapEl = document.getElementById("map");
+    if (mapEl) {
+      mapEl.style.height = "400px";
+
+      const placeQuery = propertyData.locationText || propertyData.location || "Dubai";
+
+      let lat = 25.2048, lng = 55.2708;
+      try {
+        const p = await geocodeSimple(placeQuery);
+        if (p && Number.isFinite(p.lat) && Number.isFinite(p.lng)) {
+          lat = p.lat; lng = p.lng;
+        }
+      } catch (_) {}
+     
+      const m = L.map("map").setView([lat, lng], 13);
+      L.tileLayer(EN_TILE_URL, { attribution: EN_ATTR, maxZoom: 20 }).addTo(m);
+
+      const marker = L.marker([lat, lng]).addTo(m);
+      const popupHtml = `
+        <div style="min-width:180px">
+          <div style="font-weight:700;margin-bottom:4px">${propertyData.location || ""}</div>
+          ${propertyData.locationText ? `<div style="color:#666"><i class="fa-solid fa-location-dot"></i> ${propertyData.locationText}</div>` : ""}
+          ${propertyData.price ? `<div style="margin-top:6px;color:#ff8800;font-weight:700">${propertyData.price}</div>` : ""}
+        </div>
+      `;
+      marker.bindPopup(popupHtml).openPopup();
+    }
   }
-}
+} //  ←←←  AJOUTE CETTE ACCOLADE pour fermer async function main()
+
+
 
 // Resize flèches
 window.addEventListener('resize', createMainArrows);
@@ -316,3 +453,5 @@ document.addEventListener('DOMContentLoaded', function(){
   // go!
   main().catch(console.error);
 });
+
+
