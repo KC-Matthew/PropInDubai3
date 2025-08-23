@@ -42,17 +42,17 @@ async function loadPropertiesFromDB() {
     return ag ? agenciesById[ag.agency_id] : undefined;
   }
 
-  // 3) Biens BUY
-  const { data: buyRows, error: buyErr } = await sb
-    .from('buy')
-    .select('id,title,property_type,bedrooms,bathrooms,price,sqft,photo_bien_url,agent_id,created_at');
-  if (buyErr) console.error(buyErr);
+// 3) Biens BUY
+const { data: buyRows, error: buyErr } = await sb
+  .from('buy')
+  .select('id,title,property_type,bedrooms,bathrooms,price,sqft,photo_bien_url,agent_id,created_at,"localisation accueil"');
 
-  // 4) Biens RENT
-  const { data: rentRows, error: rentErr } = await sb
-    .from('rent')
-    .select('id,title,property_type,bedrooms,bathrooms,price,sqft,photo_url,agent_id,created_at');
-  if (rentErr) console.error(rentErr);
+  
+// 4) Biens RENT
+const { data: rentRows, error: rentErr } = await sb
+  .from('rent')
+  .select('id,title,property_type,bedrooms,bathrooms,price,sqft,photo_url,agent_id,created_at,"localisation accueil"');
+
 
   // 5) Biens COMMERCIAL
   const { data: comRows, error: comErr } = await sb
@@ -63,42 +63,43 @@ async function loadPropertiesFromDB() {
   const out = [];
 
   function rowToProperty(row, tableName) {
-    const agent = agentsById[row.agent_id] || {};
-    const agency = getAgencyForAgent(row.agent_id) || {};
-    const ptype = row.property_type ?? row['property type'] ?? 'Unknown';
-    const mainPhoto = row.photo_bien_url || row.photo_url || null;
+  const agent = agentsById[row.agent_id] || {};
+  const agency = getAgencyForAgent(row.agent_id) || {};
+  const ptype = row.property_type ?? row['property type'] ?? 'Unknown';
+  const mainPhoto = row.photo_bien_url || row.photo_url || null;
 
-    const images = [];
-    if (mainPhoto) images.push(mainPhoto);
-    if (agency?.logo_url) images.push(agency.logo_url);
+  const images = [];
+  if (mainPhoto) images.push(mainPhoto);
+  if (agency?.logo_url) images.push(agency.logo_url);
 
-    return {
-      // données affichage
-      title: ptype,
-      price: Number(row.price) || 0,
-      location: agency?.address || "",
-      bedrooms: Number(row.bedrooms) || 0,
-      bathrooms: Number(row.bathrooms) || 0,
-      size: Number(row.sqft) || 0,
-      furnished: undefined,
-      amenities: [],
-      images,
-      agent: {
-        name: agent.name || "",
-        avatar: agent.photo_agent_url || "",
-        phone: agent.phone || "",
-        email: agent.email || "",
-        whatsapp: agent.whatsapp || "",
-        rating: agent.rating ?? null
-      },
-      description: row.title || "",
+  // 👇 Priorité à "localisation accueil", sinon adresse d’agence
+  const localisationAccueil = row['localisation accueil'] || row.localisation_accueil || '';
 
-      // meta (IMPORTANT pour bien.html)
-      _id: row.id,          // <-- on garde l'ID ici
-      _table: tableName,    // buy | rent | commercial
-      _created_at: row.created_at
-    };
-  }
+  return {
+    title: ptype,
+    price: Number(row.price) || 0,
+    location: localisationAccueil || agency?.address || "",   // <-- ici
+    bedrooms: Number(row.bedrooms) || 0,
+    bathrooms: Number(row.bathrooms) || 0,
+    size: Number(row.sqft) || 0,
+    furnished: undefined,
+    amenities: [],
+    images,
+    agent: {
+      name: agent.name || "",
+      avatar: agent.photo_agent_url || "",
+      phone: agent.phone || "",
+      email: agent.email || "",
+      whatsapp: agent.whatsapp || "",
+      rating: agent.rating ?? null
+    },
+    description: row.title || "",
+    _id: row.id,
+    _table: tableName,
+    _created_at: row.created_at
+  };
+}
+
 
   (buyRows || []).forEach(r => out.push(rowToProperty(r, 'buy')));
   (rentRows || []).forEach(r => out.push(rowToProperty(r, 'rent')));
@@ -354,6 +355,7 @@ function displayProperties(propsArray, page) {
         </div>
       </div>
     `;
+
 
     container.appendChild(card);
 
