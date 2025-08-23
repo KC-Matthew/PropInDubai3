@@ -16,44 +16,61 @@ async function loadCommercialFromDB(){
   const sb = window.supabase;
   if(!sb){ console.error('Supabase client non trouvé.'); return []; }
 
-  // Agents (pour avatar & contacts)
+  // Agents (pour avatar & contacts) — inchangé
   const { data: agents, error: e1 } = await sb
     .from('agent')
     .select('id,name,photo_agent_url,phone,email,whatsapp');
   if(e1){ console.error(e1); }
   const agentsById = Object.fromEntries((agents||[]).map(a=>[a.id,a]));
 
-  // Colonnes avec espaces => on les cite dans le select
+  // Données principales — SELECT inchangé pour ne rien casser
   const { data: rows, error } = await sb
     .from('commercial')
     .select('id,created_at,title,"rental period","property type",bedrooms,bathrooms,price,sqft,photo_url,agent_id');
   if(error){ console.error(error); return []; }
 
+  // Récupération séparée de la colonne avec espace (safe)
+  let locById = {};
+  let locReq = await sb.from('commercial').select('id,"localisation accueil"');
+  if(locReq.error){
+    console.warn('Colonne "localisation accueil" introuvable, essai "localisation acceuil"...');
+    locReq = await sb.from('commercial').select('id,"localisation acceuil"');
+  }
+  if(!locReq.error && Array.isArray(locReq.data)){
+    locById = Object.fromEntries(
+      locReq.data.map(r => [
+        r.id,
+        r['localisation accueil'] || r['localisation acceuil'] || ''
+      ])
+    );
+  } else if(locReq.error){
+    console.warn('Lecture localisation custom impossible :', locReq.error);
+  }
+
   // Map vers le format UI
   return (rows||[]).map(r=>{
     const ag = agentsById[r.agent_id] || {};
-    const listingTitle = r.title || '';                          // titre d’annonce
-    const typeLabel    = r['property type'] || 'Commercial';     // type (Office, Retail, …)
+    const listingTitle = r.title || '';
+    const typeLabel    = r['property type'] || 'Commercial';
     const rentalPeriod = r['rental period'] || null;
-    const commercialType = rentalPeriod ? 'Commercial Rent' : 'Commercial Buy'; // heuristique simple
+    const commercialType = rentalPeriod ? 'Commercial Rent' : 'Commercial Buy';
 
-    const priceNum = Number(r.price)||0;
-    const sizeNum  = Number(r.sqft)||0;
+    const localisationAccueil = locById[r.id] || '';
 
     return {
-      // IMPORTANT: on met le "type" dans title pour le résumé par type
       title: typeLabel,
       listingTitle,
-      price: priceNum,
-      size: sizeNum,
+      price: Number(r.price)||0,
+      size: Number(r.sqft)||0,
       bedrooms: Number(r.bedrooms)||0,
       bathrooms: Number(r.bathrooms)||0,
-      location: '', // pas de colonne "location" dans ton schéma → fallback vide
+      // 👇 affiché à l’icône 📍 si présent
+      location: localisationAccueil || '',
       images: r.photo_url ? [r.photo_url] : [],
       commercialType,
-      licenseType: '',           // pas dans le schéma → vide
-      furnished: false,          // pas dans le schéma → false
-      amenities: [],             // pas dans le schéma → []
+      licenseType: '',
+      furnished: false,
+      amenities: [],
       agent:{
         name: ag.name||'',
         avatar: ag.photo_agent_url||'',
@@ -66,6 +83,7 @@ async function loadCommercialFromDB(){
     };
   });
 }
+
 
 /* ---------- PAGINATION & RENDER ---------- */
 const CARDS_PER_PAGE=18;
