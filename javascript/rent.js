@@ -26,9 +26,9 @@ async function loadRentFromDB(){
     .from('agent')
     .select('id,name,photo_agent_url,phone,email,whatsapp,agency_id,rating');
   if(e1){ console.error(e1); return []; }
-  const agentsById = Object.fromEntries(agents.map(a=>[a.id,a]));
+  const agentsById = Object.fromEntries((agents||[]).map(a=>[a.id,a]));
 
-  // Agencies (adresse + logo pour fallback image)
+  // Agencies
   const { data: agencies, error: e2 } = await sb
     .from('agency')
     .select('id,logo_url,address');
@@ -39,25 +39,49 @@ async function loadRentFromDB(){
     return ag ? agenciesById[ag.agency_id] : undefined;
   };
 
-  // Biens à LOUER
+  // Biens à LOUER (SELECT inchangé pour ne rien casser)
   const { data: rows, error: e3 } = await sb
     .from('rent')
     .select('id,created_at,title,property_type,bedrooms,bathrooms,price,sqft,photo_url,agent_id');
   if(e3){ console.error(e3); return []; }
 
+  // Récupération séparée de "localisation accueil" (safe)
+  let locById = {};
+  // 1er essai : orthographe "accueil"
+  let locReq = await sb.from('rent').select('id,"localisation accueil"');
+  if(locReq.error){
+    console.warn('Colonne "localisation accueil" introuvable, essai avec "localisation acceuil"...');
+    // 2e essai : "acceuil"
+    locReq = await sb.from('rent').select('id,"localisation acceuil"');
+  }
+  if(!locReq.error && Array.isArray(locReq.data)){
+    locById = Object.fromEntries(
+      locReq.data.map(r => [
+        r.id,
+        // supporte les deux noms
+        r['localisation accueil'] || r['localisation acceuil'] || ''
+      ])
+    );
+  } else if(locReq.error){
+    console.warn('Impossible de lire la localisation custom :', locReq.error);
+  }
+
   // Map -> format UI
-  return rows.map(r=>{
+  return (rows||[]).map(r=>{
     const ag = agentsById[r.agent_id] || {};
     const agency = getAgencyForAgent(r.agent_id) || {};
     const images = [];
     if(r.photo_url) images.push(r.photo_url);
     if(agency?.logo_url) images.push(agency.logo_url);
 
+    const localisationAccueil = locById[r.id] || '';
+
     return {
-      title: r.property_type || "Unknown",      // utilisé comme "Property Type"
-      listingTitle: r.title || "",              // titre d’annonce
+      title: r.property_type || "Unknown",
+      listingTitle: r.title || "",
       price: Number(r.price)||0,
-      location: agency?.address || "",
+      // 👇 priorité à la localisation personnalisée, sinon adresse d’agence
+      location: localisationAccueil || agency?.address || "",
       bedrooms: Number(r.bedrooms)||0,
       bathrooms: Number(r.bathrooms)||0,
       size: Number(r.sqft)||0,
@@ -75,6 +99,7 @@ async function loadRentFromDB(){
     };
   });
 }
+
 
 /* ================
    Pagination & UI
@@ -152,6 +177,7 @@ function displayProperties(arr, page){
       </div>
     `;
     container.appendChild(card);
+    
 
     // >>> OUVRIR LA PAGE DÉTAIL AU CLIC SUR LA CARTE
   card.addEventListener('click', () => {
