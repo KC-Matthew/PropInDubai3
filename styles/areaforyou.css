@@ -1049,3 +1049,42 @@ html, body {
 
 
 
+
+/* --- Image un peu plus grande (desktop) --- */
+.property-img-v2{
+  height: 260px;            /* 210px -> 260px */
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* --- Mobile : un peu plus grande aussi --- */
+@media (max-width: 800px){
+  .property-img-v2{
+    height: 160px;          /* 130px -> 160px */
+  }
+}
+
+
+/* Center title, location, features and price inside the cards (this page only) */
+#property-cards-container .property-card-ui-v2 { 
+  margin-left: 30px;
+}
+
+/* rows that are flex: center them horizontally */
+#property-cards-container .property-loc-ui-v2,
+#property-cards-container .property-features-ui-v2 {
+   margin-left: 30px;
+}
+
+.property-title-ui-v2{
+  margin-left: 30px;
+}
+
+.property-price-ui-v2{
+  margin-left: 30px;
+}
+
+.property-desc-ui-v2{
+  margin-left: 30px;
+}
