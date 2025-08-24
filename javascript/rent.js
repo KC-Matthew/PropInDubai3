@@ -1,465 +1,462 @@
-// === REAL ESTATE - JS RENT (Appartements/Villas à louer) ===
-// Datas 100% depuis Supabase (rent/agent/agency) + histogramme prix.
+// === REAL ESTATE - JS RENT ===
+// (c) Prop In Dubai
+// ⚠️ Nécessite que supabaseClient.js mette le client sur window.supabase
 
-function fmt(n){ const x=Number(n); return isFinite(x)?x.toLocaleString('en-US'):"0"; }
+function fmt(n) {
+  const num = Number(n);
+  if (!isFinite(num)) return "0";
+  return num.toLocaleString('en-US');
+}
 
-let properties=[], filteredProperties=[];
-let globalMinPrice=0, globalMaxPrice=0;
-const PRICE_STEP=10000;
-let priceSlider=null;
+// ---- Helpers URL & parsing ----
+function readFiltersFromURL() {
+  const p = new URLSearchParams(location.search);
+  return {
+    q: (p.get('q') || '').trim(),
+    type: (p.get('type') || '').trim(),          // ex: "Apartment"
+    bedrooms: (p.get('bedrooms') || '').trim(),  // "studio" | "1".."6" | "7plus"
+    bathrooms: (p.get('bathrooms') || '').trim() // "1".."6" | "7plus"
+  };
+}
 
+// Convertit "studio"/"7plus" en contrainte exploitable pour Supabase
+function applyBedBathToQuery(qb, col, rawVal, { allowStudio = false } = {}) {
+  if (!rawVal) return qb;
+  const v = rawVal.toLowerCase();
+  if (allowStudio && v === 'studio') return qb.eq(col, 0); // convention: studio = 0
+  if (v === '7plus') return qb.gte(col, 7);
+  const n = Number(v);
+  if (Number.isFinite(n)) return qb.eq(col, n);
+  return qb;
+}
 
+// --- Etat global ---
+let properties = [];
+let filteredProperties = [];
+let currentPage = 1;
+const cardsPerPage = 18;
+let globalMinPrice = 0, globalMaxPrice = 0;
 
-// Utils
-const telLink = v => `tel:${String(v||"").replace(/\s+/g,"")}`;
-const waLink  = v => `https://wa.me/${String(v||"").replace(/[^\d+]/g,"")}`;
-
-/* =========================
-   LOAD FROM DB (table: rent)
-   ========================= */
-async function loadRentFromDB(){
+// -------------------- BDD --------------------
+async function loadPropertiesFromDB(initialFilters = {}) {
   const sb = window.supabase;
-  if(!sb){ console.error("Supabase client introuvable"); return []; }
+  if (!sb) {
+    console.error("Supabase client missing on window.supabase");
+    return [];
+  }
 
-  // Agents
-  const { data: agents, error: e1 } = await sb
+  // Agents (pour enrichir)
+  const { data: agentRows, error: agentErr } = await sb
     .from('agent')
     .select('id,name,photo_agent_url,phone,email,whatsapp,agency_id,rating');
-  if(e1){ console.error(e1); return []; }
-  const agentsById = Object.fromEntries((agents||[]).map(a=>[a.id,a]));
+  if (agentErr) { console.error(agentErr); }
 
-  // Agencies
-  const { data: agencies, error: e2 } = await sb
+  const agentsById = Object.fromEntries((agentRows || []).map(a => [a.id, a]));
+
+  // Agencies (adresse/logo)
+  const { data: agencyRows, error: agencyErr } = await sb
     .from('agency')
     .select('id,logo_url,address');
-  if(e2){ console.error(e2); }
-  const agenciesById = Object.fromEntries((agencies||[]).map(a=>[a.id,a]));
-  const getAgencyForAgent = (agentId)=>{
+  if (agencyErr) { console.error(agencyErr); }
+
+  const agenciesById = Object.fromEntries((agencyRows || []).map(a => [a.id, a]));
+  function getAgencyForAgent(agentId) {
     const ag = agentsById[agentId];
     return ag ? agenciesById[ag.agency_id] : undefined;
-  };
+  }
 
-  // Biens à LOUER (SELECT inchangé pour ne rien casser)
-  const { data: rows, error: e3 } = await sb
+  // Requête RENT avec filtres BDD (type/bed/bath)
+  let rentQuery = sb
     .from('rent')
-    .select('id,created_at,title,property_type,bedrooms,bathrooms,price,sqft,photo_url,agent_id');
-  if(e3){ console.error(e3); return []; }
+    // ⚠️ IMPORTANT: ne PAS sélectionner photo_bien_url (n'existe pas dans rent)
+    .select('id,title,property_type,bedrooms,bathrooms,price,sqft,photo_url,agent_id,created_at');
 
-  // Récupération séparée de "localisation accueil" (safe)
-  let locById = {};
-  // 1er essai : orthographe "accueil"
-  let locReq = await sb.from('rent').select('id,"localisation accueil"');
-  if(locReq.error){
-    console.warn('Colonne "localisation accueil" introuvable, essai avec "localisation acceuil"...');
-    // 2e essai : "acceuil"
-    locReq = await sb.from('rent').select('id,"localisation acceuil"');
-  }
-  if(!locReq.error && Array.isArray(locReq.data)){
-    locById = Object.fromEntries(
-      locReq.data.map(r => [
-        r.id,
-        // supporte les deux noms
-        r['localisation accueil'] || r['localisation acceuil'] || ''
-      ])
-    );
-  } else if(locReq.error){
-    console.warn('Impossible de lire la localisation custom :', locReq.error);
-  }
+  if (initialFilters.type) rentQuery = rentQuery.eq('property_type', initialFilters.type);
+  rentQuery = applyBedBathToQuery(rentQuery, 'bedrooms', initialFilters.bedrooms, { allowStudio: true });
+  rentQuery = applyBedBathToQuery(rentQuery, 'bathrooms', initialFilters.bathrooms);
 
-  // Map -> format UI
-  return (rows||[]).map(r=>{
-    const ag = agentsById[r.agent_id] || {};
-    const agency = getAgencyForAgent(r.agent_id) || {};
-    const images = [];
-    if(r.photo_url) images.push(r.photo_url);
-    if(agency?.logo_url) images.push(agency.logo_url);
+  // Tri sûr par id
+  rentQuery = rentQuery.order('id', { ascending: false });
 
-    const localisationAccueil = locById[r.id] || '';
+  const { data: rentRows, error: rentErr } = await rentQuery;
+  if (rentErr) { console.error(rentErr); return []; }
 
-    return {
-      title: r.property_type || "Unknown",
-      listingTitle: r.title || "",
-      price: Number(r.price)||0,
-      // 👇 priorité à la localisation personnalisée, sinon adresse d’agence
-      location: localisationAccueil || agency?.address || "",
-      bedrooms: Number(r.bedrooms)||0,
-      bathrooms: Number(r.bathrooms)||0,
-      size: Number(r.sqft)||0,
+  // Normalisation
+  const out = [];
+  (rentRows || []).forEach(row => {
+    const agent = agentsById[row.agent_id] || {};
+    const agency = getAgencyForAgent(row.agent_id) || {};
+
+    const ptype = row.property_type ?? 'Unknown';
+
+    // photo_url peut être un champ texte (CSV) ou un seul lien
+    let images = [];
+    if (Array.isArray(row.photo_url)) {
+      images = row.photo_url.filter(Boolean);
+    } else if (typeof row.photo_url === 'string' && row.photo_url.trim()) {
+      images = row.photo_url.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    if (agency.logo_url) images.push(agency.logo_url);
+
+    out.push({
+      _id: row.id,
+      title: ptype,
+      price: Number(row.price) || 0,    // numeric pour filtrage
+      location: agency.address || "Dubai",
+      lat: 25.2048,
+      lng: 55.2708,
+      bedrooms: Number(row.bedrooms) || 0,
+      bathrooms: Number(row.bathrooms) || 0,
+      size: Number(row.sqft) || 0,
       images,
       agent: {
-        name: ag.name || "",
-        avatar: ag.photo_agent_url || "",
-        phone: ag.phone || "",
-        email: ag.email || "",
-        whatsapp: ag.whatsapp || "",
-        rating: ag.rating ?? null
+        name: agent.name || "Unknown",
+        avatar: agent.photo_agent_url || "styles/photo/default-agent.jpg",
+        phone: agent.phone || "",
+        email: agent.email || "",
+        whatsapp: agent.whatsapp || "",
+        rating: agent.rating ?? null
       },
-      _id: r.id,
-      _created_at: r.created_at
-    };
+      description: row.title || "",
+      _created_at: row.created_at
+    });
   });
+
+  return out;
 }
 
-
-/* ================
-   Pagination & UI
-   ================ */
-const cardsPerPage=18;
-function paginate(arr, page){
-  const total=arr.length, pages=Math.ceil(total/cardsPerPage)||1;
-  const start=(page-1)*cardsPerPage, end=start+cardsPerPage;
-  return { page, total, pages, slice: arr.slice(start,end) };
-}
-function updatePagination(pages, page, arr){
-  const paginationDiv=document.getElementById('pagination'); if(!paginationDiv) return;
-  paginationDiv.innerHTML=''; if(pages<=1) return;
-  const mk=(html,disabled,on)=>{ const b=document.createElement('button'); b.className='page-btn'; b.innerHTML=html; b.disabled=disabled; b.addEventListener('click',on); return b; };
-  paginationDiv.appendChild(mk('&laquo;', page===1, ()=>displayProperties(arr,page-1)));
-  for(let i=1;i<=pages;i++){ const b=mk(String(i), false, ()=>displayProperties(arr,i)); if(i===page) b.classList.add('active'); paginationDiv.appendChild(b); }
-  paginationDiv.appendChild(mk('&raquo;', page===pages, ()=>displayProperties(arr,page+1)));
+// -------------------- UI helpers --------------------
+function paginate(arr, page) {
+  const total = arr.length;
+  const pages = Math.ceil(total / cardsPerPage) || 1;
+  const start = (page - 1) * cardsPerPage;
+  const end = start + cardsPerPage;
+  return { page, total, pages, slice: arr.slice(start, end) };
 }
 
-function displayPropertyTypesSummary(arr, filterType){
-  const propertyTypesDiv=document.getElementById('propertyTypesSummary');
-  const propertyTypeSelect=document.getElementById('propertyType');
-  if(!propertyTypesDiv) return;
-  const counts={}; arr.forEach(p=>{ counts[p.title]=(counts[p.title]||0)+1; });
-  const order=["Apartment","Villa","Townhouse","Compound","Duplex","Penthouse","Land","Whole Building"];
-  const sorted=Object.keys(counts).sort((a,b)=>(order.indexOf(a)===-1?999:order.indexOf(a))-(order.indexOf(b)===-1?999:order.indexOf(b)));
-  propertyTypesDiv.innerHTML = `<div class="pts-row">${
-    sorted.map(t=>`<span class="pts-type${filterType===t?" selected":""}" data-type="${t}" style="cursor:pointer">${t} <span class="pts-count">(${fmt(counts[t])})</span></span>`).join('')
-  }</div>`;
-  propertyTypesDiv.querySelectorAll('.pts-type').forEach(el=>{
-    el.addEventListener('click',()=>{
-      if(propertyTypeSelect) propertyTypeSelect.value = el.getAttribute('data-type');
-      handleSearchOrFilter();
-      propertyTypesDiv.querySelectorAll('.pts-type').forEach(s=>s.classList.remove('selected'));
-      el.classList.add('selected');
-      document.getElementById('propertyCount')?.scrollIntoView({behavior:'smooth'});
+function updatePagination(pages, page) {
+  const paginationDiv = document.getElementById("pagination");
+  if (!paginationDiv) return;
+  paginationDiv.innerHTML = '';
+  if (pages <= 1) return;
+
+  const prevBtn = document.createElement('button');
+  prevBtn.innerHTML = '&laquo;';
+  prevBtn.className = 'page-btn';
+  prevBtn.disabled = page === 1;
+  prevBtn.addEventListener('click', () => { filterProperties(page - 1); });
+  paginationDiv.appendChild(prevBtn);
+
+  for (let i = 1; i <= pages; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'page-btn' + (i === page ? ' active' : '');
+    btn.textContent = i;
+    btn.addEventListener('click', () => { filterProperties(i); });
+    paginationDiv.appendChild(btn);
+  }
+
+  const nextBtn = document.createElement('button');
+  nextBtn.innerHTML = '&raquo;';
+  nextBtn.className = 'page-btn';
+  nextBtn.disabled = page === pages;
+  nextBtn.addEventListener('click', () => { filterProperties(page + 1); });
+  paginationDiv.appendChild(nextBtn);
+}
+
+function displayPropertyTypesSummary(propsArray, filterType) {
+  const propertyTypesDiv = document.getElementById("propertyTypesSummary");
+  const propertyTypeSelect = document.getElementById("propertyType");
+  if (!propertyTypesDiv || !propertyTypeSelect) return;
+
+  const typeCounts = {};
+  propsArray.forEach(p => { typeCounts[p.title] = (typeCounts[p.title] || 0) + 1; });
+
+  const typeOrder = ["Apartment", "Villa", "Townhouse", "Land", "Duplex", "Penthouse", "Compound", "Whole Building"];
+  const sortedTypes = Object.keys(typeCounts).sort((a, b) => {
+    const idxA = typeOrder.indexOf(a);
+    const idxB = typeOrder.indexOf(b);
+    return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+  });
+
+  let html = `<div class="pts-row">`;
+  sortedTypes.forEach(type => {
+    html += `<span class="pts-type${filterType === type ? " selected" : ""}" data-type="${type}" style="cursor:pointer">${type} <span class="pts-count">(${fmt(typeCounts[type])})</span></span>`;
+  });
+  html += `</div>`;
+
+  propertyTypesDiv.innerHTML = html;
+  propertyTypesDiv.querySelectorAll('.pts-type').forEach(elem => {
+    elem.addEventListener('click', function () {
+      propertyTypeSelect.value = elem.getAttribute('data-type');
+      filterProperties(1);
+      propertyTypesDiv.querySelectorAll('.pts-type').forEach(span => span.classList.remove('selected'));
+      elem.classList.add('selected');
+      document.getElementById("propertyCount")?.scrollIntoView({ behavior: "smooth" });
     });
   });
 }
 
-function displayProperties(arr, page){
-  const {slice, pages}=paginate(arr,page);
-  const container=document.getElementById('propertyResults');
-  const propertyCountDiv=document.getElementById('propertyCount');
-  const propertyTypeSelect=document.getElementById('propertyType');
-  if(propertyCountDiv) propertyCountDiv.textContent = `${fmt(arr.length)} properties found`;
-  if(container) container.innerHTML='';
+function renderCards(propsArray, page) {
+  const container = document.getElementById("propertyResults");
+  const propertyCountDiv = document.getElementById("propertyCount");
+  const propertyTypeSelect = document.getElementById("propertyType");
+  if (!container || !propertyCountDiv) return;
 
-  slice.forEach(p=>{
-    const card=document.createElement('div'); card.className='property-card';
-    const imgs=(p.images||[]).map((src,i)=>`<img src="${src}" class="${i===0?'active':''}" alt="Property Photo">`).join('');
-    card.innerHTML=`
+  const { slice, pages } = paginate(propsArray, page);
+  container.innerHTML = "";
+  propertyCountDiv.textContent = `${fmt(propsArray.length)} properties found`;
+
+  slice.forEach(property => {
+    const card = document.createElement("div");
+    card.className = "property-card";
+    const imageElements = (property.images || []).map((src, index) =>
+      `<img src="${src}" class="${index === 0 ? 'active' : ''}" alt="Property Photo">`
+    ).join('');
+
+    card.innerHTML = `
       <div class="carousel">
-        ${imgs}
+        ${imageElements}
         <div class="carousel-btn prev">❮</div>
         <div class="carousel-btn next">❯</div>
-        <div class="image-count"><i class="fas fa-camera"></i> ${fmt((p.images||[]).length)}</div>
+        <div class="image-count"><i class="fas fa-camera"></i> ${fmt((property.images || []).length)}</div>
       </div>
       <div class="property-info">
-        <h3>${p.listingTitle || p.title}</h3>
-        <p><i class="fas fa-map-marker-alt"></i> ${p.location||""}</p>
-        <p><i class="fas fa-bed"></i> ${fmt(p.bedrooms)}
-           <i class="fas fa-bath"></i> ${fmt(p.bathrooms)}
-           <i class="fas fa-ruler-combined"></i> ${fmt(p.size)} sqft</p>
-        <strong>${fmt(p.price)} AED</strong>
+        <h3>${property.title}</h3>
+        <p><i class="fas fa-map-marker-alt"></i> ${property.location || ""}</p>
+        <p><i class="fas fa-bed"></i> ${fmt(property.bedrooms)} 
+           <i class="fas fa-bath"></i> ${fmt(property.bathrooms)} 
+           <i class="fas fa-ruler-combined"></i> ${fmt(property.size)} sqft</p>
+        <strong>${fmt(parseInt(property.price))} AED</strong>
         <div class="agent-info">
-          ${p.agent?.avatar ? `<img src="${p.agent.avatar}" alt="Agent">` : `<div class="agent-avatar-fallback"></div>`}
-          <span>${p.agent?.name||""}</span>
+          ${property.agent?.avatar ? `<img src="${property.agent.avatar}" alt="Agent">` : `<div class="agent-avatar-fallback"></div>`}
+          <span>${property.agent?.name || ""}</span>
         </div>
         <div class="property-actions">
-          <button class="btn-call"${!p.agent?.phone?" disabled":""}>Call</button>
-          <button class="btn-email"${!p.agent?.email?" disabled":""}>Email</button>
-          <button class="btn-wa"${!p.agent?.whatsapp?" disabled":""}>WhatsApp</button>
+          <button class="btn-call"${!property.agent?.phone ? " disabled" : ""}>Call</button>
+          <button class="btn-email"${!property.agent?.email ? " disabled" : ""}>Email</button>
+          <button class="btn-wa"${!property.agent?.whatsapp ? " disabled" : ""}>WhatsApp</button>
         </div>
       </div>
     `;
+
+    // Redirection fiche bien
+    card.style.cursor = "pointer";
+    card.addEventListener("click", (e) => {
+      if (e.target.classList.contains('prev') || e.target.classList.contains('next')) return;
+      if (property?._id) {
+        window.location.href = `bien.html?id=${encodeURIComponent(property._id)}`;
+      } else {
+        window.location.href = "bien.html";
+      }
+    });
+
     container.appendChild(card);
-    
 
-    // >>> OUVRIR LA PAGE DÉTAIL AU CLIC SUR LA CARTE
-  card.addEventListener('click', () => {
-  const detail = { id: p._id, type: 'rent' };
-  // on stocke aussi côté session (secours)
-  sessionStorage.setItem('selected_property', JSON.stringify(detail));
-  // on passe id + type à bien.html
-  window.location.href = `bien.html?id=${encodeURIComponent(detail.id)}&type=${encodeURIComponent(detail.type)}`;
-});
-
-
-    const images=card.querySelectorAll(".carousel img"); let idx=0;
-    card.querySelector(".prev").addEventListener("click",e=>{
-      e.stopPropagation(); if(!images.length) return;
-      images[idx].classList.remove("active"); idx=(idx-1+images.length)%images.length; images[idx].classList.add("active");
+    // Carousel
+    const imgs = card.querySelectorAll(".carousel img");
+    let currentIndex = 0;
+    card.querySelector(".next")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!imgs.length) return;
+      imgs[currentIndex]?.classList.remove("active");
+      currentIndex = (currentIndex + 1) % imgs.length;
+      imgs[currentIndex]?.classList.add("active");
     });
-    card.querySelector(".next").addEventListener("click",e=>{
-      e.stopPropagation(); if(!images.length) return;
-      images[idx].classList.remove("active"); idx=(idx+1)%images.length; images[idx].classList.add("active");
+    card.querySelector(".prev")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!imgs.length) return;
+      imgs[currentIndex]?.classList.remove("active");
+      currentIndex = (currentIndex - 1 + imgs.length) % imgs.length;
+      imgs[currentIndex]?.classList.add("active");
     });
 
-    card.querySelector('.btn-call')?.addEventListener('click',e=>{ if(!p.agent?.phone) return; e.stopPropagation(); window.location.href=telLink(p.agent.phone); });
-    card.querySelector('.btn-email')?.addEventListener('click',e=>{ if(!p.agent?.email) return; e.stopPropagation(); window.location.href=`mailto:${p.agent.email}`; });
-    card.querySelector('.btn-wa')?.addEventListener('click',e=>{ if(!p.agent?.whatsapp) return; e.stopPropagation(); window.open(waLink(p.agent.whatsapp),'_blank'); });
+    // Actions
+    const callBtn = card.querySelector('.btn-call');
+    const mailBtn = card.querySelector('.btn-email');
+    const waBtn = card.querySelector('.btn-wa');
+
+    if (callBtn && property.agent?.phone) {
+      callBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const tel = String(property.agent.phone).replace(/\s+/g, '');
+        if (tel) window.location.href = `tel:${tel}`;
+      });
+    }
+    if (mailBtn && property.agent?.email) {
+      mailBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.location.href = `mailto:${property.agent.email}`;
+      });
+    }
+    if (waBtn && property.agent?.whatsapp) {
+      waBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const wa = String(property.agent.whatsapp).replace(/[^\d+]/g, '');
+        window.open(`https://wa.me/${wa}`, '_blank');
+      });
+    }
   });
 
-  displayPropertyTypesSummary(arr, propertyTypeSelect?.value);
-  updatePagination(pages, page, arr);
-  if(typeof updateMiniMap === 'function') updateMiniMap(slice);
+  displayPropertyTypesSummary(propsArray, propertyTypeSelect?.value || "");
+  updatePagination(pages, page);
+
+  // Mini-carte si présente
+  if (typeof updateMiniMap === 'function') {
+    updateMiniMap(slice);
+  }
 }
 
-/* =========================
-   SLIDER + HISTOGRAMME
-   ========================= */
-function roundRect(ctx, x, y, w, h, r){
-  if(w<2*r) r=w/2; if(h<2*r) r=h/2;
-  ctx.moveTo(x+r, y);
-  ctx.arcTo(x+w, y,   x+w, y+h, r);
-  ctx.arcTo(x+w, y+h, x,   y+h, r);
-  ctx.arcTo(x,   y+h, x,   y,   r);
-  ctx.arcTo(x,   y,   x+w, y,   r);
-  ctx.closePath();
-}
-function drawPriceHistogram(propsArray, min, max, [sliderMin, sliderMax]=[min,max]){
-  const canvas = document.getElementById('priceHistogram');
-  if(!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const width = canvas.width, height = canvas.height;
-  ctx.clearRect(0,0,width,height);
+// -------------------- Filtrage client --------------------
+function filterProperties(page = 1) {
+  currentPage = page;
+  let filtered = properties.slice();
 
-  const prices = propsArray.map(p=>p.price).filter(v=>isFinite(v));
-  if(!prices.length) return;
+  const searchInput = document.getElementById("search");
+  const propertyTypeSelect = document.getElementById("propertyType");
+  const bedroomsSelect = document.getElementById("bedrooms");
+  const bathroomsSelect = document.getElementById("bathrooms");
+  const priceMinEl = document.getElementById("priceMin");
+  const priceMaxEl = document.getElementById("priceMax");
 
-  const bins = 18, hist = Array(bins).fill(0);
-  prices.forEach(price=>{
-    let idx = Math.floor((price - min) / (max - min || 1) * (bins - 1));
-    idx = Math.max(0, Math.min(bins-1, idx));
-    hist[idx]++;
-  });
-  const maxHist = Math.max(...hist, 2);
+  const search = (searchInput?.value || '').trim().toLowerCase();
+  const propertyType = propertyTypeSelect?.value || "Property Type";
+  const bedrooms = bedroomsSelect?.value || "Bedrooms";
+  const bathrooms = bathroomsSelect?.value || "Bathrooms";
+  const priceMin = parseInt(priceMinEl?.value || '', 10) || globalMinPrice || 0;
+  const priceMax = parseInt(priceMaxEl?.value || '', 10) || globalMaxPrice || Infinity;
 
-  for(let i=0;i<bins;i++){
-    const x = Math.floor(i*width/bins) + 3;
-    const barW = Math.floor(width/bins) - 7;
-    const y = Math.floor(height - (hist[i]/maxHist) * (height-10));
-    const barH = height - y;
-    const binStart = min + (i/bins)*(max-min);
-    const binEnd   = min + ((i+1)/bins)*(max-min);
-    const inRange = binEnd >= sliderMin && binStart <= sliderMax;
+  if (search) {
+    filtered = filtered.filter(p =>
+      (p.title || '').toLowerCase().includes(search) ||
+      (p.location || '').toLowerCase().includes(search) ||
+      (p.description || '').toLowerCase().includes(search)
+    );
+  }
+  if (propertyType !== "Property Type") {
+    filtered = filtered.filter(p => p.title === propertyType);
+  }
+  if (bedrooms !== "Bedrooms") {
+    const min = parseInt(bedrooms, 10);
+    if (!isNaN(min)) filtered = filtered.filter(p => p.bedrooms >= min);
+  }
+  if (bathrooms !== "Bathrooms") {
+    const min = parseInt(bathrooms, 10);
+    if (!isNaN(min)) filtered = filtered.filter(p => p.bathrooms >= min);
+  }
+  filtered = filtered.filter(p => p.price >= priceMin && p.price <= priceMax);
 
-    ctx.beginPath();
-    ctx.fillStyle = inRange ? "#f17100" : "#ffd2a5";
-    ctx.strokeStyle = "#fff";
-    ctx.lineWidth = 2;
-    roundRect(ctx, x, y, barW, barH, 5);
-    ctx.fill(); ctx.stroke();
+  // Met à jour bornes globales si besoin
+  const allPrices = filtered.map(p => p.price).filter(v => isFinite(v));
+  if (allPrices.length) {
+    globalMinPrice = Math.min(...allPrices);
+    globalMaxPrice = Math.max(...allPrices);
   }
 
-  ctx.save();
-  ctx.globalAlpha = 0.78;
-  prices.forEach(price=>{
-    let px = Math.floor((price - min) / (max - min || 1) * width);
-    px = Math.max(4, Math.min(width-4, px));
-    ctx.beginPath();
-    ctx.arc(px, height-8, 2.2, 0, Math.PI*2);
-    ctx.fillStyle = "#ff8300";
-    ctx.fill();
-  });
-  ctx.restore();
+  filteredProperties = filtered;
+  renderCards(filteredProperties, page);
 }
 
-function updatePriceSliderAndHistogram(){
-  const sliderElem=document.getElementById('priceSlider'); if(!sliderElem) return;
-  if(priceSlider){ priceSlider.destroy(); priceSlider=null; sliderElem.innerHTML=""; }
+// -------------------- Boot --------------------
+document.addEventListener("DOMContentLoaded", async () => {
+  // 1) lire filtres URL
+  const initialFilters = readFiltersFromURL();
 
-  const prices = properties.map(p=>p.price).filter(v=>isFinite(v));
-  const minDB = prices.length ? Math.min(...prices) : 0;
-  const maxDB = prices.length ? Math.max(...prices) : 0;
-  globalMinPrice = minDB; globalMaxPrice = maxDB;
-
-  const pm=document.getElementById('priceMin'), px=document.getElementById('priceMax');
-  const curMin = Number(pm?.value)||globalMinPrice;
-  const curMax = Number(px?.value)||globalMaxPrice;
-
-  priceSlider = noUiSlider.create(sliderElem,{
-    start:[curMin,curMax], connect:true, step:PRICE_STEP,
-    range:{min:globalMinPrice, max:globalMaxPrice},
-    tooltips:[true,true],
-    format:{ to:v=>fmt(Math.round(v)), from:v=>Number(String(v).replace(/[^\d]/g,'')) }
-  });
-
-  const minLbl=document.getElementById("sliderMinLabel");
-  const maxLbl=document.getElementById("sliderMaxLabel");
-  const selLbl=document.getElementById("selectedPriceRange");
-  if(minLbl) minLbl.textContent = fmt(globalMinPrice)+" AED";
-  if(maxLbl) maxLbl.textContent = fmt(globalMaxPrice)+" AED";
-  if(selLbl) selLbl.textContent = fmt(curMin)+" - "+fmt(curMax)+" AED";
-
-  const minInput=document.getElementById("priceMinInput");
-  const maxInput=document.getElementById("priceMaxInput");
-  if(minInput) minInput.value = fmt(curMin);
-  if(maxInput) maxInput.value = fmt(curMax);
-
-  drawPriceHistogram(properties, globalMinPrice, globalMaxPrice, [curMin, curMax]);
-
-  priceSlider.on('update', (vals)=>{
-    const v1=Number(String(vals[0]).replace(/[^\d]/g,''))||globalMinPrice;
-    const v2=Number(String(vals[1]).replace(/[^\d]/g,''))||globalMaxPrice;
-    if(minInput) minInput.value = fmt(v1);
-    if(maxInput) maxInput.value = fmt(v2);
-    if(selLbl) selLbl.textContent = fmt(v1)+" - "+fmt(v2)+" AED";
-    drawPriceHistogram(properties, globalMinPrice, globalMaxPrice, [v1, v2]);
-  });
-  priceSlider.on('change', (vals)=>{
-    const v1=Number(String(vals[0]).replace(/[^\d]/g,''))||globalMinPrice;
-    const v2=Number(String(vals[1]).replace(/[^\d]/g,''))||globalMaxPrice;
-    if(pm) pm.value = v1;
-    if(px) px.value = v2;
-    handleSearchOrFilter();
-  });
-
-  // saisie manuelle
-  minInput?.addEventListener('change', ()=>{
-    const v1=Number(String(minInput.value).replace(/[^\d]/g,''))||globalMinPrice;
-    priceSlider.set([Math.max(globalMinPrice, Math.min(v1, (Number(px?.value)||globalMaxPrice))), null]);
-  });
-  maxInput?.addEventListener('change', ()=>{
-    const v2=Number(String(maxInput.value).replace(/[^\d]/g,''))||globalMaxPrice;
-    priceSlider.set([null, Math.min(globalMaxPrice, Math.max(v2, (Number(pm?.value)||globalMinPrice)))]);
-  });
-}
-
-/* ==============
-   Filtering
-   ============== */
-function handleSearchOrFilter(page=1){
-  let arr = properties.slice();
-
-  const search = (document.getElementById("search")?.value || "").trim().toLowerCase();
-  const propertyType = (document.getElementById("propertyType")?.value || "Property Type").trim().toLowerCase();
-  const bedrooms = document.getElementById("bedrooms")?.value || "Bedrooms";
-  const bathrooms = document.getElementById("bathrooms")?.value || "Bathrooms";
-  const priceMin = Number(document.getElementById('priceMin')?.value) || globalMinPrice;
-  const priceMax = Number(document.getElementById('priceMax')?.value) || globalMaxPrice;
-
-  if(search){
-    arr = arr.filter(p => (p.title||"").toLowerCase().includes(search)
-                       || (p.location||"").toLowerCase().includes(search)
-                       || (p.listingTitle||"").toLowerCase().includes(search));
-  }
-  if(propertyType !== "property type"){
-    arr = arr.filter(p => (p.title||"").toLowerCase() === propertyType);
-  }
-  if(bedrooms !== "Bedrooms"){ const min=parseInt(bedrooms); if(!isNaN(min)) arr = arr.filter(p=>p.bedrooms>=min); }
-  if(bathrooms !== "Bathrooms"){ const min=parseInt(bathrooms); if(!isNaN(min)) arr = arr.filter(p=>p.bathrooms>=min); }
-  arr = arr.filter(p => p.price >= priceMin && p.price <= priceMax);
-
-  filteredProperties = arr;
-  displayProperties(filteredProperties, page);
-  drawPriceHistogram(properties, globalMinPrice, globalMaxPrice, [priceMin, priceMax]);
-}
-
-function handleClearFilters(){
-  document.querySelectorAll(".filter-bar input, .filter-bar select").forEach(el=>{
-    if(el.tagName==="SELECT") el.selectedIndex=0; else el.value="";
-  });
-  const pm=document.getElementById('priceMin'), px=document.getElementById('priceMax');
-  if(pm) pm.value = globalMinPrice;
-  if(px) px.value = globalMaxPrice;
-  handleSearchOrFilter(1);
-}
-
-/* ===========
-   Popups etc.
-   =========== */
-function bindOpenableFilters(){
-  const moreBtn=document.getElementById("openMoreFilter");
-  const morePopup=document.getElementById("moreFilterPopup");
-  if(moreBtn && morePopup){
-    moreBtn.addEventListener("click", ()=>{ morePopup.classList.add('active'); document.body.classList.add('more-filters-open'); });
-    document.getElementById("closeMoreFilter")?.addEventListener("click", ()=>{ morePopup.classList.remove('active'); document.body.classList.remove('more-filters-open'); });
-    document.getElementById("applyMoreFiltersBtn")?.addEventListener("click", ()=>{ morePopup.classList.remove('active'); document.body.classList.remove('more-filters-open'); handleSearchOrFilter(); });
-  }
-  const priceBtn=document.getElementById("openPriceFilter");
-  const pricePopup=document.getElementById("priceFilterPopup");
-  if(priceBtn && pricePopup){
-    priceBtn.addEventListener("click", ()=>{ pricePopup.classList.add('active'); document.body.classList.add('price-popup-open'); setTimeout(()=>document.getElementById("priceMinInput")?.focus(),120); });
-    document.getElementById("closePricePopup")?.addEventListener("click", ()=>{ pricePopup.classList.remove('active'); document.body.classList.remove('price-popup-open'); });
-    pricePopup.addEventListener("mousedown", (e)=>{ if(e.target===pricePopup){ pricePopup.classList.remove('active'); document.body.classList.remove('price-popup-open'); } });
-    document.addEventListener("keydown", (e)=>{ if(e.key==="Escape" && pricePopup.classList.contains("active")){ pricePopup.classList.remove('active'); document.body.classList.remove('price-popup-open'); }});
-    document.getElementById("validatePriceBtn")?.addEventListener("click", ()=>{
-      const minInp=document.getElementById("priceMinInput"), maxInp=document.getElementById("priceMaxInput");
-      const mi=Number(String(minInp?.value||"").replace(/[^\d]/g,''))||globalMinPrice;
-      const ma=Number(String(maxInp?.value||"").replace(/[^\d]/g,''))||globalMaxPrice;
-      document.getElementById('priceMin').value=mi;
-      document.getElementById('priceMax').value=ma;
-      pricePopup.classList.remove('active'); document.body.classList.remove('price-popup-open');
-      handleSearchOrFilter();
+  // 2) attendre supabase si besoin
+  async function ensureSupabaseReady() {
+    if (window.supabase) return;
+    await new Promise(res => {
+      window.addEventListener("supabase:ready", res, { once: true });
     });
   }
-}
+  await ensureSupabaseReady();
 
-/* ========
-   Burger + Dropdown
-   ======== */
-function bindBurger(){
-  const burger=document.getElementById('burgerMenu');
-  const nav=document.querySelector('.all-button');
-  burger?.addEventListener('click', ()=>{
-    nav.classList.toggle('mobile-open');
-    if(nav.classList.contains('mobile-open')){
-      document.body.style.overflow='hidden';
-      setTimeout(()=>document.addEventListener('click', closeOnce, {once:true}),0);
-    } else document.body.style.overflow='';
-    function closeOnce(e){ if(!nav.contains(e.target) && !burger.contains(e.target)){ nav.classList.remove('mobile-open'); document.body.style.overflow=''; } }
-  });
-}
-// Même correctif que commercial pour le bouton du menu
-function bindHeaderDropdown() {
-  const dd = document.getElementById('buyDropdown');
-  const btn = document.getElementById('mainBuyBtn');
-  if (!dd || !btn) return;
-  btn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); dd.classList.toggle('open'); });
-  btn.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); dd.classList.toggle('open'); }
-    if (e.key === 'Escape') dd.classList.remove('open');
-  });
-  document.addEventListener('click', (e) => { if (!dd.contains(e.target)) dd.classList.remove('open'); });
-}
+  // 3) charger depuis BDD (avec filtres type/bed/bath)
+  properties = await loadPropertiesFromDB(initialFilters);
 
-/* ==========
-   DOM READY
-   ========== */
-document.addEventListener('DOMContentLoaded', async ()=>{
-  properties = await loadRentFromDB();
-  filteredProperties = properties.slice();
+  // 4) filtre 'q' côté client
+  if (initialFilters.q) {
+    const ql = initialFilters.q.toLowerCase();
+    properties = properties.filter(p => {
+      const blob = [p.title || '', p.location || '', p.description || ''].join(' ').toLowerCase();
+      return blob.includes(ql);
+    });
+  }
 
-  const allPrices = properties.map(p=>p.price).filter(v=>isFinite(v));
+  // 5) bornes prix globales
+  const allPrices = properties.map(p => p.price).filter(v => isFinite(v));
   globalMinPrice = allPrices.length ? Math.min(...allPrices) : 0;
   globalMaxPrice = allPrices.length ? Math.max(...allPrices) : 0;
 
-  const pm=document.getElementById('priceMin'), px=document.getElementById('priceMax');
-  if(pm && !pm.value) pm.value = globalMinPrice;
-  if(px && !px.value) px.value = globalMaxPrice;
+  // 6) pré-remplir barre de filtres depuis URL
+  (function prefillFilterBarFromURL() {
+    const searchInput = document.getElementById("search");
+    const typeSelect = document.getElementById("propertyType");
+    const bedsSelect = document.getElementById("bedrooms");
+    const bathsSelect = document.getElementById("bathrooms");
 
-  displayProperties(filteredProperties, 1);
-  updatePriceSliderAndHistogram();
+    if (initialFilters.q && searchInput) searchInput.value = initialFilters.q;
 
-  document.querySelectorAll('.filter-bar input, .filter-bar select')
-    .forEach(el=>{ el.addEventListener('input', ()=>handleSearchOrFilter(1)); el.addEventListener('change', ()=>handleSearchOrFilter(1)); });
+    if (initialFilters.type && typeSelect) {
+      let matched = false;
+      for (const opt of typeSelect.options) {
+        if ((opt.value || "").trim().toLowerCase() === initialFilters.type.toLowerCase()) {
+          typeSelect.value = opt.value; matched = true; break;
+        }
+      }
+      if (!matched) {
+        for (const opt of typeSelect.options) {
+          if ((opt.text || "").trim().toLowerCase() === initialFilters.type.toLowerCase()) {
+            typeSelect.value = opt.value; break;
+          }
+        }
+      }
+    }
 
-  document.getElementById("searchBtn")?.addEventListener("click", ()=>handleSearchOrFilter(1));
-  document.getElementById("clearBtn")?.addEventListener("click", handleClearFilters);
+    if (bedsSelect && initialFilters.bedrooms) {
+      let val = initialFilters.bedrooms.toLowerCase();
+      if (val === 'studio') val = '0';
+      else if (val === '7plus') val = '7';
+      for (const opt of bedsSelect.options) {
+        if ((opt.value || "").toLowerCase() === String(val)) { bedsSelect.value = opt.value; break; }
+      }
+    }
 
-  bindOpenableFilters();
-  bindHeaderDropdown();
-  bindBurger();
+    if (bathsSelect && initialFilters.bathrooms) {
+      let val = initialFilters.bathrooms.toLowerCase();
+      if (val === '7plus') val = '7';
+      for (const opt of bathsSelect.options) {
+        if ((opt.value || "").toLowerCase() === String(val)) { bathsSelect.value = opt.value; break; }
+      }
+    }
+  })();
 
-  // Back to top
-  const btnTop=document.getElementById('scrollToTopBtn');
-  if(btnTop){
-    window.addEventListener('scroll', ()=>{ btnTop.style.display = window.scrollY>250 ? 'block' : 'none'; });
-    btnTop.addEventListener('click', ()=>window.scrollTo({top:0,behavior:'smooth'}));
+  // 7) rendu initial
+  filteredProperties = properties.slice();
+  renderCards(filteredProperties, 1);
+
+  // 8) bind boutons/événements
+  document.getElementById("searchBtn")?.addEventListener("click", () => filterProperties(1));
+  document.getElementById("clearBtn")?.addEventListener("click", () => {
+    document.querySelectorAll(".filter-bar input, .filter-bar select").forEach(el => {
+      if (el.tagName === "SELECT") el.selectedIndex = 0;
+      else el.value = "";
+    });
+    filterProperties(1);
+  });
+
+  document.querySelectorAll('.filter-bar input, .filter-bar select').forEach(el => {
+    el.addEventListener('input', () => filterProperties(1));
+    el.addEventListener('change', () => filterProperties(1));
+  });
+
+  const scrollToTopBtn = document.getElementById("scrollToTopBtn");
+  if (scrollToTopBtn) {
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 250) scrollToTopBtn.style.display = 'block';
+      else scrollToTopBtn.style.display = 'none';
+    });
+    scrollToTopBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   }
 });
