@@ -1,30 +1,72 @@
-// ========= SUPABASE - FETCH PROPERTIES =========
-// ========= DETECTION DES COLONNES =========
+
+// -- helpers pour citer les colonnes avec espaces + formater le prix
+function q(name){ if(!name) return ""; return /[\s()\-]/.test(name) ? `"${String(name).replace(/"/g,'""')}"` : name; }
+function formatAED(v){
+  const n = Number(v);
+  return Number.isFinite(n) ? `${n.toLocaleString()} AED` : (v ?? "");
+}
+
+
+/* ===== Helper prix — EN uniquement pour CETTE page ===== */
+function formatAED_EN(value){
+  // si value est numérique (ou string numérique) -> "250,000 AED"
+  const n = Number(value);
+  if (Number.isFinite(n)) {
+    return `${new Intl.NumberFormat('en-US').format(n)} AED`;
+  }
+  // sinon, on renvoie tel quel (ex: "From 250,000 AED")
+  return value ?? "";
+}
+
+
+// Quote un nom de colonne s'il contient des espaces, parenthèses, tirets…
+function qq(name){
+  if(!name) return null;
+  return /[\s()\-]/.test(name) ? `"${String(name).replace(/"/g,'""')}"` : name;
+}
+
+
+
 async function detectColumns(table) {
   const { data, error } = await window.supabase.from(table).select("*").limit(1);
   if (error) throw error;
   const sample = (data && data[0]) || {};
-  const has = (k) => Object.prototype.hasOwnProperty.call(sample, k);
+  const has  = (k) => Object.prototype.hasOwnProperty.call(sample, k);
   const pick = (...c) => c.find(has);
+
   return {
-    id: pick("id", "uuid"),
-    title: pick("title", "titre", "name"),
-    location: pick("property_type", "location", "community"),
-    bedrooms: pick("bedrooms", "rooms"),
-    bathrooms: pick("bathrooms"),
-    price: pick("price"),
-    sqft: pick("sqft", "sqft (m²)"),
-    photo: pick("photo_bien_url", "photo_url", "image_url", "image"),
-    created_at: pick("created_at")
+    id:           pick("id","uuid"),
+    title:        pick("title","titre","name"),
+    propertyType: pick("property_type","property type"),
+    bedrooms:     pick("bedrooms","rooms"),
+    bathrooms:    pick("bathrooms"),
+    price:        pick("price"),
+    sqft:         pick("sqft","sqft (m²)"),
+    photo:        pick("photo_bien_url","photo_url","image_url","image"),
+    created_at:   pick("created_at"),
+
+    // 👉 NOUVEAU : on détecte explicitement la bonne localisation
+    localisationAccueil: pick("localisation accueil","localisation acceuil","localisation_accueil")
   };
 }
 
 
-// ========= FETCH PROPERTIES =========
-async function fetchProperties({ type = "all", limit = 30 } = {}) {
-  let data = [];
 
-  // -------- OFF PLAN 100% INDÉPENDANT --------
+
+
+
+
+/* ===== FETCH PROPERTIES (même logique, juste le format prix) ===== */
+async function fetchProperties({ type = "all", limit = 30 } = {}) {
+  const qq = (name) => {
+    if (!name) return null;
+    const s = String(name);
+    return /[^a-zA-Z0-9_]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const normalizeImages = (raw) =>
+    Array.isArray(raw) ? raw.filter(Boolean) : (raw ? [raw] : []);
+
+  // ---------- OFF PLAN (indépendant) ----------
   if (type === "offplan") {
     const selectOffplan = [
       "id",
@@ -48,82 +90,82 @@ async function fetchProperties({ type = "all", limit = 30 } = {}) {
       .order("created_at", { ascending: false })
       .limit(limit);
 
-    if (error) {
-      console.error("Error fetching offplan", error);
-      return [];
-    }
+    if (error) { console.error("Error fetching offplan", error); return []; }
 
-    // On mappe pour réutiliser ton UI SANS rien changer ailleurs
-    data = (off || []).map(p => ({
+    return (off || []).map(p => ({
       id: p.id,
       title: p["titre"] || "",
       location: p["localisation"] || "Dubai",
-      bedrooms: p["units types"] || "",       // ex: "Studios–3BR"
-      bathrooms: p["project status"] || "",   // ex: "Launched"
-      size: "",                               // offplan n’a pas de sqft
-      price:
-        p["price starting"] != null && !Number.isNaN(Number(p["price starting"]))
-          ? `From ${Number(p["price starting"]).toLocaleString()} AED`
-          : "",
+      bedrooms: p["units types"] || "",
+      bathrooms: p["project status"] || "",
+      size: "",
+      // 👇 prix formaté EN
+      price: (p["price starting"] != null) ? `From ${formatAED_EN(p["price starting"])}` : "",
       images: [p.photo_url || p["developer photo_url"] || "https://via.placeholder.com/400x300"],
       description: p.description || "",
       brochure_url: p.brochure_url || "",
       lat: p.lat ?? null,
       lon: p.lon ?? null,
-      source: "offplan"                       // <-- on garde offplan indépendant
+      source: "offplan"
     }));
-
-    return data;
   }
-  // -------------------------------------------
 
-  const sources = {
-    rent: (type === "rent" || type === "all"),
-    buy: (type === "buy" || type === "all"),
-    commercial: (type === "commercial" || type === "all")
-  };
-
-  for (const [tableName, shouldFetch] of Object.entries(sources)) {
-    if (!shouldFetch) continue;
-
+  // ---------- helper pour 1 table standard (rent/buy/commercial) ----------
+  const fetchOneTable = async (tableName) => {
     try {
-      const columns = await detectColumns(tableName);
-      const fields = [columns.id, columns.title, columns.location, columns.bedrooms, columns.bathrooms, columns.price, columns.sqft, columns.photo, columns.created_at]
-        .filter(Boolean)
-        .join(",");
+      const c = await detectColumns(tableName);
 
-      const { data: tableData, error } = await window.supabase
+      const base = [c.id, c.title, c.bedrooms, c.bathrooms, c.price, c.sqft, c.photo, c.created_at]
+        .filter(Boolean)
+        .map(qq);
+
+      if (c.localisationAccueil) base.push(`localisation_accueil:${qq(c.localisationAccueil)}`);
+      if (c.propertyType)        base.push(`ptype:${qq(c.propertyType)}`);
+
+      const { data: rows, error } = await window.supabase
         .from(tableName)
-        .select(fields)
-        .order(columns.created_at, { ascending: false })
+        .select(base.join(","))
+        .order(c.created_at || c.id, { ascending: false })
         .limit(limit);
 
-      if (error) {
-        console.error(`Error fetching from ${tableName}`, error);
-        continue;
-      }
+      if (error) { console.error(`Error fetching from ${tableName}`, error); return []; }
 
-      data = data.concat((tableData || []).map(p => ({
-        ...p,
-        location: p[columns.location] || "Dubai",
-        size: p[columns.sqft],
-        images: [p[columns.photo] || "https://via.placeholder.com/400x300"],
-        title: p[columns.title],
-        bedrooms: p[columns.bedrooms],
-        bathrooms: p[columns.bathrooms],
-        price: p[columns.price],
-        id: p[columns.id],
-        _table: tableName                  // <-- (AJOUT MINIMAL) on marque la table d’origine
-      })));
+      return (rows || []).map(r => {
+        const imgs = normalizeImages(r[c.photo]);
+        return {
+          id:        r[c.id],
+          title:     r[c.title] || "",
+          location:  r.localisation_accueil || "",
+          typeLabel: r.ptype || "",
+          bedrooms:  r[c.bedrooms] ?? "",
+          bathrooms: r[c.bathrooms] ?? "",
+          size:      r[c.sqft] ?? "",
+          images:    imgs.length ? imgs : ["https://via.placeholder.com/400x300"],
+          // ⚠️ on laisse la valeur brute ici;
+          // on formatte à l’affichage pour cette page.
+          price:     r[c.price],
+          _table:    tableName
+        };
+      });
     } catch (e) {
       console.error(`Failed to detect columns for ${tableName}`, e);
+      return [];
     }
+  };
+
+  if (type === "all") {
+    const parts = await Promise.all([
+      fetchOneTable("rent"),
+      fetchOneTable("buy"),
+      fetchOneTable("commercial")
+    ]);
+    return parts.flat();
   }
-
-  return data;
+  if (["rent", "buy", "commercial"].includes(type)) {
+    return await fetchOneTable(type);
+  }
+  return [];
 }
-
-
 
 
 
@@ -134,11 +176,13 @@ function saveChats(chats) { localStorage.setItem('multiChatHistory', JSON.string
 function getFavs() { return JSON.parse(localStorage.getItem('favorites') || '[]'); }
 function saveFavs(arr) { localStorage.setItem('favorites', JSON.stringify(arr)); }
 
-// ========= RENDU DES BIENS =========
+
+/* ===== RENDU DES BIENS (prix affiché en "250,000 AED") ===== */
 function renderProperties(list) {
   const container = document.getElementById("property-cards-container");
   container.innerHTML = "";
   const favs = getFavs();
+
   list.forEach(property => {
     const card = document.createElement("div");
     card.className = "property-card-ui-v2";
@@ -156,14 +200,17 @@ function renderProperties(list) {
       ${favBtn}
       <img src="${property.images[0]}" class="property-img-v2" alt="${property.title}">
       <div class="property-title-ui-v2">${property.title}</div>
-      <div class="property-loc-ui-v2"><i class="fas fa-map-marker-alt"></i> ${property.location}</div>
+      <div class="property-loc-ui-v2"><i class="fas fa-map-marker-alt"></i> ${property.location || ""}</div>
       <div class="property-features-ui-v2">
-        <span><i class="fas fa-bed"></i> ${property.bedrooms}</span>
-        <span><i class="fas fa-bath"></i> ${property.bathrooms}</span>
-        <span><i class="fas fa-ruler-combined"></i> ${property.size} sqft</span>
+        <span><i class="fas fa-bed"></i> ${property.bedrooms ?? ""}</span>
+        <span><i class="fas fa-bath"></i> ${property.bathrooms ?? ""}</span>
+        <span><i class="fas fa-ruler-combined"></i> ${property.size ?? ""} sqft</span>
       </div>
       <div class="property-desc-ui-v2">${property.description || ''}</div>
-      <div class="property-price-ui-v2">${property.price}</div>
+
+      <!-- 🏷️ prix formaté UNIQUEMENT à l’affichage sur cette page -->
+      <div class="property-price-ui-v2">${formatAED_EN(property.price)}</div>
+
       <div class="property-actions-ui-v2">
         <button type="button" onclick="event.stopPropagation();window.location.href='tel:+000000000';">Call</button>
         <button type="button" onclick="event.stopPropagation();window.location.href='mailto:info@propindubai.com';">Email</button>
@@ -171,28 +218,23 @@ function renderProperties(list) {
       </div>
     `;
 
-    // >>> OUVERTURE DÉTAIL : rent/buy => bien.html ; offplan reste indépendant
-  // >>> OUVERTURE DÉTAIL : rent/buy/commercial => bien.html ; offplan => off-plan-click.html
-card.addEventListener("click", () => {
-  if (property.source === 'offplan') {
-    // Off plan reste indépendant, on renvoie vers ta page dédiée
-    const detail = { id: property.id, type: 'offplan' };
-    sessionStorage.setItem('selected_offplan', JSON.stringify(detail));
-    window.location.href = `off-plan-click.html?id=${encodeURIComponent(property.id)}`;
-    return;
-  }
-
-  // Sinon: rent / buy / commercial -> bien.html
-  const type = property._table || 'buy';
-  sessionStorage.setItem('selected_property', JSON.stringify({ id: property.id, type }));
-  window.location.href = `bien.html?id=${encodeURIComponent(property.id)}&type=${encodeURIComponent(type)}`;
-});
-
+    card.addEventListener("click", () => {
+      if (property.source === 'offplan') {
+        sessionStorage.setItem('selected_offplan', JSON.stringify({ id: property.id, type: 'offplan' }));
+        window.location.href = `off-plan-click.html?id=${encodeURIComponent(property.id)}`;
+        return;
+      }
+      const type = property._table || 'buy';
+      sessionStorage.setItem('selected_property', JSON.stringify({ id: property.id, type }));
+      window.location.href = `bien.html?id=${encodeURIComponent(property.id)}&type=${encodeURIComponent(type)}`;
+    });
 
     container.appendChild(card);
   });
+
   setupFavBtns();
 }
+
 
 function setupFavBtns() {
   document.querySelectorAll('.fav-btn').forEach(btn => {
