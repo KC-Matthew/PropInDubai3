@@ -2286,3 +2286,30 @@ body.price-popup-open { overflow: hidden; }
     display: none !important;
   }
 }
+
+
+.search-autocomplete-wrapper { position: relative; }
+.autocomplete-suggestions{
+  position:absolute; top:100%; left:0;
+  min-width:100%;
+  width:min(640px, 90vw);
+  background:#fff; border:1px solid #ececec; border-radius:12px;
+  box-shadow:0 8px 28px rgba(0,0,0,.08);
+  z-index:50; display:none;
+}
+.autocomplete-suggestions.visible{ display:block; }
+.autocomplete-suggestions .suggestion-label{
+  white-space: normal; word-break: break-word; /* ← plus de coupe */
+}
+
+/* --- Suggestions de la barre de recherche --- */
+#searchSuggestions .suggestion { 
+  display:flex; align-items:center; gap:.6rem;
+}
+#searchSuggestions .suggestion-icon {
+  /* l'icône héritera de cette couleur */
+  color: var(--brand-orange, #ff7a00);
+}
+#searchSuggestions .suggestion:hover .suggestion-icon {
+  filter: brightness(.9);
+}
