@@ -1,3 +1,122 @@
+// --- Appliquer les filtres de l'URL à l'UI ---
+function applyURLFiltersToUI() {
+  const p = new URLSearchParams(location.search);
+  const q        = p.get('q') || '';
+  const type     = p.get('type') || '';
+  const bedrooms = p.get('bedrooms') || '';
+  const bathrooms= p.get('bathrooms') || '';
+
+  // champ recherche (adapte l'ID si besoin)
+  const searchInput = document.getElementById('search')
+                   || document.querySelector('.searchbar input, input[type="search"], .search-input');
+  if (searchInput && q) searchInput.value = q;
+
+  if (type && document.getElementById('propertyType')) {
+    document.getElementById('propertyType').value = type;
+  }
+  if (bedrooms && document.getElementById('bedrooms')) {
+    document.getElementById('bedrooms').value =
+      (bedrooms === 'studio') ? '0' : (bedrooms === '7plus' ? '7' : bedrooms);
+  }
+  if (bathrooms && document.getElementById('bathrooms')) {
+    document.getElementById('bathrooms').value =
+      (bathrooms === '7plus' ? '7' : bathrooms);
+  }
+}
+
+
+// ====== Supabase query avec filtres ======
+/*
+  sb = ton client Supabase (import de supabaseClient.js)
+  table = 'buy' | 'rent' | 'commercial' | 'offplan'
+  Adapte les colonnes si nécessaire :
+    - property_type (ou 'type' chez toi)
+    - bedrooms (0 pour studio)
+    - bathrooms
+    - colonnes de recherche plein-texte: title/localisation/building/project...
+*/
+function applyFiltersToQuery(sb, table, filters){
+  let q = sb.from(table).select('*').limit(60);
+
+  // Texte : or() pour couvrir plusieurs colonnes
+  if (filters.q){
+    const like = (v)=>`ilike.%${v}%`;
+    // ⚠️ remplace/complète selon tes colonnes réelles
+    q = q.or([
+      `title.${like(filters.q)}`,
+      `"localisation".${like(filters.q)}`,
+      `"localisation accueil".${like(filters.q)}`,
+      `"localisation acceuil".${like(filters.q)}`,
+      `building.${like(filters.q)}`,
+      `project.${like(filters.q)}`,
+      `community.${like(filters.q)}`
+    ].join(','));
+  }
+
+  // Type de bien
+  if (filters.type){
+    // essaie 'property_type', sinon mets 'type' / 'category'
+    q = q.eq('property_type', filters.type).or(`type.eq.${filters.type},category.eq.${filters.type}`, { referencedTable: undefined });
+  }
+
+  // Bedrooms
+  if (filters.bedrooms){
+    if (filters.bedrooms === 'studio'){
+      q = q.eq('bedrooms', 0);
+    } else if (filters.bedrooms === '7plus'){
+      q = q.gte('bedrooms', 7);
+    } else {
+      q = q.eq('bedrooms', Number(filters.bedrooms));
+    }
+  }
+
+  // Bathrooms
+  if (filters.bathrooms){
+    if (filters.bathrooms === '7plus'){
+      q = q.gte('bathrooms', 7);
+    } else {
+      q = q.eq('bathrooms', Number(filters.bathrooms));
+    }
+  }
+
+  return q;
+}
+
+// ====== Boot de page (ex: dans buy.js) ======
+(async function bootResults(){
+  // 1) Quelle table pour cette page ?
+  // (on force avec la page pour éviter les confusions)
+  const table = (()=>{
+    if (location.pathname.includes('buy'))        return 'buy';
+    if (location.pathname.includes('rent'))       return 'rent';
+    if (location.pathname.includes('commercial')) return 'commercial';
+    return 'offplan';
+  })();
+
+  // 2) Lire les filtres & pré-remplir l’UI
+  const filters = getURLFilters();
+  prefillUIFromParams(filters);
+
+  // 3) Requête Supabase + rendu
+  const q = applyFiltersToQuery(window.sb || window.supabase, table, filters);
+  const { data, error } = await q;
+  if (error){ console.error('Search error:', error); return; }
+
+  // 4) TODO: remplace par ton renderer
+  //    Ici, juste un exemple minimal d’injection.
+  const list = document.querySelector('#results, .results, .cards');
+  if (list){
+    list.innerHTML = (data || []).map(row => `
+      <article class="card">
+        <h3>${row.title ?? 'Property'}</h3>
+        <p>${row['localisation'] ?? ''}</p>
+      </article>
+    `).join('');
+  }
+})();
+
+
+
 // ========= Données depuis Supabase (remplace l'ancien tableau en dur) =========
 let projects = []; // alimenté par Supabase
 
@@ -210,17 +329,39 @@ function filterAndDisplayProjects(page = 1) {
     if (bedrooms && (!p.bedrooms || Number(p.bedrooms) < bedrooms)) return false;
     if (bathrooms && (!p.bathrooms || Number(p.bathrooms) < bathrooms)) return false;
     
-    // ----------- FILTRE DATES DE LIVRAISON (correction ici) -------------
-    if (deliveryDates.length > 0) {
-      const matchDelivery = deliveryDates.some(val => {
-        val = val.toLowerCase();
-        // Si année seule, match tous les "QX YEAR" ou "YEAR"
-        if (/^\d{4}$/.test(val)) return String(p.delivery).toLowerCase().includes(val);
-        // Si quarter précis (Q3 2025 etc.), match strictement
-        return String(p.delivery).toLowerCase() === val;
-      });
-      if (!matchDelivery) return false;
+// ========= DATES DE LIVRAISON (délégation sécurisée) =========
+document.addEventListener('DOMContentLoaded', function () {
+  const wrapper = document.querySelector('.delivery-date-options');
+  if (!wrapper) return;
+
+  wrapper.addEventListener('click', function(e) {
+    const btn = e.target.closest('.delivery-date-btn');
+    if (!btn) return;
+
+    const val = btn.dataset.value;
+    const allBtn = wrapper.querySelector('.delivery-date-btn[data-value="all"]');
+    const btns = wrapper.querySelectorAll('.delivery-date-btn');
+
+    if (val === "all") {
+      selectedDeliveryDates = [];
+      btns.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    } else {
+      allBtn?.classList.remove('selected');
+      btn.classList.toggle('selected');
+      if (btn.classList.contains('selected')) {
+        if (!selectedDeliveryDates.includes(val)) selectedDeliveryDates.push(val);
+      } else {
+        selectedDeliveryDates = selectedDeliveryDates.filter(d => d !== val);
+      }
+      if (selectedDeliveryDates.length === 0) {
+        allBtn?.classList.add('selected');
+      }
     }
+    filterAndDisplayProjects(1);
+  });
+});
+
     // ------------------------------------------------------
     
     if (p.price < priceMin || p.price > priceMax) return false;
@@ -757,27 +898,26 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-// ========= BOOT =========
+// ========= BOOT (unique) =========
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     await waitForSupabase();
     projects = await fetchOffplanForListing();
 
-    // si aucune donnée, on évite de casser le slider
-    if (!projects.length) {
-      document.getElementById("propertyResults").innerHTML =
-        '<div style="margin:40px auto;font-size:1.2em;color:#c44;text-align:center;">No project found</div>';
-      return;
-    }
+    // 1) Pré-remplir l'UI depuis l'URL (q, type, bedrooms, bathrooms)
+    applyURLFiltersToUI();
 
-    // init filtres dépendants des prix
+    // 2) Init des contrôles dépendants des données
     setupDeliveryDateButtons();
     setupPriceFilter(projects);
+
+    // 3) Affichage initial (avec les filtres déjà posés)
     filterAndDisplayProjects(1);
   } catch (e) {
-    console.error(e);
+    console.error('[BOOT]', e);
   }
 });
+
 
 
 
@@ -862,36 +1002,72 @@ document.querySelector('.delivery-date-options').addEventListener('click', funct
 
 
 
-
-document.addEventListener('DOMContentLoaded', function () {
-  const burger = document.getElementById('burgerMenu');
-  const allButtons = document.querySelector('.all-button');
-  const mobileBuyMenu = document.querySelector('.mobile-buy-menu');
-
-  burger?.addEventListener('click', () => {
-    const isOpen = allButtons.classList.toggle('mobile-open');
-
-    // Activer / désactiver aussi le menu déroulant si nécessaire
-    if (mobileBuyMenu) {
-      mobileBuyMenu.style.display = isOpen ? 'block' : 'none';
-    }
-
-    // Désactiver le scroll quand le menu est ouvert
-    document.body.style.overflow = isOpen ? 'hidden' : '';
+// ========= INIT (listeners uniquement) =========
+document.addEventListener('DOMContentLoaded', function() {
+  // Filtres déroulants
+  ["propertyType", "bedrooms", "bathrooms"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', () => filterAndDisplayProjects(1));
   });
 
-  // Fermer si clic en dehors
-  document.addEventListener('click', (e) => {
-    const target = e.target;
-    if (
-      !burger.contains(target) &&
-      !allButtons.contains(target) &&
-      !mobileBuyMenu.contains(target)
-    ) {
-      allButtons.classList.remove('mobile-open');
-      if (mobileBuyMenu) mobileBuyMenu.style.display = 'none';
-      document.body.style.overflow = '';
-    }
+  // Search (Enter + bouton)
+  const searchInput = document.getElementById('search');
+  if (searchInput) {
+    searchInput.addEventListener('keydown', e => {
+      if (e.key === "Enter") filterAndDisplayProjects(1);
+    });
+  }
+  document.getElementById("searchBtn")?.addEventListener('click', () => filterAndDisplayProjects(1));
+
+  // Clear
+  document.getElementById("clearBtn")?.addEventListener('click', function() {
+    document.querySelectorAll("input, select").forEach(el => {
+      if (el.tagName === "SELECT") el.selectedIndex = 0;
+      else el.value = "";
+    });
+    document.querySelectorAll("#moreFilterPopup input[type='checkbox']").forEach(cb => cb.checked = false);
+    if (document.getElementById("priceMin")) document.getElementById("priceMin").value = globalMinPrice;
+    if (document.getElementById("priceMax")) document.getElementById("priceMax").value = globalMaxPrice;
+    selectedDeliveryDates = [];
+    document.querySelectorAll('.delivery-date-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelector('.delivery-date-btn[data-value="all"]')?.classList.add('selected');
+    closePricePopup();
+    closeMoreFilterPopup();
+    filterAndDisplayProjects(1);
+  });
+
+  // Popups (Price & More)
+  document.getElementById("openPriceFilter")?.addEventListener("click", openPricePopup);
+  document.getElementById("closePricePopup")?.addEventListener("click", closePricePopup);
+  document.getElementById("validatePriceBtn")?.addEventListener("click", function() {
+    let minVal = Number(String(document.getElementById("priceMinInput").value).replace(/[^\d]/g,"")) || globalMinPrice;
+    let maxVal = Number(String(document.getElementById("priceMaxInput").value).replace(/[^\d]/g,"")) || globalMaxPrice;
+    document.getElementById('priceMin').value = minVal;
+    document.getElementById('priceMax').value = maxVal;
+    closePricePopup();
+    filterAndDisplayProjects(1);
+  });
+  document.getElementById("priceFilterPopup")?.addEventListener("mousedown", e => {
+    if (e.target === e.currentTarget) closePricePopup();
+  });
+
+  document.addEventListener("keydown", function(e){
+    if (document.getElementById("priceFilterPopup")?.classList.contains("active") && e.key === "Escape") closePricePopup();
+    if (document.getElementById("moreFilterPopup")?.classList.contains("active") && e.key === "Escape") closeMoreFilterPopup();
+  });
+  document.getElementById("openMoreFilter")?.addEventListener("click", openMoreFilterPopup);
+  document.getElementById("closeMoreFilter")?.addEventListener("click", closeMoreFilterPopup);
+  document.getElementById("moreFilterPopup")?.addEventListener("mousedown", e => {
+    if (e.target === e.currentTarget) closeMoreFilterPopup();
+  });
+  document.getElementById("applyMoreFiltersBtn")?.addEventListener("click", function() {
+    closeMoreFilterPopup();
+    filterAndDisplayProjects(1);
+  });
+
+  // Onglet Map
+  document.getElementById('tab-map')?.addEventListener('click', () => {
+    window.location.href = "off-plan-map.html";
   });
 });
 
