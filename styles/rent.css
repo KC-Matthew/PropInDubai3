@@ -1992,4 +1992,21 @@ body.price-popup-open { overflow: hidden; }
   }
 }
 
+/* Icônes orange dans l'autocomplete */
+#searchSuggestions .suggestion-icon i,
+#searchSuggestions .suggestion .fa,
+#searchSuggestions .suggestion .fa-solid,
+#searchSuggestions .suggestion .fa-regular {
+  color: #ff8300;   /* orange */
+}
 
+/* Pleine opacité pour bien voir la couleur */
+#searchSuggestions .suggestion-icon { 
+  opacity: 1; 
+}
+
+/* (optionnel) garder l'orange au survol/sélection clavier */
+#searchSuggestions .suggestion:hover .suggestion-icon i,
+#searchSuggestions .suggestion:focus .suggestion-icon i {
+  color: #ff8300;
+}
