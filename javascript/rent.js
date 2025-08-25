@@ -550,6 +550,111 @@ function bindHeaderDropdown() {
   document.addEventListener('click', (e) => { if (!dd.contains(e.target)) dd.classList.remove('open'); });
 }
 
+
+// ------ AUTOCOMPLETE SUGGESTIONS (RENT) ------
+function setupRentAutocomplete() {
+  const searchInput = document.getElementById('search');
+  const suggestionsDiv = document.getElementById('searchSuggestions');
+  if (!searchInput || !suggestionsDiv) return;
+
+  function getSuggestions(query) {
+    if (!query) return [];
+    const q = query.trim().toLowerCase();
+
+    const seen = new Set();
+    const matches = [];
+
+    (properties || []).forEach(p => {
+      // Titre d'annonce (listingTitle) ou titre "type" (title = Apartment/Villa...)
+      const listing = (p.listingTitle || "").trim();
+      const type    = (p.title || "").trim();
+      const loc     = (p.location || "").trim();
+      const agent   = (p.agent?.name || "").trim();
+
+      if (listing && listing.toLowerCase().includes(q) && !seen.has(listing)) {
+        seen.add(listing);
+        matches.push({ label: listing, icon: "fa-building", type: "listing" });
+      }
+      if (type && type.toLowerCase().includes(q) && !seen.has(type)) {
+        seen.add(type);
+        matches.push({ label: type, icon: "fa-home", type: "type" });
+      }
+      if (loc && loc.toLowerCase().includes(q)) {
+        // On peut “nettoyer” le libellé (évite doublons exacts)
+        const baseLoc = loc.split(" - ")[0].trim();
+        if (!seen.has(baseLoc)) {
+          seen.add(baseLoc);
+          matches.push({ label: baseLoc, icon: "fa-map-marker-alt", type: "location" });
+        }
+      }
+      if (agent && agent.toLowerCase().includes(q) && !seen.has(agent)) {
+        seen.add(agent);
+        matches.push({ label: agent, icon: "fa-user-tie", type: "agent" });
+      }
+    });
+
+    return matches.slice(0, 8);
+  }
+
+  function renderSuggestions(suggestions) {
+    if (!suggestions.length) {
+      suggestionsDiv.classList.remove("visible");
+      suggestionsDiv.innerHTML = "";
+      return;
+    }
+    suggestionsDiv.innerHTML = suggestions.map(s => `
+      <div class="suggestion" tabindex="0">
+        <span class="suggestion-icon"><i class="fa ${s.icon}"></i></span>
+        <span class="suggestion-label">${s.label}</span>
+      </div>
+    `).join("");
+    suggestionsDiv.classList.add("visible");
+  }
+
+  // Tape au clavier → affiche les suggestions (n’applique pas le filtre tout de suite)
+  searchInput.addEventListener('input', function () {
+    const val = this.value;
+    if (!val) {
+      suggestionsDiv.classList.remove("visible");
+      suggestionsDiv.innerHTML = "";
+      return;
+    }
+    renderSuggestions(getSuggestions(val));
+  });
+
+  // Click sur une suggestion
+  suggestionsDiv.addEventListener('mousedown', function (e) {
+    const item = e.target.closest('.suggestion');
+    if (!item) return;
+    const label = item.querySelector('.suggestion-label').textContent;
+    searchInput.value = label;
+    suggestionsDiv.classList.remove("visible");
+    handleSearchOrFilter(1);
+  });
+
+  // Enter quand la liste est ouverte → prend la 1re suggestion
+  searchInput.addEventListener('keydown', function (e) {
+    if (e.key === "Enter" && suggestionsDiv.classList.contains("visible")) {
+      const first = suggestionsDiv.querySelector('.suggestion');
+      if (first) {
+        searchInput.value = first.querySelector('.suggestion-label').textContent;
+        suggestionsDiv.classList.remove("visible");
+        handleSearchOrFilter(1);
+        e.preventDefault();
+      }
+    }
+  });
+
+  // Clic en dehors → on ferme
+  document.addEventListener('mousedown', function (e) {
+    if (!suggestionsDiv.contains(e.target) && e.target !== searchInput) {
+      suggestionsDiv.classList.remove("visible");
+    }
+  });
+}
+
+
+
 /* ==========
    DOM READY
    ========== */
@@ -557,7 +662,13 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   properties = await loadRentFromDB();
   filteredProperties = properties.slice();
 
+  // ⬇️ AJOUTE CET APPEL ICI
+  setupRentAutocomplete();
+
   const allPrices = properties.map(p=>p.price).filter(v=>isFinite(v));
+  // ... le reste de ton code inchangé ...
+
+
   globalMinPrice = allPrices.length ? Math.min(...allPrices) : 0;
   globalMaxPrice = allPrices.length ? Math.max(...allPrices) : 0;
 
