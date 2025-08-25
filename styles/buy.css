@@ -1996,3 +1996,27 @@ body.price-popup-open { overflow: hidden; }
 }
 
 
+
+
+/* === ORANGE BRAND === */
+:root{
+  --accent-orange: #f17100; /* même orange que l'histogramme */
+}
+
+/* Suggestions (les deux variantes de ton markup) */
+#searchSuggestions .suggestion-icon i,
+#searchSuggestions .suggestion-pf-icon i,
+.autocomplete-suggestions .suggestion-icon i,
+.autocomplete-suggestions .suggestion-pf-icon i {
+  color: var(--accent-orange) !important;
+  --fa-primary-color: var(--accent-orange); /* FA6 compat */
+}
+
+/* (Optionnel) garder l’orange au survol/selection */
+#searchSuggestions .suggestion:hover .suggestion-icon i,
+#searchSuggestions .suggestion:focus .suggestion-icon i,
+#searchSuggestions .suggestion-pf-item:hover .suggestion-pf-icon i,
+#searchSuggestions .suggestion-pf-item:focus .suggestion-pf-icon i {
+  color: var(--accent-orange) !important;
+}
+
