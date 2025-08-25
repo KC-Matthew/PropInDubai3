@@ -1,40 +1,71 @@
-// --- Appliquer les filtres de l'URL à l'UI ---
+
+
+// --- Appliquer les filtres de l'URL à l'UI (robuste : alias + "2+" corrigé) ---
 function applyURLFiltersToUI() {
   const p = new URLSearchParams(location.search);
-  const q        = p.get('q') || '';
-  const type     = p.get('type') || '';
-  const bedrooms = p.get('bedrooms') || '';
-  const bathrooms= p.get('bathrooms') || '';
 
-  // champ recherche (adapte l'ID si besoin)
+  // accepte q|search, bedrooms|beds, bathrooms|baths|ba
+  const q         = p.get('q')        ?? p.get('search')   ?? '';
+  const type      = p.get('type')     ?? '';
+  const bedroomsR = p.get('bedrooms') ?? p.get('beds')     ?? '';
+  const bathsR    = p.get('bathrooms')?? p.get('baths')    ?? p.get('ba') ?? '';
+
+  // normalise les valeurs style "2+", "7plus", "2%2B", etc.
+  const normPlus = (v) => {
+    if (!v) return '';
+    let s = String(v).toLowerCase().trim();
+    s = s.replace(/%2b/gi, '+').replace(/\s+/g, ''); // "2%2B"->"2+" / "2 "->"2"
+    if (s === 'studio' || s === '0') return '1+';    // pas de "0+" dans ton select
+    if (s === '7plus') s = '7+';                     // alias
+    if (/^\d+$/.test(s)) return s + '+';             // "2" -> "2+"
+    return s;
+  };
+
+  const bedrooms  = normPlus(bedroomsR);
+  const bathrooms = normPlus(bathsR);
+
+  // Champ recherche
   const searchInput = document.getElementById('search')
-                   || document.querySelector('.searchbar input, input[type="search"], .search-input');
+                    || document.querySelector('.searchbar input, input[type="search"], .search-input');
   if (searchInput && q) searchInput.value = q;
 
+  // Type
   if (type && document.getElementById('propertyType')) {
     document.getElementById('propertyType').value = type;
   }
-  if (bedrooms && document.getElementById('bedrooms')) {
-    document.getElementById('bedrooms').value =
-      (bedrooms === 'studio') ? '0' : (bedrooms === '7plus' ? '7' : bedrooms);
-  }
-  if (bathrooms && document.getElementById('bathrooms')) {
-    document.getElementById('bathrooms').value =
-      (bathrooms === '7plus' ? '7' : bathrooms);
-  }
+
+  // Sélecteurs "1+ / 2+ / …" — prend l’option existante la plus proche
+  const setPlusSelect = (id, raw) => {
+    const sel = document.getElementById(id);
+    if (!sel || !raw) return;
+
+    const wanted = raw; // ex: "2+"
+    const options = Array.from(sel.options).map(o => (o.value || o.textContent).trim());
+
+    // exacte ?
+    const exact = options.find(v => v.toLowerCase() === wanted.toLowerCase());
+    if (exact) { sel.value = exact; return; }
+
+    // sinon, valeur <= demandée la plus proche
+    const req = parseInt(wanted, 10);
+    const nums = options
+      .map(v => parseInt(String(v).toLowerCase(), 10))
+      .filter(n => Number.isFinite(n));
+    if (Number.isFinite(req) && nums.length) {
+      const best = nums.filter(n => n <= req).sort((a,b)=>b-a)[0] ?? nums[0];
+      sel.value = `${best}+`;
+    }
+  };
+
+  setPlusSelect('bedrooms',  bedrooms);
+  setPlusSelect('bathrooms', bathrooms);
 }
 
 
-// ====== Supabase query avec filtres ======
-/*
-  sb = ton client Supabase (import de supabaseClient.js)
-  table = 'buy' | 'rent' | 'commercial' | 'offplan'
-  Adapte les colonnes si nécessaire :
-    - property_type (ou 'type' chez toi)
-    - bedrooms (0 pour studio)
-    - bathrooms
-    - colonnes de recherche plein-texte: title/localisation/building/project...
-*/
+
+
+
+
 function applyFiltersToQuery(sb, table, filters){
   let q = sb.from(table).select('*').limit(60);
 
@@ -81,41 +112,6 @@ function applyFiltersToQuery(sb, table, filters){
 
   return q;
 }
-
-// ====== Boot de page (ex: dans buy.js) ======
-(async function bootResults(){
-  // 1) Quelle table pour cette page ?
-  // (on force avec la page pour éviter les confusions)
-  const table = (()=>{
-    if (location.pathname.includes('buy'))        return 'buy';
-    if (location.pathname.includes('rent'))       return 'rent';
-    if (location.pathname.includes('commercial')) return 'commercial';
-    return 'offplan';
-  })();
-
-  // 2) Lire les filtres & pré-remplir l’UI
-  const filters = getURLFilters();
-  prefillUIFromParams(filters);
-
-  // 3) Requête Supabase + rendu
-  const q = applyFiltersToQuery(window.sb || window.supabase, table, filters);
-  const { data, error } = await q;
-  if (error){ console.error('Search error:', error); return; }
-
-  // 4) TODO: remplace par ton renderer
-  //    Ici, juste un exemple minimal d’injection.
-  const list = document.querySelector('#results, .results, .cards');
-  if (list){
-    list.innerHTML = (data || []).map(row => `
-      <article class="card">
-        <h3>${row.title ?? 'Property'}</h3>
-        <p>${row['localisation'] ?? ''}</p>
-      </article>
-    `).join('');
-  }
-})();
-
-
 
 
 
@@ -299,21 +295,22 @@ window.addEventListener('resize', responsiveHeaderBurger);
 
 // ---------------- DOM READY ----------------
 document.addEventListener('DOMContentLoaded', async function () {
-  // --- DATA INIT (depuis BDD) ---
+  // 1) Charger les données
   properties = await loadPropertiesFromDB();
   filteredProperties = properties.slice();
 
+  // 2) Bornes prix globales
   const allPrices = properties.map(p => p.price).filter(v => isFinite(v));
   globalMinPrice = allPrices.length ? Math.min(...allPrices) : 0;
   globalMaxPrice = allPrices.length ? Math.max(...allPrices) : 0;
 
-applyURLFiltersToUI();      // préremplit l’UI depuis l’URL
-handleSearchOrFilter(1);    // lance ton filtrage/affichage
-updatePriceSliderAndHistogram(properties); // garde l'histo/slider
+  // 3) Pré-remplir UI depuis l’URL puis afficher
+  applyURLFiltersToUI();
+  handleSearchOrFilter(1);
+  updatePriceSliderAndHistogram(properties);
 
-
-  // PRINCIPAUX BOUTONS/FILTRES
-  document.getElementById("searchBtn")?.addEventListener("click", handleSearchOrFilter);
+  // 4) Boutons + filtres
+  document.getElementById("searchBtn")?.addEventListener("click", () => handleSearchOrFilter(1));
   document.getElementById("clearBtn")?.addEventListener("click", handleClearFilters);
   document.getElementById("openPriceFilter")?.addEventListener("click", openPricePopup);
   document.getElementById("validatePriceBtn")?.addEventListener("click", function () {
@@ -326,65 +323,111 @@ updatePriceSliderAndHistogram(properties); // garde l'histo/slider
     document.getElementById('priceMax').value = maxVal;
     document.getElementById('selectedPriceRange').textContent = fmt(minVal) + " - " + fmt(maxVal) + " AED";
     closePricePopup();
-    handleSearchOrFilter();
+    handleSearchOrFilter(1);
   });
   document.getElementById("closePricePopup")?.addEventListener("click", closePricePopup);
 
-  // SUGGESTIONS SEARCH
-  document.getElementById("search")?.addEventListener("input", showSearchSuggestions);
-  function showSearchSuggestions(e) {
-    const val = e.target.value.trim().toLowerCase();
-    const suggestionDiv = document.getElementById("searchSuggestions");
-    if (!val) {
-      suggestionDiv.innerHTML = "";
-      suggestionDiv.style.display = "none";
-      return;
-    }
-    const locations = properties
-      .map(p => (p.location || "").trim())
-      .filter(loc => loc && loc.toLowerCase().includes(val));
-    const uniqueLocations = Array.from(new Set(locations)).slice(0, 8);
-    if (uniqueLocations.length === 0) {
-      suggestionDiv.innerHTML = "";
-      suggestionDiv.style.display = "none";
-      return;
-    }
-    suggestionDiv.innerHTML = uniqueLocations.map(location => {
-      const reg = new RegExp(`(${val})`, "i");
-      const label = location.replace(reg, '<strong>$1</strong>');
-      return `
-        <div class="suggestion-pf-item">
-          <span class="suggestion-pf-icon"><i class="fa-solid fa-location-dot"></i></span>
-          <span class="suggestion-pf-label">${label}</span>
-        </div>
-      `;
-    }).join("");
-    suggestionDiv.style.display = "block";
-    Array.from(suggestionDiv.children).forEach((div, idx) => {
-      div.addEventListener('click', () => {
-        document.getElementById("search").value = uniqueLocations[idx];
-        suggestionDiv.innerHTML = "";
-        suggestionDiv.style.display = "none";
-        handleSearchOrFilter();
-      });
+  // 5) Autocomplete (types, localisations, agents)
+// --- Autocomplete (types, localisations, agents) ---
+function wireAutocomplete() {
+  const searchInput = document.getElementById('search');
+  const suggestionsDiv = document.getElementById('searchSuggestions');
+  if (!searchInput || !suggestionsDiv) return;
+
+  function getSuggestions(query) {
+    if (!query) return [];
+    const q = query.trim().toLowerCase();
+    const seenT = new Set(), seenL = new Set(), seenA = new Set();
+    const out = [];
+
+    (properties || []).forEach(p => {
+      const t = (p.title || '').trim();
+      if (t && t.toLowerCase().includes(q) && !seenT.has(t)) {
+        out.push({ label: t, icon: 'fa-building', type: 'type' });
+        seenT.add(t);
+      }
+      const loc = (p.location || '').split(' - ')[0].trim();
+      if (loc && loc.toLowerCase().includes(q) && !seenL.has(loc)) {
+        out.push({ label: loc, icon: 'fa-map-marker-alt', type: 'location' });
+        seenL.add(loc);
+      }
+      const ag = (p.agent?.name || '').trim();
+      if (ag && ag.toLowerCase().includes(q) && !seenA.has(ag)) {
+        out.push({ label: ag, icon: 'fa-user-tie', type: 'agent' });
+        seenA.add(ag);
+      }
     });
+
+    return out.slice(0, 8);
   }
-  document.addEventListener("click", function (e) {
-    if (!document.getElementById("searchSuggestions").contains(e.target) &&
-      e.target !== document.getElementById("search")) {
-      document.getElementById("searchSuggestions").innerHTML = "";
-      document.getElementById("searchSuggestions").style.display = "none";
+
+  function renderSuggestions(items) {
+    if (!items.length) {
+      suggestionsDiv.classList.remove('visible');
+      suggestionsDiv.innerHTML = '';
+      return;
+    }
+    suggestionsDiv.innerHTML = items.map(s => `
+      <div class="suggestion" tabindex="0">
+        <span class="suggestion-icon"><i class="fa ${s.icon}"></i></span>
+        <span class="suggestion-label">${s.label}</span>
+      </div>
+    `).join('');
+    suggestionsDiv.classList.add('visible');
+  }
+
+  searchInput.addEventListener('input', function () {
+    const val = this.value;
+    renderSuggestions(val ? getSuggestions(val) : []);
+  });
+
+  suggestionsDiv.addEventListener('mousedown', function (e) {
+    const item = e.target.closest('.suggestion');
+    if (!item) return;
+    searchInput.value = item.querySelector('.suggestion-label').textContent;
+    renderSuggestions([]);
+    handleSearchOrFilter(1);
+  });
+
+  searchInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && suggestionsDiv.classList.contains('visible')) {
+      const first = suggestionsDiv.querySelector('.suggestion');
+      if (first) {
+        searchInput.value = first.querySelector('.suggestion-label').textContent;
+        renderSuggestions([]);
+        handleSearchOrFilter(1);
+        e.preventDefault();
+      }
     }
   });
 
-  // FILTERS instantanés
+  document.addEventListener('mousedown', function (e) {
+    if (!suggestionsDiv.contains(e.target) && e.target !== searchInput) {
+      renderSuggestions([]);
+    }
+  });
+}
+
+
+
+
+
+
+
+  wireAutocomplete();
+
+
+
+  
+  // 6) Écouteurs instantanés (inputs/selects)
   document.querySelectorAll(
     '.filter-bar input, .filter-bar select, #moreFilterPopup input, #moreFilterPopup select'
   ).forEach(el => {
-    el.addEventListener('input', handleSearchOrFilter);
-    el.addEventListener('change', handleSearchOrFilter);
+    el.addEventListener('input', () => handleSearchOrFilter(1));
+    el.addEventListener('change', () => handleSearchOrFilter(1));
   });
 
+  // 7) More filters popup
   document.getElementById("openMoreFilter")?.addEventListener("click", function () {
     document.getElementById("moreFilterPopup").classList.add('active');
     document.body.classList.add('more-filters-open');
@@ -396,10 +439,10 @@ updatePriceSliderAndHistogram(properties); // garde l'histo/slider
   document.getElementById("applyMoreFiltersBtn")?.addEventListener("click", function () {
     document.getElementById("moreFilterPopup").classList.remove('active');
     document.body.classList.remove('more-filters-open');
-    handleSearchOrFilter();
+    handleSearchOrFilter(1);
   });
 
-  // Popup prix
+  // 8) Popup prix : fermer en dehors / ESC
   document.getElementById("priceFilterPopup")?.addEventListener("mousedown", function (e) {
     if (e.target === this) closePricePopup();
   });
@@ -407,12 +450,11 @@ updatePriceSliderAndHistogram(properties); // garde l'histo/slider
     if (document.getElementById("priceFilterPopup")?.classList.contains("active") && e.key === "Escape") closePricePopup();
   });
 
-  // Scroll To Top
+  // 9) Scroll To Top
   const scrollToTopBtn = document.getElementById("scrollToTopBtn");
   if (scrollToTopBtn) {
     window.addEventListener('scroll', () => {
-      if (window.scrollY > 250) scrollToTopBtn.style.display = 'block';
-      else scrollToTopBtn.style.display = 'none';
+      scrollToTopBtn.style.display = window.scrollY > 250 ? 'block' : 'none';
     });
     scrollToTopBtn.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -798,34 +840,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 
-// --------- Filtres via query params ----------
-window.addEventListener('DOMContentLoaded', () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const search = urlParams.get('search')?.toLowerCase();
-  const type = urlParams.get('type')?.toLowerCase();
-  const beds = urlParams.get('beds')?.toLowerCase();
 
-  const resultsContainer = document.getElementById('results');
-  if (!resultsContainer) return;
-
-  const filtered = (properties || []).filter(p => {
-    const matchSearch = !search || (p.location || '').toLowerCase().includes(search);
-    const matchType = !type || (p.title || '').toLowerCase() === type;
-    const matchBeds = !beds || String(p.bedrooms).toLowerCase().includes(beds);
-    return matchSearch && matchType && matchBeds;
-  });
-
-  if (filtered.length === 0) {
-    resultsContainer.innerHTML = "<p>No properties found.</p>";
-    return;
-  }
-
-  resultsContainer.innerHTML = filtered.map(p => `
-    <div class="property-card">
-      <h3>${p.title}</h3>
-      <p><strong>Location:</strong> ${p.location || ""}</p>
-      <p><strong>Type:</strong> ${p.title || ""}</p>
-      <p><strong>Beds:</strong> ${fmt(p.bedrooms)}</p>
-    </div>
-  `).join('');
-});
