@@ -698,3 +698,4 @@ updatePriceSliderAndHistogram(properties); // garde l'histo/slider
     btnTop.addEventListener('click', ()=>window.scrollTo({top:0,behavior:'smooth'}));
   }
 });
+
