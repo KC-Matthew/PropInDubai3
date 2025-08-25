@@ -1,3 +1,125 @@
+
+// --- Appliquer les filtres de l'URL à l'UI ---
+function applyURLFiltersToUI() {
+  const p = new URLSearchParams(location.search);
+  const q        = p.get('q') || '';
+  const type     = p.get('type') || '';
+  const bedrooms = p.get('bedrooms') || '';
+  const bathrooms= p.get('bathrooms') || '';
+
+  // champ recherche (adapte l'ID si besoin)
+  const searchInput = document.getElementById('search')
+                   || document.querySelector('.searchbar input, input[type="search"], .search-input');
+  if (searchInput && q) searchInput.value = q;
+
+  if (type && document.getElementById('propertyType')) {
+    document.getElementById('propertyType').value = type;
+  }
+  if (bedrooms && document.getElementById('bedrooms')) {
+    document.getElementById('bedrooms').value =
+      (bedrooms === 'studio') ? '0' : (bedrooms === '7plus' ? '7' : bedrooms);
+  }
+  if (bathrooms && document.getElementById('bathrooms')) {
+    document.getElementById('bathrooms').value =
+      (bathrooms === '7plus' ? '7' : bathrooms);
+  }
+}
+
+// ====== Supabase query avec filtres ======
+/*
+  sb = ton client Supabase (import de supabaseClient.js)
+  table = 'buy' | 'rent' | 'commercial' | 'offplan'
+  Adapte les colonnes si nécessaire :
+    - property_type (ou 'type' chez toi)
+    - bedrooms (0 pour studio)
+    - bathrooms
+    - colonnes de recherche plein-texte: title/localisation/building/project...
+*/
+function applyFiltersToQuery(sb, table, filters){
+  let q = sb.from(table).select('*').limit(60);
+
+  // Texte : or() pour couvrir plusieurs colonnes
+  if (filters.q){
+    const like = (v)=>`ilike.%${v}%`;
+    // ⚠️ remplace/complète selon tes colonnes réelles
+    q = q.or([
+      `title.${like(filters.q)}`,
+      `"localisation".${like(filters.q)}`,
+      `"localisation accueil".${like(filters.q)}`,
+      `"localisation acceuil".${like(filters.q)}`,
+      `building.${like(filters.q)}`,
+      `project.${like(filters.q)}`,
+      `community.${like(filters.q)}`
+    ].join(','));
+  }
+
+  // Type de bien
+  if (filters.type){
+    // essaie 'property_type', sinon mets 'type' / 'category'
+    q = q.eq('property_type', filters.type).or(`type.eq.${filters.type},category.eq.${filters.type}`, { referencedTable: undefined });
+  }
+
+  // Bedrooms
+  if (filters.bedrooms){
+    if (filters.bedrooms === 'studio'){
+      q = q.eq('bedrooms', 0);
+    } else if (filters.bedrooms === '7plus'){
+      q = q.gte('bedrooms', 7);
+    } else {
+      q = q.eq('bedrooms', Number(filters.bedrooms));
+    }
+  }
+
+  // Bathrooms
+  if (filters.bathrooms){
+    if (filters.bathrooms === '7plus'){
+      q = q.gte('bathrooms', 7);
+    } else {
+      q = q.eq('bathrooms', Number(filters.bathrooms));
+    }
+  }
+
+  return q;
+}
+
+// ====== Boot de page (ex: dans buy.js) ======
+(async function bootResults(){
+  // 1) Quelle table pour cette page ?
+  // (on force avec la page pour éviter les confusions)
+  const table = (()=>{
+    if (location.pathname.includes('buy'))        return 'buy';
+    if (location.pathname.includes('rent'))       return 'rent';
+    if (location.pathname.includes('commercial')) return 'commercial';
+    return 'offplan';
+  })();
+
+  // 2) Lire les filtres & pré-remplir l’UI
+  const filters = getURLFilters();
+  prefillUIFromParams(filters);
+
+  // 3) Requête Supabase + rendu
+  const q = applyFiltersToQuery(window.sb || window.supabase, table, filters);
+  const { data, error } = await q;
+  if (error){ console.error('Search error:', error); return; }
+
+  // 4) TODO: remplace par ton renderer
+  //    Ici, juste un exemple minimal d’injection.
+  const list = document.querySelector('#results, .results, .cards');
+  if (list){
+    list.innerHTML = (data || []).map(row => `
+      <article class="card">
+        <h3>${row.title ?? 'Property'}</h3>
+        <p>${row['localisation'] ?? ''}</p>
+      </article>
+    `).join('');
+  }
+})();
+
+
+
+
+
+
 // === REAL ESTATE - JS RENT (Appartements/Villas à louer) ===
 // Datas 100% depuis Supabase (rent/agent/agency) + histogramme prix.
 
@@ -443,8 +565,10 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   if(pm && !pm.value) pm.value = globalMinPrice;
   if(px && !px.value) px.value = globalMaxPrice;
 
-  displayProperties(filteredProperties, 1);
-  updatePriceSliderAndHistogram();
+applyURLFiltersToUI();      // préremplit l’UI depuis l’URL
+handleSearchOrFilter(1);    // lance ton filtrage/affichage
+updatePriceSliderAndHistogram(properties); // garde l'histo/slider
+
 
   document.querySelectorAll('.filter-bar input, .filter-bar select')
     .forEach(el=>{ el.addEventListener('input', ()=>handleSearchOrFilter(1)); el.addEventListener('change', ()=>handleSearchOrFilter(1)); });
