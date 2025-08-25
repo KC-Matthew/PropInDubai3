@@ -86,66 +86,102 @@
 </div>
 
 
-  <div class="overlay">
-    <div class="tabs">
-      <div class="tab active">Rent</div>
-      <div class="tab">Buy</div>
-      <div class="tab">New Projects</div>
-      <div class="tab">Commercial</div>
-    </div>
-    <div class="search-bar">
-      <input type="text" placeholder="City, community or building" class="search-input" />
-
-
-      
-      <!-- Property Type Dropdown -->
-      <div class="dropdown" id="propertyTypeDropdown">
-        <button type="button" class="dropdown-btn">
-          <span class="dropdown-label">Property type</span>
-          <svg class="dropdown-arrow" width="20" height="20"><polyline points="6 8 10 12 14 8" fill="none" stroke="#888" stroke-width="2"/></svg>
-        </button>
-        <div class="dropdown-menu">
-          <div class="dropdown-item">Apartment</div>
-          <div class="dropdown-item">Villa</div>
-          <div class="dropdown-item">Townhouse</div>
-          <div class="dropdown-item">Penthouse</div>
-          <div class="dropdown-item">Compound</div>
-          <div class="dropdown-item">Duplex</div>
-        </div>
-      </div>
-      <!-- Beds & Baths Dropdown -->
-      <div class="dropdown" id="bedsBathsDropdown">
-        <button type="button" class="dropdown-btn">
-          <span class="dropdown-label">Beds & Baths</span>
-          <svg class="dropdown-arrow" width="20" height="20"><polyline points="6 8 10 12 14 8" fill="none" stroke="#888" stroke-width="2"/></svg>
-        </button>
-        <div class="dropdown-menu">
-          <div class="dropdown-subtitle">Bedrooms</div>
-          <div class="dropdown-options" data-type="bedrooms">
-            <div class="dropdown-item">Studio</div>
-            <div class="dropdown-item">1</div>
-            <div class="dropdown-item">2</div>
-            <div class="dropdown-item">3</div>
-            <div class="dropdown-item">4</div>
-            <div class="dropdown-item">5</div>
-            <div class="dropdown-item">6</div>
-            <div class="dropdown-item">7+</div>
-          </div>
-          <div class="dropdown-subtitle">Bathrooms</div>
-          <div class="dropdown-options" data-type="bathrooms">
-            <div class="dropdown-item">1</div>
-            <div class="dropdown-item">2</div>
-            <div class="dropdown-item">3</div>
-            <div class="dropdown-item">4</div>
-            <div class="dropdown-item">5</div>
-            <div class="dropdown-item">6</div>
-            <div class="dropdown-item">7+</div>
-          </div>
-        </div>
-      </div>
-      <button class="search-btn">Search</button>
-    </div>
+<!-- ====== MOBILE (affiché sous 700px) ====== -->
+<div class="mobile-hero-bottom">
+  <div class="tabs">
+    <div class="tab active">Rent</div>
+    <div class="tab">Buy</div>
+    <div class="tab">New Projects</div>
+    <div class="tab">Commercial</div>
   </div>
+
+  <div class="mobile-searchbar">
+    <input type="text" placeholder="Location, project or developer" class="search-input" />
+    <!-- Suggestions (mobile) -->
+    <ul class="suggestions-list" id="suggestionsMobile"></ul>
+
+    <button class="search-btn search-btn-icon" aria-label="Search">
+      <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="7"></circle>
+        <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- ====== DESKTOP (overlay) ====== -->
+<div class="overlay">
+  <div class="tabs">
+    <div class="tab active">Rent</div>
+    <div class="tab">Buy</div>
+    <div class="tab">New Projects</div>
+    <div class="tab">Commercial</div>
+  </div>
+
+  <div class="search-bar">
+    <!-- Champ de recherche -->
+    <input type="text" placeholder="City, community or building" class="search-input" />
+
+    <!-- Suggestions (desktop) -->
+    <ul class="suggestions-list" id="suggestionsDesktop"></ul>
+
+    <!-- Property Type Dropdown -->
+    <div class="dropdown" id="propertyTypeDropdown">
+      <button type="button" class="dropdown-btn">
+        <span class="dropdown-label">Property type</span>
+        <svg class="dropdown-arrow" width="20" height="20" viewBox="0 0 24 24">
+          <polyline points="6 8 12 14 18 8" fill="none" stroke="#888" stroke-width="2"></polyline>
+        </svg>
+      </button>
+      <div class="dropdown-menu">
+        <div class="dropdown-item">Apartment</div>
+        <div class="dropdown-item">Villa</div>
+        <div class="dropdown-item">Townhouse</div>
+        <div class="dropdown-item">Penthouse</div>
+        <div class="dropdown-item">Compound</div>
+        <div class="dropdown-item">Duplex</div>
+      </div>
+    </div>
+
+    <!-- Beds & Baths Dropdown -->
+    <div class="dropdown" id="bedsBathsDropdown">
+      <button type="button" class="dropdown-btn">
+        <span class="dropdown-label">Beds & Baths</span>
+        <svg class="dropdown-arrow" width="20" height="20" viewBox="0 0 24 24">
+          <polyline points="6 8 12 14 18 8" fill="none" stroke="#888" stroke-width="2"></polyline>
+        </svg>
+      </button>
+      <div class="dropdown-menu">
+        <div class="dropdown-subtitle">Bedrooms</div>
+        <div class="dropdown-options" data-type="bedrooms">
+          <div class="dropdown-item">Studio</div>
+          <div class="dropdown-item">1</div>
+          <div class="dropdown-item">2</div>
+          <div class="dropdown-item">3</div>
+          <div class="dropdown-item">4</div>
+          <div class="dropdown-item">5</div>
+          <div class="dropdown-item">6</div>
+          <div class="dropdown-item">7+</div>
+        </div>
+        <div class="dropdown-subtitle">Bathrooms</div>
+        <div class="dropdown-options" data-type="bathrooms">
+          <div class="dropdown-item">1</div>
+          <div class="dropdown-item">2</div>
+          <div class="dropdown-item">3</div>
+          <div class="dropdown-item">4</div>
+          <div class="dropdown-item">5</div>
+          <div class="dropdown-item">6</div>
+          <div class="dropdown-item">7+</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bouton Search -->
+    <button class="search-btn">Search</button>
+  </div>
+</div>
+
+
 </div>
 
 <!-- Sections en dessous -->
@@ -221,14 +257,21 @@
   </div>
 </footer>
 
-<!-- Supabase client -->
-<script src="https://esm.sh/@supabase/supabase-js@2"></script>
+  <!-- Supabase client -->
+<!-- Supabase client (module) -->
+<script type="module" src="javascript/supabaseClient.js"></script>
 
-<!-- Init client (crée ce fichier) -->
-<script src="javascript/supabaseClient.js"></script>
-<script src="javascript/accueil.js"></script>
+<!-- Page logic (classique) -->
+<script src="javascript/infoagent.js"></script>
+
+<!-- ScrollReveal (optionnel) -->
 <script src="https://unpkg.com/scrollreveal"></script>
+
+
+
+<script src="javascript/accueil.js"></script>
+
 </body>
 </html>
 
-
+  
