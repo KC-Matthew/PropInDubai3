@@ -1,3 +1,126 @@
+// --- Appliquer les filtres de l'URL à l'UI ---
+function applyURLFiltersToUI() {
+  const p = new URLSearchParams(location.search);
+  const q        = p.get('q') || '';
+  const type     = p.get('type') || '';
+  const bedrooms = p.get('bedrooms') || '';
+  const bathrooms= p.get('bathrooms') || '';
+
+  // champ recherche (adapte l'ID si besoin)
+  const searchInput = document.getElementById('search')
+                   || document.querySelector('.searchbar input, input[type="search"], .search-input');
+  if (searchInput && q) searchInput.value = q;
+
+  if (type && document.getElementById('propertyType')) {
+    document.getElementById('propertyType').value = type;
+  }
+  if (bedrooms && document.getElementById('bedrooms')) {
+    document.getElementById('bedrooms').value =
+      (bedrooms === 'studio') ? '0' : (bedrooms === '7plus' ? '7' : bedrooms);
+  }
+  if (bathrooms && document.getElementById('bathrooms')) {
+    document.getElementById('bathrooms').value =
+      (bathrooms === '7plus' ? '7' : bathrooms);
+  }
+}
+
+
+// ====== Supabase query avec filtres ======
+/*
+  sb = ton client Supabase (import de supabaseClient.js)
+  table = 'buy' | 'rent' | 'commercial' | 'offplan'
+  Adapte les colonnes si nécessaire :
+    - property_type (ou 'type' chez toi)
+    - bedrooms (0 pour studio)
+    - bathrooms
+    - colonnes de recherche plein-texte: title/localisation/building/project...
+*/
+function applyFiltersToQuery(sb, table, filters){
+  let q = sb.from(table).select('*').limit(60);
+
+  // Texte : or() pour couvrir plusieurs colonnes
+  if (filters.q){
+    const like = (v)=>`ilike.%${v}%`;
+    // ⚠️ remplace/complète selon tes colonnes réelles
+    q = q.or([
+      `title.${like(filters.q)}`,
+      `"localisation".${like(filters.q)}`,
+      `"localisation accueil".${like(filters.q)}`,
+      `"localisation acceuil".${like(filters.q)}`,
+      `building.${like(filters.q)}`,
+      `project.${like(filters.q)}`,
+      `community.${like(filters.q)}`
+    ].join(','));
+  }
+
+  // Type de bien
+  if (filters.type){
+    // essaie 'property_type', sinon mets 'type' / 'category'
+    q = q.eq('property_type', filters.type).or(`type.eq.${filters.type},category.eq.${filters.type}`, { referencedTable: undefined });
+  }
+
+  // Bedrooms
+  if (filters.bedrooms){
+    if (filters.bedrooms === 'studio'){
+      q = q.eq('bedrooms', 0);
+    } else if (filters.bedrooms === '7plus'){
+      q = q.gte('bedrooms', 7);
+    } else {
+      q = q.eq('bedrooms', Number(filters.bedrooms));
+    }
+  }
+
+  // Bathrooms
+  if (filters.bathrooms){
+    if (filters.bathrooms === '7plus'){
+      q = q.gte('bathrooms', 7);
+    } else {
+      q = q.eq('bathrooms', Number(filters.bathrooms));
+    }
+  }
+
+  return q;
+}
+
+// ====== Boot de page (ex: dans buy.js) ======
+(async function bootResults(){
+  // 1) Quelle table pour cette page ?
+  // (on force avec la page pour éviter les confusions)
+  const table = (()=>{
+    if (location.pathname.includes('buy'))        return 'buy';
+    if (location.pathname.includes('rent'))       return 'rent';
+    if (location.pathname.includes('commercial')) return 'commercial';
+    return 'offplan';
+  })();
+
+  // 2) Lire les filtres & pré-remplir l’UI
+  const filters = getURLFilters();
+  prefillUIFromParams(filters);
+
+  // 3) Requête Supabase + rendu
+  const q = applyFiltersToQuery(window.sb || window.supabase, table, filters);
+  const { data, error } = await q;
+  if (error){ console.error('Search error:', error); return; }
+
+  // 4) TODO: remplace par ton renderer
+  //    Ici, juste un exemple minimal d’injection.
+  const list = document.querySelector('#results, .results, .cards');
+  if (list){
+    list.innerHTML = (data || []).map(row => `
+      <article class="card">
+        <h3>${row.title ?? 'Property'}</h3>
+        <p>${row['localisation'] ?? ''}</p>
+      </article>
+    `).join('');
+  }
+})();
+
+
+
+
+
+
+
 // === REAL ESTATE - JS BUY (APPARTEMENTS, VILLAS...) ===
 // (c) Prop In Dubai - Version filtrage 100% natif, adaptée au HTML fourni
 // ⚠️ Nécessite que supabaseClient.js mette le client sur window.supabase
@@ -8,35 +131,6 @@ function fmt(n) {
   return num.toLocaleString('en-US');
 }
 
-// ---- Helpers URL & parsing ----
-function readFiltersFromURL() {
-  const p = new URLSearchParams(location.search);
-  return {
-    q: (p.get('q') || '').trim(),
-    type: (p.get('type') || '').trim(),          // ex: "Apartment"
-    bedrooms: (p.get('bedrooms') || '').trim(),  // "studio" | "1".."6" | "7plus"
-    bathrooms: (p.get('bathrooms') || '').trim() // "1".."6" | "7plus"
-  };
-}
-
-// Convertit "studio"/"7plus" en contrainte exploitable pour Supabase
-function applyBedBathToQuery(qb, col, rawVal, { allowStudio = false } = {}) {
-  if (!rawVal) return qb;
-  const v = rawVal.toLowerCase();
-  if (allowStudio && v === 'studio') {
-    // convention : studio = 0 chambre
-    return qb.eq(col, 0);
-  }
-  if (v === '7plus') {
-    return qb.gte(col, 7);
-  }
-  const n = Number(v);
-  if (Number.isFinite(n)) {
-    return qb.eq(col, n);
-  }
-  return qb;
-}
-
 let properties = [];
 let filteredProperties = [];
 let priceSlider = null;
@@ -44,8 +138,8 @@ let minPrice = 0, maxPrice = 0;
 let globalMinPrice = 0, globalMaxPrice = 0;
 const PRICE_STEP = 10000;
 
-// ---------- LECTURE 100% BDD (avec filtres URL) ----------
-async function loadPropertiesFromDB(initialFilters = {}) {
+// ---------- LECTURE 100% BDD ----------
+async function loadPropertiesFromDB() {
   const sb = window.supabase;
   if (!sb) {
     console.error("Supabase client is not available on window.supabase");
@@ -66,67 +160,74 @@ async function loadPropertiesFromDB(initialFilters = {}) {
   if (agencyErr) { console.error(agencyErr); }
   const agenciesById = Object.fromEntries((agencyRows || []).map(a => [a.id, a]));
 
-  // Helper pour lier agent -> agency
   function getAgencyForAgent(agentId) {
     const ag = agentsById[agentId];
     return ag ? agenciesById[ag.agency_id] : undefined;
   }
 
-  // 3) Biens BUY (avec filtres BDD)
-  let buyQuery = sb
-    .from('buy')
-    .select('id,title,property_type,bedrooms,bathrooms,price,sqft,photo_bien_url,agent_id,created_at');
+// 3) Biens BUY
+const { data: buyRows, error: buyErr } = await sb
+  .from('buy')
+  .select('id,title,property_type,bedrooms,bathrooms,price,sqft,photo_bien_url,agent_id,created_at,"localisation accueil"');
 
-  if (initialFilters.type) {
-    buyQuery = buyQuery.eq('property_type', initialFilters.type);
-  }
-  buyQuery = applyBedBathToQuery(buyQuery, 'bedrooms', initialFilters.bedrooms, { allowStudio: true });
-  buyQuery = applyBedBathToQuery(buyQuery, 'bathrooms', initialFilters.bathrooms, { allowStudio: false });
+  
+  
+// 4) Biens RENT
+const { data: rentRows, error: rentErr } = await sb
+  .from('rent')
+  .select('id,title,property_type,bedrooms,bathrooms,price,sqft,photo_url,agent_id,created_at,"localisation accueil"');
 
-  const { data: buyRows, error: buyErr } = await buyQuery;
-  if (buyErr) console.error(buyErr);
 
-  // -- Normalisation vers l’objet attendu par l’UI --
+  // 5) Biens COMMERCIAL
+  const { data: comRows, error: comErr } = await sb
+    .from('commercial')
+    .select('id,title,rental_period,property_type,"property type",bedrooms,bathrooms,price,sqft,photo_url,agent_id,created_at');
+  if (comErr) console.error(comErr);
+
   const out = [];
 
-  (buyRows || []).forEach(row => {
-    const agent = agentsById[row.agent_id] || {};
-    const agency = getAgencyForAgent(row.agent_id) || {};
-    const ptype = row.property_type ?? 'Unknown';
-    const mainPhoto = row.photo_bien_url || null;
+  function rowToProperty(row, tableName) {
+  const agent = agentsById[row.agent_id] || {};
+  const agency = getAgencyForAgent(row.agent_id) || {};
+  const ptype = row.property_type ?? row['property type'] ?? 'Unknown';
+  const mainPhoto = row.photo_bien_url || row.photo_url || null;
 
-    const images = [];
-    if (mainPhoto) images.push(mainPhoto);
-    if (agency.logo_url) images.push(agency.logo_url);
+  const images = [];
+  if (mainPhoto) images.push(mainPhoto);
+  if (agency?.logo_url) images.push(agency.logo_url);
 
-    out.push({
-      // ⚠️ L’UI actuelle attend le type dans "title" (affiché gros + résumé des types)
-      title: ptype,
-      price: Number(row.price) || 0,
-      // Pas de colonne "location" côté biens => on prend l’adresse de l’agence (depuis la BDD)
-      location: agency.address || "",
-      bedrooms: Number(row.bedrooms) || 0,
-      bathrooms: Number(row.bathrooms) || 0,
-      size: Number(row.sqft) || 0,
-      furnished: undefined,             // pas de champ en BDD -> on ne fabrique rien
-      amenities: [],                    // pas de champ en BDD -> tableau vide
-      images,                           // 0, 1 ou 2 images, toutes issues de la BDD
-      agent: {
-        name: agent.name || "",
-        avatar: agent.photo_agent_url || "",
-        phone: agent.phone || "",
-        email: agent.email || "",
-        whatsapp: agent.whatsapp || "",
-        rating: agent.rating ?? null
-      },
-      // On conserve le vrai titre de l’annonce dans description (utile pour recherche par mots-clés)
-      description: row.title || "",
-      // info meta
-      _table: 'buy',
-      _created_at: row.created_at,
-      _id: row.id
-    });
-  });
+  // 👇 Priorité à "localisation accueil", sinon adresse d’agence
+  const localisationAccueil = row['localisation accueil'] || row.localisation_accueil || '';
+
+  return {
+    title: ptype,
+    price: Number(row.price) || 0,
+    location: localisationAccueil || agency?.address || "",   // <-- ici
+    bedrooms: Number(row.bedrooms) || 0,
+    bathrooms: Number(row.bathrooms) || 0,
+    size: Number(row.sqft) || 0,
+    furnished: undefined,
+    amenities: [],
+    images,
+    agent: {
+      name: agent.name || "",
+      avatar: agent.photo_agent_url || "",
+      phone: agent.phone || "",
+      email: agent.email || "",
+      whatsapp: agent.whatsapp || "",
+      rating: agent.rating ?? null
+    },
+    description: row.title || "",
+    _id: row.id,
+    _table: tableName,
+    _created_at: row.created_at
+  };
+}
+
+
+  (buyRows || []).forEach(r => out.push(rowToProperty(r, 'buy')));
+  (rentRows || []).forEach(r => out.push(rowToProperty(r, 'rent')));
+  (comRows || []).forEach(r => out.push(rowToProperty(r, 'commercial')));
 
   return out;
 }
@@ -199,93 +300,17 @@ window.addEventListener('resize', responsiveHeaderBurger);
 // ---------------- DOM READY ----------------
 document.addEventListener('DOMContentLoaded', async function () {
   // --- DATA INIT (depuis BDD) ---
-  // 1) lire les filtres d'URL
-  const initialFilters = readFiltersFromURL();
+  properties = await loadPropertiesFromDB();
+  filteredProperties = properties.slice();
 
-  // 2) charger côté BDD avec ces filtres quand c'est possible (type/bed/bath)
-  properties = await loadPropertiesFromDB(initialFilters);
-
-  // 3) filtrage complémentaire côté client pour 'q' (peut matcher location/description)
-  let arr = properties.slice();
-  if (initialFilters.q) {
-    const ql = initialFilters.q.toLowerCase();
-    arr = arr.filter(p => {
-      const blob = [
-        p.title || '',
-        p.location || '',
-        p.description || ''
-      ].join(' ').toLowerCase();
-      return blob.includes(ql);
-    });
-  }
-  filteredProperties = arr;
-
-  // bornes prix globales (avant d'initialiser le slider)
-  const allPrices = filteredProperties.map(p => p.price).filter(v => isFinite(v));
+  const allPrices = properties.map(p => p.price).filter(v => isFinite(v));
   globalMinPrice = allPrices.length ? Math.min(...allPrices) : 0;
   globalMaxPrice = allPrices.length ? Math.max(...allPrices) : 0;
 
-  // --- PRÉ-REMPLISSAGE DES CONTRÔLES UI DE LA BARRE DE FILTRES ---
-  (function prefillFilterBarFromURL() {
-    // q -> input#search
-    if (initialFilters.q && document.getElementById("search")) {
-      document.getElementById("search").value = initialFilters.q;
-    }
+applyURLFiltersToUI();      // préremplit l’UI depuis l’URL
+handleSearchOrFilter(1);    // lance ton filtrage/affichage
+updatePriceSliderAndHistogram(properties); // garde l'histo/slider
 
-    // type -> select#propertyType (on tente par value puis par texte)
-    if (initialFilters.type && document.getElementById("propertyType")) {
-      const sel = document.getElementById("propertyType");
-      // 1) tenter par value exacte
-      let matched = false;
-      for (const opt of sel.options) {
-        if ((opt.value || "").trim().toLowerCase() === initialFilters.type.toLowerCase()) {
-          sel.value = opt.value;
-          matched = true;
-          break;
-        }
-      }
-      // 2) sinon tenter par texte affiché
-      if (!matched) {
-        for (const opt of sel.options) {
-          if ((opt.text || "").trim().toLowerCase() === initialFilters.type.toLowerCase()) {
-            sel.value = opt.value;
-            matched = true;
-            break;
-          }
-        }
-      }
-    }
-
-    // bedrooms -> select#bedrooms  (studio->0, 7plus->7)
-    if (document.getElementById("bedrooms") && initialFilters.bedrooms) {
-      const sel = document.getElementById("bedrooms");
-      let val = initialFilters.bedrooms.toLowerCase();
-      if (val === 'studio') val = '0';
-      else if (val === '7plus') val = '7';
-      for (const opt of sel.options) {
-        if ((opt.value || "").toLowerCase() === String(val)) {
-          sel.value = opt.value;
-          break;
-        }
-      }
-    }
-
-    // bathrooms -> select#bathrooms (7plus->7)
-    if (document.getElementById("bathrooms") && initialFilters.bathrooms) {
-      const sel = document.getElementById("bathrooms");
-      let val = initialFilters.bathrooms.toLowerCase();
-      if (val === '7plus') val = '7';
-      for (const opt of sel.options) {
-        if ((opt.value || "").toLowerCase() === String(val)) {
-          sel.value = opt.value;
-          break;
-        }
-      }
-    }
-  })();
-
-  // Laisse les contrôles pré-remplis piloter l’affichage final
-  handleSearchOrFilter();
 
   // PRINCIPAUX BOUTONS/FILTRES
   document.getElementById("searchBtn")?.addEventListener("click", handleSearchOrFilter);
@@ -305,7 +330,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
   document.getElementById("closePricePopup")?.addEventListener("click", closePricePopup);
 
-  // SUGGESTIONS SEARCH live (sur l’adresse d’agence)
+  // SUGGESTIONS SEARCH
   document.getElementById("search")?.addEventListener("input", showSearchSuggestions);
   function showSearchSuggestions(e) {
     const val = e.target.value.trim().toLowerCase();
@@ -457,15 +482,16 @@ function displayProperties(propsArray, page) {
       </div>
     `;
 
-    // Redirection si on clique sur la card (mais pas les flèches) → bien.html?id=...
-    card.addEventListener("click", (e) => {
-      if (e.target.classList.contains('prev') || e.target.classList.contains('next')) return;
-      if (property?._id) {
-        window.location.href = `bien.html?id=${encodeURIComponent(property._id)}`;
-      }
-    });
 
     container.appendChild(card);
+
+    // ►►► Redirection vers bien.html au clic sur la carte (sauf boutons/flèches du carrousel)
+    card.addEventListener("click", (e) => {
+      if (e.target.closest('.carousel-btn')) return; // ne pas déclencher depuis les flèches
+      const detail = { id: property._id, type: property._table || 'buy' };
+      sessionStorage.setItem('selected_property', JSON.stringify(detail));
+      window.location.href = `bien.html?id=${encodeURIComponent(detail.id)}&type=${encodeURIComponent(detail.type)}`;
+    });
 
     // === CAROUSEL LOGIC ===
     const images = card.querySelectorAll(".carousel img");
@@ -575,12 +601,12 @@ function displayPropertyTypesSummary(propsArray, filterType) {
 function handleSearchOrFilter() {
   let arr = properties.slice();
 
-  const search = document.getElementById("search")?.value.trim().toLowerCase() || "";
-  const propertyType = document.getElementById("propertyType")?.value || "Property Type";
-  const bedrooms = document.getElementById("bedrooms")?.value || "Bedrooms";
-  const bathrooms = document.getElementById("bathrooms")?.value || "Bathrooms";
-  const priceMin = Number(document.getElementById('priceMin')?.value) || globalMinPrice;
-  const priceMax = Number(document.getElementById('priceMax')?.value) || globalMaxPrice;
+  const search = document.getElementById("search").value.trim().toLowerCase();
+  const propertyType = document.getElementById("propertyType").value;
+  const bedrooms = document.getElementById("bedrooms").value;
+  const bathrooms = document.getElementById("bathrooms").value;
+  const priceMin = Number(document.getElementById('priceMin').value) || globalMinPrice;
+  const priceMax = Number(document.getElementById('priceMax').value) || globalMaxPrice;
   const keywordInput = document.getElementById('keywordInput');
   const keywords = keywordInput ? keywordInput.value.trim().toLowerCase().split(',').map(k => k.trim()).filter(Boolean) : [];
   const minArea = Number(document.getElementById('minAreaInput')?.value) || 0;
@@ -623,7 +649,7 @@ function handleSearchOrFilter() {
 
   filteredProperties = arr;
   displayProperties(filteredProperties, 1);
-  updatePriceSliderAndHistogram(filteredProperties); // Histogramme basé sur l'ensemble filtré
+  updatePriceSliderAndHistogram(properties);
 }
 
 function handleClearFilters() {
@@ -659,8 +685,8 @@ function updatePriceSliderAndHistogram(propsArray) {
   let sliderElem = document.getElementById("priceSlider");
   if (!sliderElem) return;
   if (priceSlider) { priceSlider.destroy(); priceSlider = null; sliderElem.innerHTML = ""; }
-  let currentMin = parseInt(document.getElementById("priceMin")?.value) || minPrice;
-  let currentMax = parseInt(document.getElementById("priceMax")?.value) || maxPrice;
+  let currentMin = parseInt(document.getElementById("priceMin").value) || minPrice;
+  let currentMax = parseInt(document.getElementById("priceMax").value) || maxPrice;
   const minInput = document.getElementById("priceMinInput");
   const maxInput = document.getElementById("priceMaxInput");
   priceSlider = noUiSlider.create(sliderElem, {
@@ -674,48 +700,39 @@ function updatePriceSliderAndHistogram(propsArray) {
       from: v => Number(String(v).replace(/[^\d]/g, ""))
     }
   });
-  if (minInput) minInput.value = fmt(currentMin);
-  if (maxInput) maxInput.value = fmt(currentMax);
+  minInput.value = fmt(currentMin);
+  maxInput.value = fmt(currentMax);
   priceSlider.on('update', function (values) {
-    if (minInput) minInput.value = values[0];
-    if (maxInput) maxInput.value = values[1];
-    const rangeLabel = document.getElementById("selectedPriceRange");
-    if (rangeLabel) rangeLabel.textContent = values[0] + " - " + values[1] + " AED";
+    minInput.value = values[0];
+    maxInput.value = values[1];
+    document.getElementById("selectedPriceRange").textContent = values[0] + " - " + values[1] + " AED";
     drawPriceHistogram(propsArray, minPrice, maxPrice, values);
   });
   priceSlider.on('change', function (values) {
     let minVal = Number(String(values[0]).replace(/[^\d]/g, "")) || minPrice;
     let maxVal = Number(String(values[1]).replace(/[^\d]/g, "")) || maxPrice;
-    const hiddenMin = document.getElementById('priceMin');
-    const hiddenMax = document.getElementById('priceMax');
-    if (hiddenMin) hiddenMin.value = minVal;
-    if (hiddenMax) hiddenMax.value = maxVal;
+    document.getElementById('priceMin').value = minVal;
+    document.getElementById('priceMax').value = maxVal;
     handleSearchOrFilter();
   });
-  if (document.getElementById("sliderMinLabel")) document.getElementById("sliderMinLabel").textContent = fmt(globalMinPrice) + " AED";
-  if (document.getElementById("sliderMaxLabel")) document.getElementById("sliderMaxLabel").textContent = fmt(globalMaxPrice) + " AED";
-  if (document.getElementById("selectedPriceRange")) document.getElementById("selectedPriceRange").textContent = fmt(currentMin) + " - " + fmt(currentMax) + " AED";
-  if (document.getElementById("priceMin")) document.getElementById("priceMin").value = currentMin;
-  if (document.getElementById("priceMax")) document.getElementById("priceMax").value = currentMax;
+  minInput.onchange = function () {
+    let minVal = Number(String(minInput.value).replace(/[^\d]/g, "")) || minPrice;
+    let maxVal = Number(String(maxInput.value).replace(/[^\d]/g, "")) || maxPrice;
+    minVal = Math.max(minPrice, Math.min(maxVal, minVal));
+    priceSlider.set([minVal, null]);
+  };
+  maxInput.onchange = function () {
+    let minVal = Number(String(minInput.value).replace(/[^\d]/g, "")) || minPrice;
+    let maxVal = Number(String(maxInput.value).replace(/[^\d]/g, "")) || maxPrice;
+    maxVal = Math.min(maxPrice, Math.max(minVal, maxVal));
+    priceSlider.set([null, maxVal]);
+  };
+  document.getElementById("sliderMinLabel").textContent = fmt(globalMinPrice) + " AED";
+  document.getElementById("sliderMaxLabel").textContent = fmt(globalMaxPrice) + " AED";
+  document.getElementById("selectedPriceRange").textContent = fmt(currentMin) + " - " + fmt(currentMax) + " AED";
+  document.getElementById("priceMin").value = currentMin;
+  document.getElementById("priceMax").value = currentMax;
   drawPriceHistogram(propsArray, minPrice, maxPrice, [currentMin, currentMax]);
-
-  // sync inputs manuels
-  if (minInput) {
-    minInput.onchange = function () {
-      let minVal = Number(String(minInput.value).replace(/[^\d]/g, "")) || minPrice;
-      let maxVal = Number(String(maxInput?.value ?? '').replace(/[^\d]/g, "")) || maxPrice;
-      minVal = Math.max(minPrice, Math.min(maxVal, minVal));
-      priceSlider.set([minVal, null]);
-    };
-  }
-  if (maxInput) {
-    maxInput.onchange = function () {
-      let minVal = Number(String(minInput?.value ?? '').replace(/[^\d]/g, "")) || minPrice;
-      let maxVal = Number(String(maxInput.value).replace(/[^\d]/g, "")) || maxPrice;
-      maxVal = Math.min(maxPrice, Math.max(minVal, maxVal));
-      priceSlider.set([null, maxVal]);
-    };
-  }
 }
 function drawPriceHistogram(propsArray, min, max, [sliderMin, sliderMax] = [min, max]) {
   const canvas = document.getElementById('priceHistogram');
@@ -778,4 +795,37 @@ document.addEventListener('DOMContentLoaded', function () {
       buyDropdown.classList.remove('open');
     }
   });
+
+});
+
+// --------- Filtres via query params ----------
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const search = urlParams.get('search')?.toLowerCase();
+  const type = urlParams.get('type')?.toLowerCase();
+  const beds = urlParams.get('beds')?.toLowerCase();
+
+  const resultsContainer = document.getElementById('results');
+  if (!resultsContainer) return;
+
+  const filtered = (properties || []).filter(p => {
+    const matchSearch = !search || (p.location || '').toLowerCase().includes(search);
+    const matchType = !type || (p.title || '').toLowerCase() === type;
+    const matchBeds = !beds || String(p.bedrooms).toLowerCase().includes(beds);
+    return matchSearch && matchType && matchBeds;
+  });
+
+  if (filtered.length === 0) {
+    resultsContainer.innerHTML = "<p>No properties found.</p>";
+    return;
+  }
+
+  resultsContainer.innerHTML = filtered.map(p => `
+    <div class="property-card">
+      <h3>${p.title}</h3>
+      <p><strong>Location:</strong> ${p.location || ""}</p>
+      <p><strong>Type:</strong> ${p.title || ""}</p>
+      <p><strong>Beds:</strong> ${fmt(p.bedrooms)}</p>
+    </div>
+  `).join('');
 });
