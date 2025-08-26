@@ -27,6 +27,7 @@
 
 
 
+
 <div class="all-button">
   <a href="areaforyou.html" class="chat-button header-btn">Chat Property AI</a>
   
@@ -63,62 +64,51 @@
   </div>
 </div>
 
-
+<!-- BARRE DE FILTRES (délimitée/centrée) -->
 <div class="filter-bar">
-  <!-- Search bar toujours en haut -->
-<div class="search-autocomplete-wrapper">
-    <input type="text" placeholder="Search..." id="search" autocomplete="off" />
-    <div id="searchSuggestions" class="autocomplete-suggestions"></div>
-  </div>
-
-  <!-- Ligne filtres scrollable mobile -->
-  <div class="filter-row-scroll">
-    <select id="propertyType">
-      <option>Property Type</option>
-      <option>Apartment</option>
-      <option>Villa</option>
-      <option>Townhouse</option>
-      <option>Penthouse</option>
-      <option>Compound</option>
-      <option>Duplex</option>
-    </select>
-    <select id="bedrooms">
-      <option>Bedrooms</option>
-      <option>1+</option>
-      <option>2+</option>
-      <option>3+</option>
-      <option>4+</option>
-      <option>5+</option>
-      <option>6+</option>
-    </select>
-    <select id="bathrooms">
-      <option>Bathrooms</option>
-      <option>1+</option>
-      <option>2+</option>
-      <option>3+</option>
-      <option>4+</option>
-      <option>5+</option>
-      <option>6+</option>
-    </select>
-    <button id="openPriceFilter" type="button">Price</button>
-
-    <button id="openMoreFilter" type="button">More Filters</button>
-
-
-    <button id="searchBtn">Search</button>
-    <button id="clearBtn">Clear</button>
-
+  <div class="filter-bar-inner">
     
+    <!-- Search -->
+    <div class="search-autocomplete-wrapper">
+      <input type="text" placeholder="Search..." id="search" autocomplete="off" role="search" />
+      <div id="searchSuggestions" class="autocomplete-suggestions"></div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="filter-row-scroll">
+      <select id="propertyType">
+        <option>Property Type</option>
+        <option>Apartment</option>
+        <option>Villa</option>
+        <option>Townhouse</option>
+        <option>Penthouse</option>
+        <option>Compound</option>
+        <option>Duplex</option>
+      </select>
+
+      <select id="bedrooms">
+        <option>Bedrooms</option>
+        <option>1+</option><option>2+</option><option>3+</option>
+        <option>4+</option><option>5+</option><option>6+</option>
+      </select>
+
+      <select id="bathrooms">
+        <option>Bathrooms</option>
+        <option>1+</option><option>2+</option><option>3+</option>
+        <option>4+</option><option>5+</option><option>6+</option>
+      </select>
+
+      <button id="openPriceFilter" type="button">Price</button>
+      <button id="openMoreFilter" type="button">More Filters</button>
+      <button id="searchBtn" type="button">Search</button>
+      <button id="clearBtn" type="button">Clear</button>
+    </div>
 
   </div>
-
-  <!-- INPUTS cachés pour JS (ne rien toucher) -->
-  <input type="hidden" id="priceMin" />
-  <input type="hidden" id="priceMax" />
-
-  <!-- POPUP du filtre prix -->
-  
 </div>
+
+
+
 <div id="priceFilterPopup">
     <div class="price-popup-inner">
       <div class="price-popup-header">
@@ -264,4 +254,3 @@
 
 
 </html>
-
