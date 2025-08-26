@@ -66,78 +66,60 @@
 
 
 <div class="filter-bar">
-  <!-- Search bar toujours en haut -->
-<div class="search-autocomplete-wrapper">
-    <input type="text" placeholder="Search..." id="search" autocomplete="off" />
-    <div id="searchSuggestions" class="autocomplete-suggestions"></div>
+  <div class="filter-bar-inner">
+    <!-- Search -->
+    <div class="search-autocomplete-wrapper">
+      <input type="text" placeholder="Search..." id="search" autocomplete="off" />
+      <div id="searchSuggestions" class="autocomplete-suggestions"></div>
+    </div>
+
+    <!-- Chips -->
+    <div class="filter-row-scroll">
+      <select id="commercialType">
+        <option>Commercial Rent</option>
+        <option>Commercial Buy</option>
+      </select>
+
+      <select id="propertyType">
+        <option>Property Type</option>
+        <option>Office</option>
+        <option>Retail</option>
+        <option>Warehouse</option>
+        <option>Shop</option>
+        <option>Showroom</option>
+        <option>Villa</option>
+      </select>
+
+      <select id="licenseType">
+        <option>Licence</option>
+        <option>DED</option>
+        <option>DMCC</option>
+        <option>Tourism</option>
+      </select>
+
+      <select id="bedrooms">
+        <option>Bedrooms</option><option>1+</option><option>2+</option>
+        <option>3+</option><option>4+</option><option>5+</option><option>6+</option>
+      </select>
+
+      <select id="bathrooms">
+        <option>Bathrooms</option><option>1+</option><option>2+</option>
+        <option>3+</option><option>4+</option><option>5+</option><option>6+</option>
+      </select>
+
+      <button id="openPriceFilter" type="button">Price</button>
+      <button id="openMoreFilter" type="button">More Filters</button>
+      <button id="searchBtn">Search</button>
+      <button id="clearBtn">Clear</button>
+    </div>
   </div>
 
-  <!-- Lignes scrollable mobile -->
-  <div class="filter-row-scroll">
-
-<select id="commercialType">
-  <option>Commercial Rent</option>
-  <option>Commercial Buy</option>
-</select>
-
-
-  <select id="propertyType">
-  <option>Property Type</option>
-  <option>Office</option>
-  <option>Retail</option>
-  <option>Warehouse</option>
-  <option>Shop</option>
-  <option>Showroom</option>
-  <option>Villa</option>
-  <!-- Ajoute ici les types commerciaux qui t'intéressent -->
-</select>
-
-<select id="licenseType">
-  <option>Licence</option>
-  <option>DED</option>
-  <option>DMCC</option>
-  <option>Tourism</option>
-  <!-- Ajoute les autres types de licence ici -->
-</select>
-
-
-    <select id="bedrooms">
-      <option>Bedrooms</option>
-      <option>1+</option>
-      <option>2+</option>
-      <option>3+</option>
-      <option>4+</option>
-      <option>5+</option>
-      <option>6+</option>
-    </select>
-    <select id="bathrooms">
-      <option>Bathrooms</option>
-      <option>1+</option>
-      <option>2+</option>
-      <option>3+</option>
-      <option>4+</option>
-      <option>5+</option>
-      <option>6+</option>
-    </select>
-    <button id="openPriceFilter" type="button">Price</button>
-
-    <button id="openMoreFilter" type="button">More Filters</button>
-
-
-    <button id="searchBtn">Search</button>
-    <button id="clearBtn">Clear</button>
-
-    
-
-  </div>
-
-  <!-- INPUTS cachés pour JS (ne rien toucher) -->
+  <!-- hidden inputs -->
   <input type="hidden" id="priceMin" />
   <input type="hidden" id="priceMax" />
-
-  <!-- POPUP du filtre prix -->
-  
 </div>
+
+
 
 
 <div id="priceFilterPopup">
@@ -269,4 +251,3 @@
 
 </body>
 </html>
-
