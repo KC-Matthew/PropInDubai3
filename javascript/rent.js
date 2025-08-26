@@ -728,3 +728,4 @@ if (mainBuyBtn && buyDropdown) {
     if (e.key === 'Escape') buyDropdown.classList.remove('open');
   });
 }
+
