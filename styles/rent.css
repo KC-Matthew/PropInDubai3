@@ -2056,8 +2056,115 @@ body.price-popup-open { overflow: hidden; }
 
 
 
+/* --- Dropdown BUY --- */
+#buyDropdown { position: relative; }
+
+#buyDropdown .dropdown-content {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  display: none;             /* caché par défaut */
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 8px 0;
+  box-shadow: 0 8px 28px rgba(0,0,0,.12);
+  z-index: 20100;
+}
+
+#buyDropdown.open .dropdown-content {
+  display: block;            /* s'affiche quand .open est présent */
+}
+
+#buyDropdown .dropdown-option {
+  display: block;
+  padding: 10px 14px;
+  color: #333;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+#buyDropdown .dropdown-option:hover {
+  background: #f6f6f6;
+}
+
+/* le header passe au-dessus des cartes etc. */
+.header2 { position: relative; z-index: 20000; }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Racine du dropdown */
+#dropdownContent {
+  --brand-orange: #f17100;
+}
+
+/* Liens / boutons dans le menu */
+#dropdownContent a,
+#dropdownContent button,
+#dropdownContent .item,
+#buyDropdown #dropdownContent a {
+  color: var(--brand-orange) !important;
+}
+
+/* Icônes éventuelles */
+#dropdownContent i,
+#dropdownContent .icon,
+#dropdownContent svg {
+  color: var(--brand-orange) !important;
+  fill: var(--brand-orange) !important;   /* pour SVGs */
+  stroke: var(--brand-orange) !important; /* pour SVGs */
+}
+
+/* Hover/Focus (optionnel, joli sur survol) */
+#dropdownContent a:hover,
+#dropdownContent button:hover,
+#dropdownContent .item:hover,
+#dropdownContent a:focus {
+  background: #fff4e8;
+  color: #d96000 !important;
+}
+
+/* État actif/selected (si tu l’utilises) */
+#dropdownContent .active,
+#dropdownContent .selected {
+  color: #d96000 !important;
+  font-weight: 600;
+}
+
+
+/* Icône orange uniquement */
+#searchSuggestions .suggestion .suggestion-icon,
+#searchSuggestions .suggestion .suggestion-icon i,
+#searchSuggestions .suggestion .suggestion-icon svg {
+  color: #f17100 !important;
+  fill: #f17100 !important;   /* pour les SVG */
+  stroke: #f17100 !important; /* pour les SVG */
+}
+
+/* Le texte reste normal (noir/gris) */
+#searchSuggestions .suggestion .suggestion-label {
+  color: #222 !important;           /* ou var(--text-color, #222) */
+}
+
+/* Optionnel : survol doux sans changer la couleur du texte */
+#searchSuggestions .suggestion:hover {
+  background: #fff4e8;
+}
 
 
 
