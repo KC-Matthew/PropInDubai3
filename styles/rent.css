@@ -2049,6 +2049,11 @@ body.price-popup-open { overflow: hidden; }
 
 
 
+@media (max-width: 900px) {
+  .dropdown, .dropdown-content { display: none !important; }
+  /* ... et tu affiches .mobile-buy-menu à la place */
+}
+
 
 
 
