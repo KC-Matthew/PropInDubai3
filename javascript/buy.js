@@ -822,6 +822,8 @@ function drawPriceHistogram(propsArray, min, max, [sliderMin, sliderMax] = [min,
   ctx.restore();
 }
 
+
+
 // -------- Dropdown BUY (inchangé) --------
 document.addEventListener('DOMContentLoaded', function () {
   const buyDropdown = document.getElementById('buyDropdown');
