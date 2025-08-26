@@ -2313,3 +2313,122 @@ body.price-popup-open { overflow: hidden; }
 #searchSuggestions .suggestion:hover .suggestion-icon {
   filter: brightness(.9);
 }
+
+
+
+
+
+
+/* ====== Aligner barre de filtres sur la largeur des biens ====== */
+:root { --container: 1100px; } /* = .property-listing max-width */
+
+/* La barre prend toute la largeur, mais on lui met des padding
+   calculés pour que son contenu tombe pile comme les cartes */
+.filter-bar{
+  padding-left: max(12px, calc((95vw - var(--container)) / 2)) !important;
+  padding-right: max(12px, calc((94vw - var(--container)) / 2)) !important;
+  justify-content: flex-start !important;
+  height: 70px;
+}
+
+/* Supprime tout décalage résiduel de la searchbar */
+.search-autocomplete-wrapper{
+  margin-left: 0 !important;
+}
+
+/* La rangée de filtres reste collée à gauche, comme les cartes */
+.filter-row-scroll{
+  flex: 1 1 auto !important;
+  justify-content: flex-start !important;
+  height: 48px;
+}
+
+/* (optionnel) mêmes hauteurs pour un alignement propre */
+.search-autocomplete-wrapper{ height: 40px !important; }
+#search{ height: 40px !important; line-height: 40px !important; border-radius: 20px !important; }
+.filter-row-scroll > *,
+.filter-bar select,
+.filter-bar button{ height: 40px !important; border-radius: 20px !important; }
+
+/* Mobile: on garde ta logique, juste même alignement visuel */
+@media (max-width: 899.98px){
+  .filter-bar{
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  .search-autocomplete-wrapper{ height: 38px !important; }
+  #search{ height: 38px !important; line-height: 38px !important; border-radius: 22px !important; }
+  .filter-row-scroll > *,
+  .filter-bar select,
+  .filter-bar button{ height: 38px !important; border-radius: 22px !important; }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Bouton "Search" à l'intérieur de l'input */
+.search-autocomplete-wrapper { position: relative; }
+
+/* on libère de la place pour le bouton à droite */
+#search{
+  padding-right: 102px !important;  /* >= largeur du bouton */
+  height: 40px !important;
+  line-height: 40px !important;
+  border-radius: 20px !important;
+}
+
+/* bouton interne */
+.search-go{
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 22px;
+  border: 1.7px solid #e84242;
+  background: #e84242;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 1px 7px rgba(232,66,66,0.08);
+  z-index: 1;              /* au-dessus de l’input, en-dessous des suggestions */
+}
+
+.search-go i{ font-size: 0.95rem; line-height: 1; }
+.search-go:hover{ background:#ff5c5c; border-color:#ff5c5c; }
+
+/* alignements desktop identiques aux filtres */
+.search-autocomplete-wrapper{ height: 40px !important; }
+
+/* mobile : on réduit le bouton et on masque le mot "Search" si l'espace manque */
+@media (max-width: 700px){
+  #search{ padding-right: 56px !important; height: 38px !important; line-height: 38px !important; }
+  .search-go{ height: 32px; padding: 0 10px; right: 5px; }
+  .search-go .lbl{ display: none; }  /* ne garder que l’icône en mobile */
+}
+
+/* garder les suggestions par-dessus le bouton */
+#searchSuggestions,
+.autocomplete-suggestions{ z-index: 1105 !important; }
