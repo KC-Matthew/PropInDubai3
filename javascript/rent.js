@@ -82,38 +82,8 @@ function applyFiltersToQuery(sb, table, filters){
   return q;
 }
 
-// ====== Boot de page (ex: dans buy.js) ======
-(async function bootResults(){
-  // 1) Quelle table pour cette page ?
-  // (on force avec la page pour éviter les confusions)
-  const table = (()=>{
-    if (location.pathname.includes('buy'))        return 'buy';
-    if (location.pathname.includes('rent'))       return 'rent';
-    if (location.pathname.includes('commercial')) return 'commercial';
-    return 'offplan';
-  })();
 
-  // 2) Lire les filtres & pré-remplir l’UI
-  const filters = getURLFilters();
-  prefillUIFromParams(filters);
 
-  // 3) Requête Supabase + rendu
-  const q = applyFiltersToQuery(window.sb || window.supabase, table, filters);
-  const { data, error } = await q;
-  if (error){ console.error('Search error:', error); return; }
-
-  // 4) TODO: remplace par ton renderer
-  //    Ici, juste un exemple minimal d’injection.
-  const list = document.querySelector('#results, .results, .cards');
-  if (list){
-    list.innerHTML = (data || []).map(row => `
-      <article class="card">
-        <h3>${row.title ?? 'Property'}</h3>
-        <p>${row['localisation'] ?? ''}</p>
-      </article>
-    `).join('');
-  }
-})();
 
 
 
@@ -655,6 +625,51 @@ function setupRentAutocomplete() {
 
 
 
+// === DROPDOWN HEADER (identique au menu qui marche) ===
+function initHeaderDropdown(){
+  const dd    = document.getElementById('buyDropdown');      // conteneur du dropdown
+  const btn   = document.getElementById('mainBuyBtn');       // bouton/lien Buy
+  const panel = document.getElementById('dropdownContent');  // contenu déroulant
+  if (!dd || !btn || !panel) return;
+
+  const isMobile = () => window.matchMedia('(max-width: 900px)').matches;
+
+  // Empêcher la nav
+  btn.setAttribute('href', '#');
+  btn.setAttribute('role', 'button');
+  btn.setAttribute('aria-haspopup', 'true');
+  btn.setAttribute('aria-expanded', 'false');
+
+  const open  = () => { dd.classList.add('open');  btn.setAttribute('aria-expanded','true'); };
+  const close = () => { dd.classList.remove('open'); btn.setAttribute('aria-expanded','false'); };
+
+  // Toggle à l’appui sur le bouton (desktop uniquement)
+  btn.addEventListener('click', (e) => {
+    if (isMobile()) return;                // en mobile, pas de dropdown desktop
+    e.preventDefault();
+    e.stopPropagation();
+    dd.classList.toggle('open');
+    btn.setAttribute('aria-expanded', dd.classList.contains('open') ? 'true' : 'false');
+  });
+
+  // Les clics DANS le panneau ne ferment pas
+  panel.addEventListener('click', (e) => e.stopPropagation());
+
+  // Fermer si clic en dehors (ignorer le bouton)
+  document.addEventListener('click', (e) => {
+    if (!dd.classList.contains('open')) return;
+    const t = e.target;
+    if (!dd.contains(t) && !btn.contains(t)) close();
+  });
+
+  // Clavier
+  btn.addEventListener('keydown', (e)=>{
+    if (isMobile()) return;
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); }
+    if (e.key === 'Escape') close();
+  });
+}
+
 
 /* ==========
    DOM READY
@@ -662,9 +677,11 @@ function setupRentAutocomplete() {
 document.addEventListener('DOMContentLoaded', async ()=>{
   properties = await loadRentFromDB();
   filteredProperties = properties.slice();
+    initHeaderDropdown(); 
 
   // ⬇️ AJOUTE CET APPEL ICI
   setupRentAutocomplete();
+  
 
   const allPrices = properties.map(p=>p.price).filter(v=>isFinite(v));
   // ... le reste de ton code inchangé ...
@@ -705,6 +722,7 @@ updatePriceSliderAndHistogram(properties); // garde l'histo/slider
 const buyDropdown   = document.getElementById('buyDropdown');
 const mainBuyBtn    = document.getElementById('mainBuyBtn');
 const dropdownPanel = document.getElementById('dropdownContent');
+// ...
 
 // Empêche la navigation et toggle l'ouverture
 if (mainBuyBtn && buyDropdown) {
