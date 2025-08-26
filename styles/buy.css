@@ -1995,9 +1995,6 @@ body.price-popup-open { overflow: hidden; }
   }
 }
 
-
-
-
 /* === ORANGE BRAND === */
 :root{
   --accent-orange: #f17100; /* même orange que l'histogramme */
@@ -2019,4 +2016,67 @@ body.price-popup-open { overflow: hidden; }
 #searchSuggestions .suggestion-pf-item:focus .suggestion-pf-icon i {
   color: var(--accent-orange) !important;
 }
+
+
+
+
+
+
+
+/* === FIX BUY: search trop large => “Clear” invisible === */
+
+/* 1) Neutraliser les anciennes largeurs globales */
+.search-autocomplete-wrapper{
+  min-width: 0 !important;
+  max-width: none !important;
+  width: auto !important;
+}
+
+/* 2) Desktop: search compacte, identique à rent */
+@media (min-width: 900px){
+  .filter-bar{ 
+    height: 64px !important; 
+    padding-top: 10px !important; 
+    padding-bottom: 2px !important;  /* colle visuellement au contenu */
+    box-shadow: 0 1px 3px rgba(0,0,0,.02) !important;
+  }
+
+  .filter-bar .search-autocomplete-wrapper{
+    /* largeur contrôlée : ne “mange” plus les boutons */
+    flex: 0 0 clamp(240px, 26vw, 320px) !important;
+    width: clamp(240px, 26vw, 320px) !important;
+    min-width: 0 !important;
+    max-width: 320px !important;
+  }
+
+  #search{
+    height: 40px !important;
+    line-height: 40px !important;
+    border-radius: 20px !important;
+    padding: 0 14px !important;
+    font-size: 1.03rem !important;
+  }
+
+  /* chips/boutons à la même hauteur, un peu resserrés */
+  .filter-row-scroll{ gap: 8px !important; overflow-x: auto; }
+  .filter-row-scroll > *{ flex: 0 0 auto !important; }
+  .filter-row-scroll select,
+  .filter-row-scroll button{
+    height: 40px !important;
+    padding: 0 14px !important;
+    border-radius: 20px !important;
+    font-size: 15px !important;
+  }
+  .filter-row-scroll select{
+    padding-right: 30px !important;
+    background-size: 16px 16px !important;
+    background-position: right 10px center !important;
+  }
+}
+
+
+
+
+
+
 
