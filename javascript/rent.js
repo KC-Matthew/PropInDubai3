@@ -655,6 +655,7 @@ function setupRentAutocomplete() {
 
 
 
+
 /* ==========
    DOM READY
    ========== */
@@ -699,3 +700,31 @@ updatePriceSliderAndHistogram(properties); // garde l'histo/slider
   }
 });
 
+
+// --- Dropdown BUY/RENT/COMMERCIAL (desktop) ---
+const buyDropdown   = document.getElementById('buyDropdown');
+const mainBuyBtn    = document.getElementById('mainBuyBtn');
+const dropdownPanel = document.getElementById('dropdownContent');
+
+// Empêche la navigation et toggle l'ouverture
+if (mainBuyBtn && buyDropdown) {
+  mainBuyBtn.addEventListener('click', (e) => {
+    // Si on est en mobile (<900px), on laisse le design mobile (pas de dropdown)
+    if (window.matchMedia('(max-width: 900px)').matches) return;
+
+    e.preventDefault(); // évite d'aller sur buy.html
+    buyDropdown.classList.toggle('open');
+  });
+
+  // Fermer si on clique en dehors
+  document.addEventListener('click', (e) => {
+    if (!buyDropdown.contains(e.target)) {
+      buyDropdown.classList.remove('open');
+    }
+  });
+
+  // Fermer avec Échap
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') buyDropdown.classList.remove('open');
+  });
+}
