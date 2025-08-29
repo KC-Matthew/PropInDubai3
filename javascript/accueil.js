@@ -9,10 +9,18 @@ function scopeToPage(scope){
     default:            return 'buy.html';
   }
 }
+
 function getActiveScope(){
-  const t = document.querySelector('.tab.active')?.textContent.trim().toLowerCase() || 'buy';
-  return t; // 'rent' | 'buy' | 'commercial' | 'new projects'
+  // On préfère le bloc mobile visible, sinon desktop
+  const visibleMobile = Array.from(document.querySelectorAll('.mobile-hero-bottom'))
+    .find(el => el && el.offsetParent !== null);
+  const container = visibleMobile || document.querySelector('.overlay');
+  const active = container?.querySelector('.tab.active') || document.querySelector('.tab.active');
+  return (active?.textContent || 'buy').trim().toLowerCase();
 }
+
+
+
 
 // === Lecture des filtres visibles dans l’overlay OU mobile
 function readFiltersFromUI(){
@@ -52,19 +60,30 @@ function buildSearchURL(){
 }
 
 // === Brancher les 2 boutons Search (desktop + mobile) à la même action
+
 (function wireSearchButtons(){
-  const desktopBtn = document.querySelector('.overlay .search-btn');
-  const mobileBtn  = document.querySelector('.mobile-searchbar .search-btn');
-  const go = ()=> window.location.href = buildSearchURL();
+  const go = (e)=>{
+    if (e) e.preventDefault();
+    const url = buildSearchURL();
+    window.location.assign(url);
+  };
 
-  desktopBtn?.addEventListener('click', go);
-  mobileBtn?.addEventListener('click', go);
+  // Desktop
+  document.querySelector('.overlay .search-btn')?.addEventListener('click', go);
 
-  // Entrée sur input
+  // Mobile → il y a 2 boutons : on les prend TOUS
+  document.querySelectorAll('.mobile-searchbar .search-btn').forEach(btn=>{
+    btn.addEventListener('click', go);
+  });
+
+  // Entrée clavier sur TOUS les inputs
   document.querySelectorAll('.search-input').forEach(inp=>{
-    inp.addEventListener('keydown', e=>{ if(e.key==='Enter') go(); });
+    inp.addEventListener('keydown', e=>{
+      if(e.key==='Enter'){ e.preventDefault(); go(); }
+    });
   });
 })();
+
 
 
 
@@ -181,25 +200,97 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Mobile burger menu
-document.addEventListener('DOMContentLoaded', function () {
+/* ====== BURGER (mobile only, toggle fiable au re-clic) ====== */
+(function(){
+  if (!window.matchMedia('(max-width:700px)').matches) return;
+
   const burger = document.getElementById('burgerMenu');
   const nav = document.querySelector('.all-button');
-  burger?.addEventListener('click', () => {
-    nav.classList.toggle('mobile-open');
-    if (nav.classList.contains('mobile-open')) {
+  if (!burger || !nav) return;
+
+  // styles d'ouverture (on ne touche pas à la disposition globale)
+  const openStyles = {
+    display: ['flex','important'],
+    position: ['fixed','important'],
+    top: ['54px','important'],
+    left: ['0','important'],
+    right: ['0','important'],
+    width: ['100vw','important'],
+    'flex-direction': ['column','important'],
+    background: ['#fff','important'],
+    'box-shadow': ['0 2px 20px rgba(0,0,0,.11)','important'],
+    'z-index': ['10001','important'],
+    padding: ['16px 0','important'],
+    gap: ['0','important'],
+    'max-height': ['calc(100vh - 54px)','important'],
+    overflow: ['auto','important']
+  };
+  const apply = s => Object.entries(s).forEach(([k,[v,p]])=> nav.style.setProperty(k, v, p));
+
+  // garantir que le burger reste cliquable pour refermer
+
+  burger.style.setProperty('z-index','10002','important');
+  nav.style.setProperty('z-index','10001','important');
+
+  let isOpen = false;
+  let justToggled = false; // évite qu'un event "outside" mange le re-clic sur burger
+
+  function setOpen(v){
+    isOpen = v;
+    if (isOpen){
+      apply(openStyles);
+      nav.classList.add('mobile-open');
       document.body.style.overflow = 'hidden';
-      setTimeout(() => { document.addEventListener('click', closeMenu, { once: true }); }, 0);
-    } else {
+      burger.setAttribute('aria-expanded','true');
+    }else{
+      nav.classList.remove('mobile-open');
+      nav.style.setProperty('display','none','important'); // repli réel
       document.body.style.overflow = '';
+      burger.setAttribute('aria-expanded','false');
     }
-    function closeMenu(e) {
-      if (!nav.contains(e.target) && !burger.contains(e.target)) {
-        nav.classList.remove('mobile-open');
-        document.body.style.overflow = '';
-      }
-    }
+  }
+  function toggle(){ setOpen(!isOpen); }
+
+  // 👉 re-clic sur le burger = toggle (ferme si ouvert)
+  burger.addEventListener('pointerup', (e)=>{
+    e.preventDefault(); e.stopPropagation();
+    justToggled = true;
+    toggle();
+    setTimeout(()=>{ justToggled = false; }, 80);
   });
-});
+
+  // fermer quand on clique un lien du menu
+  nav.querySelectorAll('a').forEach(a=> a.addEventListener('click', ()=> setOpen(false)));
+
+  // tap "dehors" : ferme ET réexpédie le clic à l'élément dessous (Search reste OK)
+  const onOutsidePointerDown = (e)=>{
+    if (!isOpen || justToggled) return;
+    const inside = nav.contains(e.target) || burger.contains(e.target);
+    if (inside) return;
+
+    e.preventDefault(); e.stopPropagation();
+
+    const pt = e.touches?.[0] || e;
+    const x = pt.clientX || 0, y = pt.clientY || 0;
+
+    setOpen(false);
+
+    const underEl = document.elementFromPoint(x, y);
+    if (underEl && !nav.contains(underEl) && !burger.contains(underEl)){
+      underEl.click?.();
+    }
+  };
+  document.addEventListener('pointerdown', onOutsidePointerDown, true);
+  document.addEventListener('touchstart', onOutsidePointerDown, { capture:true, passive:false });
+
+  // sécurité: si on repasse en >700px on ferme
+  window.addEventListener('resize', ()=> {
+    if (!window.matchMedia('(max-width:700px)').matches) setOpen(false);
+  });
+})();
+
+
+
 
 // Menu Buy (header) : clic sur la flèche seulement
 document.addEventListener('DOMContentLoaded', function () {
