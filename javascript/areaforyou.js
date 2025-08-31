@@ -19,7 +19,7 @@ function formatAED_EN(value){
 }
 
 
-// Quote un nom de colonne s'il contient des espaces, parenthèses, tirets…
+// Quote un nom de colonne s'il contient des espaces  , parenthèses, tirets…
 function qq(name){
   if(!name) return null;
   return /[\s()\-]/.test(name) ? `"${String(name).replace(/"/g,'""')}"` : name;
@@ -49,9 +49,6 @@ async function detectColumns(table) {
     localisationAccueil: pick("localisation accueil","localisation acceuil","localisation_accueil")
   };
 }
-
-
-
 
 
 
@@ -298,7 +295,51 @@ function renderChat(chat) {
     container.appendChild(div);
   });
   setTimeout(() => { scroll.scrollTop = scroll.scrollHeight; }, 50);
+  function closeAllMobileLayers() {
+  // Overlay de la sidebar
+  document.querySelectorAll('.mobile-sidebar-overlay').forEach(ov => ov.classList.remove('active'));
+  // Overlay de la nav du header
+  const navOverlay = document.getElementById('navOverlay');
+  if (navOverlay) navOverlay.style.display = 'none';
+
+  // Fermer la sidebar si ouverte
+  const sidebar = document.querySelector('.multi-sidebar');
+  if (sidebar) sidebar.classList.remove('open');
+
+  // Fermer le menu header si ouvert
+  const nav = document.querySelector('.all-button');
+  if (nav) nav.classList.remove('menu-open');
+
+  // Nettoyer le body (scroll + state)
+  document.body.style.overflow = '';
+  document.body.classList.remove('drawer-open');
 }
+
+}
+
+
+
+function closeAllMobileLayers() {
+  // Overlay de la sidebar
+  document.querySelectorAll('.mobile-sidebar-overlay').forEach(ov => ov.classList.remove('active'));
+  // Overlay de la nav du header
+  const navOverlay = document.getElementById('navOverlay');
+  if (navOverlay) navOverlay.style.display = 'none';
+
+  // Fermer la sidebar si ouverte
+  const sidebar = document.querySelector('.multi-sidebar');
+  if (sidebar) sidebar.classList.remove('open');
+
+  // Fermer le menu header si ouvert
+  const nav = document.querySelector('.all-button');
+  if (nav) nav.classList.remove('menu-open');
+
+  // Nettoyer le body (scroll + state)
+  document.body.style.overflow = '';
+  document.body.classList.remove('drawer-open');
+}
+
+
 
 async function renderAll() {
   let chats = getChats();
@@ -311,11 +352,33 @@ async function renderAll() {
   renderProperties(data);
 }
 
-// ========= LOGIQUE CHAT =========
 function selectChat(id) {
   localStorage.setItem('multiCurrentChatId', id);
+  closeAllMobileLayers();
   renderAll();
 }
+
+
+function addNewChat(selectIt = true) {
+  let chats = getChats();
+  const newId = uuid();
+  const chat = {
+    id: newId,
+    title: "New chat",
+    messages: [{ type: 'bot', text: "Hi there! How can I help you today?" }]
+  };
+  chats.push(chat);
+  saveChats(chats);
+  if (selectIt) localStorage.setItem('multiCurrentChatId', newId);
+  closeAllMobileLayers();   // ← indispensable sur mobile
+  renderAll();
+}
+
+
+
+
+
+
 function getCurrentChat() {
   const chats = getChats();
   const id = localStorage.getItem('multiCurrentChatId');
@@ -347,19 +410,9 @@ function resetCurrentChat() {
   renderChat(chat);
   renderChatList(chat.id);
 }
-function addNewChat(selectIt = true) {
-  let chats = getChats();
-  const newId = uuid();
-  const chat = {
-    id: newId,
-    title: "New chat",
-    messages: [{ type: 'bot', text: "Hi there! How can I help you today?" }]
-  };
-  chats.push(chat);
-  saveChats(chats);
-  if (selectIt) localStorage.setItem('multiCurrentChatId', newId);
-  renderAll();
-}
+
+
+
 function deleteChat(chatId) {
   let chats = getChats();
   const idx = chats.findIndex(c => c.id === chatId);
@@ -447,3 +500,368 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
+
+/* ====== BURGER MOBILE (header) — AreaForYou ====== */
+(function () {
+  const burger = document.getElementById('burgerMenu');
+  const nav = document.querySelector('.all-button');
+  if (!burger || !nav) return;
+
+  const isMobile = () => window.matchMedia('(max-width: 900px)').matches;
+  let overlay;
+
+  function ensureOverlay() {
+    if (overlay) return overlay;
+    overlay = document.createElement('div');
+    overlay.id = 'navOverlay';
+    Object.assign(overlay.style, {
+      position: 'fixed',
+      inset: '0',
+      background: 'transparent',
+      zIndex: '20', // sous le menu (menu a z-index 21)
+      display: 'none'
+    });
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  function openMenu() {
+    nav.classList.add('menu-open');       // correspond au CSS de cette page
+    document.body.style.overflow = 'hidden';
+    ensureOverlay().style.display = 'block';
+    const closeOutside = (e) => {
+      if (!nav.contains(e.target) && !burger.contains(e.target)) closeMenu();
+    };
+    overlay.addEventListener('click', closeOutside, { once: true });
+    overlay.addEventListener('touchstart', closeOutside, { once: true, passive: true });
+  }
+
+  function closeMenu() {
+    nav.classList.remove('menu-open');
+    document.body.style.overflow = '';
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  burger.addEventListener('click', (e) => {
+    if (!isMobile()) return;
+    e.preventDefault();
+    e.stopPropagation();
+    nav.classList.contains('menu-open') ? closeMenu() : openMenu();
+  });
+
+  nav.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
+  window.addEventListener('resize', () => { if (!isMobile()) closeMenu(); });
+})();
+
+
+
+/* ====== MOBILE SPLITTER v2 — 3 états (closed / half / open) + snap + click toggle ====== */
+(function () {
+  const mq = window.matchMedia('(max-width: 800px)');
+  const chat = document.getElementById('chat-col-v2');
+  const props = document.getElementById('properties-col');
+  const bar = document.getElementById('splitterBar');
+  const container = document.getElementById('split-mobile-container');
+  if (!chat || !props || !bar || !container) return;
+
+  // états et ratios (part de hauteur prise par le chat)
+  const STATES = ['half', 'open', 'closed'];       // ordre quand on clique la barre
+  const RATIOS = { closed: 0.00, half: 0.52, open: 0.96 };
+  let state = 'half';
+
+  function enableSmooth() {
+    chat.style.transition = 'height .22s';
+    props.style.transition = 'height .22s';
+  }
+  function disableSmooth() {
+    chat.style.transition = '';
+    props.style.transition = '';
+  }
+
+  // on supprime les min-heights (même ceux avec !important) quand on veut full open/close
+  function overrideMins(zeroForChat, zeroForProps) {
+    if (zeroForChat) chat.style.setProperty('min-height', '0', 'important');
+    else chat.style.removeProperty('min-height');
+
+    if (zeroForProps) props.style.setProperty('min-height', '0', 'important');
+    else props.style.removeProperty('min-height');
+  }
+
+  function applyRatio(r) {
+    const total = container.getBoundingClientRect().height - bar.offsetHeight;
+    const chatH = Math.max(0, Math.min(total, Math.round(total * r)));
+    const propsH = total - chatH;
+    chat.style.height = chatH + 'px';
+    props.style.height = propsH + 'px';
+  }
+
+  function snapTo(newState, animate = true) {
+    state = newState;
+    if (animate) enableSmooth(); else disableSmooth();
+
+    if (state === 'closed') {
+      overrideMins(true, true);           // autorise fermeture totale
+      applyRatio(RATIOS.closed);
+    } else if (state === 'open') {
+      overrideMins(true, true);           // autorise ouverture totale du chat
+      applyRatio(RATIOS.open);
+    } else {
+      overrideMins(false, false);         // remet les min-heights normaux
+      applyRatio(RATIOS.half);
+    }
+    setTimeout(disableSmooth, 260);
+  }
+
+  // init mobile: semi-ouvert
+  function init() {
+    if (!mq.matches) return;
+    snapTo('half', false);
+  }
+  init();
+
+  // resize: nettoyage desktop / re-application mobile
+  window.addEventListener('resize', () => {
+    if (!mq.matches) {
+      disableSmooth();
+      chat.style.height = '';
+      chat.style.removeProperty('min-height');
+      props.style.height = '';
+      props.style.removeProperty('min-height');
+    } else {
+      snapTo(state, false);
+    }
+  });
+
+  // Drag avec snap à la relâche
+  let dragging = false, startY = 0, startChatH = 0, moved = 0;
+
+  bar.addEventListener('mousedown', (e) => {
+    if (!mq.matches) return;
+    dragging = true; moved = 0;
+    startY = e.clientY;
+    startChatH = chat.getBoundingClientRect().height;
+    document.body.style.userSelect = 'none';
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const dy = e.clientY - startY;
+    moved = Math.max(moved, Math.abs(dy));
+    overrideMins(true, true);
+    disableSmooth();
+    const total = container.getBoundingClientRect().height - bar.offsetHeight;
+    const h = Math.max(0, Math.min(total, startChatH + dy));
+    chat.style.height = h + 'px';
+    props.style.height = (total - h) + 'px';
+  });
+  window.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.userSelect = '';
+    const total = container.getBoundingClientRect().height - bar.offsetHeight;
+    const ratio = (parseFloat(chat.style.height) || 0) / total;
+
+    // choisir l'état le plus proche
+    let best = 'half', bestDist = Infinity;
+    ['closed', 'half', 'open'].forEach(s => {
+      const d = Math.abs(ratio - RATIOS[s]);
+      if (d < bestDist) { bestDist = d; best = s; }
+    });
+    snapTo(best, true);
+  });
+
+  // Touch
+  bar.addEventListener('touchstart', (e) => {
+    if (!mq.matches) return;
+    const t = e.touches[0];
+    dragging = true; moved = 0;
+    startY = t.clientY;
+    startChatH = chat.getBoundingClientRect().height;
+    document.body.style.userSelect = 'none';
+  }, { passive: true });
+  window.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    const t = e.touches[0];
+    const dy = t.clientY - startY;
+    moved = Math.max(moved, Math.abs(dy));
+    overrideMins(true, true);
+    disableSmooth();
+    const total = container.getBoundingClientRect().height - bar.offsetHeight;
+    const h = Math.max(0, Math.min(total, startChatH + dy));
+    chat.style.height = h + 'px';
+    props.style.height = (total - h) + 'px';
+  }, { passive: true });
+  function endTouch() {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.userSelect = '';
+    const total = container.getBoundingClientRect().height - bar.offsetHeight;
+    const ratio = (parseFloat(chat.style.height) || 0) / total;
+    let best = 'half', bestDist = Infinity;
+    ['closed', 'half', 'open'].forEach(s => {
+      const d = Math.abs(ratio - RATIOS[s]);
+      if (d < bestDist) { bestDist = d; best = s; }
+    });
+    snapTo(best, true);
+  }
+  window.addEventListener('touchend', endTouch);
+  window.addEventListener('touchcancel', endTouch);
+
+  // Clic sur la barre → cycle entre half → open → closed → half…
+  bar.addEventListener('click', () => {
+    if (!mq.matches || moved > 3) return; // ignore si c’était un drag
+    const i = STATES.indexOf(state);
+    const next = STATES[(i + 1) % STATES.length];
+    snapTo(next, true);
+  });
+})();
+
+
+// branche aussi le burger si présent
+const burger = document.getElementById('burgerMenu');
+if (burger) burger.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); toggleSidebar(); });
+
+
+/* ===== MOBILE EDGE TAB → ouvre/ferme la sidebar (mobile only) ===== */
+(function () {
+
+    
+
+  const mq = window.matchMedia('(max-width: 800px)');
+  if (!mq.matches) return;
+
+  const sidebar = document.querySelector('.multi-sidebar');
+  if (!sidebar) return;
+
+  // overlay (réutilise ta classe .mobile-sidebar-overlay)
+  let overlay = document.getElementById('mobileSidebarOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'mobileSidebarOverlay';
+    overlay.className = 'mobile-sidebar-overlay';
+    document.body.appendChild(overlay);
+  }
+
+  // onglet collé à gauche
+  let tab = document.getElementById('mobileSidebarTab');
+  if (!tab) {
+    tab = document.createElement('button');
+    tab.id = 'mobileSidebarTab';
+    tab.className = 'mobile-sidebar-tab';
+    tab.setAttribute('aria-label', 'Open menu');
+    tab.innerHTML = '<span class="tab-arrow">❯</span>'; // chevron
+    document.body.appendChild(tab);
+  }
+
+  // style injecté (mobile only)
+  const style = document.createElement('style');
+  style.textContent = `
+    @media (max-width:800px){
+      .mobile-sidebar-tab{
+        position: fixed;
+        left: 0;
+        top: 42vh;                   /* ajuste si tu veux plus haut/bas */
+        transform: translateX(-4px);
+        width: 28px; height: 56px;
+        border-radius: 0 14px 14px 0;
+        border: none; background: #ff9100; color:#fff;
+        box-shadow: 0 4px 16px rgba(0,0,0,.18);
+        z-index: 2050; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center;
+      }
+      .mobile-sidebar-tab .tab-arrow{ font-size:20px; line-height:1; transform: translateX(1px); }
+      .mobile-sidebar-tab.hidden{ display:none !important; }
+    }`;
+  document.head.appendChild(style);
+
+  function openSidebar(){
+    sidebar.classList.add('open');
+    overlay.classList.add('active');
+    tab.classList.add('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar(){
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+    tab.classList.remove('hidden');
+    document.body.style.overflow = '';
+  }
+  function toggleSidebar(){
+    sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+  }
+
+  // actions
+  tab.addEventListener('click', toggleSidebar);
+  overlay.addEventListener('click', closeSidebar);
+
+  
+
+  // fermer après clic dans le menu
+  sidebar.querySelectorAll('a, button').forEach(el => el.addEventListener('click', closeSidebar));
+
+  // si on repasse desktop, on nettoie
+  window.addEventListener('resize', () => {
+    if (!mq.matches) {
+      closeSidebar();
+      tab && tab.remove();
+      overlay && overlay.classList.remove('active');
+    }
+  });
+})();
+
+
+
+
+/* === Mobile: “chat list” opener left to the title (no side tab) === */
+(function mobileChatDrawer(){
+  const mq = window.matchMedia('(max-width: 800px)');
+  if (!mq.matches) return;
+
+  // Nettoyage: enlève toute ancienne poignée/flèche latérale si présente
+  document.querySelectorAll('#mobileSidebarTab, .mobile-sidebar-tab, .chat-prompt-tab, .side-tab, .drawer-handle, .chat-side-handle')
+    .forEach(el => el.remove());
+
+  const header  = document.querySelector('.multi-header');
+  const title   = document.getElementById('current-chat-title');
+  const sidebar = document.querySelector('.multi-sidebar');
+  if (!header || !title || !sidebar) return;
+
+  // Overlay (créé si absent)
+  let overlay = document.querySelector('.mobile-sidebar-overlay');
+  if (!overlay){
+    overlay = document.createElement('div');
+    overlay.className = 'mobile-sidebar-overlay';
+    document.body.appendChild(overlay);
+  }
+
+  // Bouton d’ouverture (icône chat), à gauche du titre
+  let trigger = header.querySelector('.chat-toggle-btn-mobile');
+  if (!trigger){
+    trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'chat-toggle-btn-mobile';
+    trigger.setAttribute('aria-label','Open chat list');
+    trigger.innerHTML = '<i class="fa fa-comments"></i>'; // icône chat (≠ burger)
+    header.insertBefore(trigger, title);
+  }
+
+  const openDrawer = ()=>{
+    sidebar.classList.add('open');
+    overlay.classList.add('active');
+    document.body.classList.add('drawer-open');  // cache le bouton via CSS
+    document.body.style.overflow = 'hidden';
+  };
+  const closeDrawer = ()=>{
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+    document.body.classList.remove('drawer-open');
+    document.body.style.overflow = '';
+  };
+  const toggleDrawer = ()=> (sidebar.classList.contains('open') ? closeDrawer() : openDrawer());
+
+  trigger.addEventListener('click', (e)=>{ e.preventDefault(); toggleDrawer(); });
+  overlay.addEventListener('click', closeDrawer);
+  window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeDrawer(); });
+
+  // Si on repasse desktop, on ferme proprement
+  window.addEventListener('resize', ()=>{ if(!window.matchMedia('(max-width:800px)').matches) closeDrawer(); });
+})();
