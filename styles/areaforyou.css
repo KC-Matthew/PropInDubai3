@@ -1088,3 +1088,54 @@ html, body {
 .property-desc-ui-v2{
   margin-left: 30px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ===== Areaforyou → Chat drawer au-dessus du header + corrections ===== */
+@media (max-width:800px){
+  /* Drawer au-dessus de tout (y compris le header) */
+  .multi-sidebar{
+    position: fixed !important;
+    top: 0; bottom: 0; left: -100vw;
+    width: 80vw; max-width: 320px; min-width: 180px;
+    height: 100dvh;
+    background: #fff7ed;
+    z-index: 200000 !important;
+    transition: left .32s;
+  }
+  .multi-sidebar.open{ left: 0 !important; }
+
+  /* Overlay au-dessus du header */
+  .mobile-sidebar-overlay{
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.18);
+    z-index: 199990 !important;
+  }
+  .mobile-sidebar-overlay.active{ display: block !important; }
+
+  /* Le bouton d’ouverture se cache quand le drawer est ouvert */
+  body.drawer-open .chat-toggle-btn-mobile{ display: none !important; }
+
+  /* Cacher le burger du header pendant l’ouverture, pour éviter tout chevauchement */
+  body.drawer-open .header2 .burger{
+    visibility: hidden; pointer-events: none;
+  }
+
+  /* 🔥 Supprimer la flèche/poignée latérale si elle existe (legacy) */
+  .chat-prompt-tab,
+  .side-tab,
+  .drawer-handle,
+  .chat-side-handle{ display: none !important; }
+}
