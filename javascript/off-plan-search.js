@@ -1071,3 +1071,99 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
+
+
+
+
+
+
+// ====== BURGER MOBILE - version SANS ANIM (no transform) ======
+document.addEventListener('DOMContentLoaded', () => {
+  const burger = document.getElementById('burgerMenu');
+  const nav    = document.querySelector('.all-button');
+  const login  = document.querySelector('.profil-block');
+  if (!burger || !nav) return;
+
+  // Nettoyage de tout style résiduel (au cas où une version précédente les a laissés)
+  (function resetBurgerSpans(){
+    const spans = burger.querySelectorAll('span');
+    spans.forEach(s => {
+      s.style.transform  = '';
+      s.style.opacity    = '';
+      s.style.transition = '';
+    });
+  })();
+
+  // a11y sans modifier l'HTML
+  burger.setAttribute('role', 'button');
+  burger.setAttribute('aria-label', 'Open menu');
+  burger.setAttribute('aria-expanded', 'false');
+  burger.tabIndex = burger.tabIndex || 0;
+
+  // Overlay injecté par JS seulement
+  let overlay = document.getElementById('navOverlayJS');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'navOverlayJS';
+    Object.assign(overlay.style, {
+      position: 'fixed',
+      inset: '0',
+      background: 'rgba(0,0,0,.35)',
+      zIndex: '1190',
+      display: 'none'
+    });
+    document.body.appendChild(overlay);
+  }
+
+  let isOpen = false;
+  const OPEN_Z = '1200';
+  const SCROLL_LOCK_TARGET = document.documentElement;
+
+  function openNav() {
+    if (isOpen) return;
+    nav.classList.add('mobile-open');
+    nav.style.zIndex = OPEN_Z;
+    overlay.style.display = 'block';
+    SCROLL_LOCK_TARGET.style.overflow = 'hidden';
+    burger.setAttribute('aria-expanded', 'true');
+    isOpen = true;
+
+    // IMPORTANT : aucune modif visuelle des barres
+  }
+
+  function closeNav() {
+    if (!isOpen) return;
+    nav.classList.remove('mobile-open');
+    nav.style.zIndex = '';
+    overlay.style.display = 'none';
+    SCROLL_LOCK_TARGET.style.overflow = '';
+    burger.setAttribute('aria-expanded', 'false');
+    isOpen = false;
+
+    // Reset de sécurité si d’anciens styles trainent
+    const spans = burger.querySelectorAll('span');
+    spans.forEach(s => {
+      s.style.transform  = '';
+      s.style.opacity    = '';
+      s.style.transition = '';
+    });
+  }
+
+  const toggleNav = () => (isOpen ? closeNav() : openNav());
+
+  burger.addEventListener('click', toggleNav);
+  burger.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleNav(); }
+  });
+  overlay.addEventListener('click', closeNav);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNav(); });
+
+  // Fermer quand on clique sur un lien
+  [...nav.querySelectorAll('a'), ...(login ? login.querySelectorAll('a') : [])]
+    .forEach(a => a.addEventListener('click', closeNav));
+
+  // Ferme si on revient en desktop
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 901 && isOpen) closeNav();
+  });
+});
