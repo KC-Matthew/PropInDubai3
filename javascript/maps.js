@@ -1,6 +1,7 @@
 
 
 
+
 function goToDetails(p) {
   // on garde aussi en session pour le fallback de bien.js
   try {
@@ -599,3 +600,127 @@ document.addEventListener('DOMContentLoaded', () => {
     maxInput.addEventListener('blur', () => setTimeout(() => maxSuggestions.style.display = 'none', 120));
   }
 });
+
+
+
+
+/* === MOBILE BOTTOM-SHEET: compatible avec TON HTML/CSS existants === */
+/* À COLLER tout en bas de javascript/maps.js */
+(function attachMobileDeck() {
+  document.addEventListener('DOMContentLoaded', () => {
+    const deck = document.querySelector('.mobile-cards-deck');
+    if (!deck || deck.dataset.deckInited === '1') return; // anti double-init
+    deck.dataset.deckInited = '1';
+
+    const handle = deck.querySelector('.deck-handle');
+    const STATES = ['collapsed', 'half', 'full'];
+    let state = STATES.find(s => deck.classList.contains(s)) || 'collapsed';
+
+    function setState(s) {
+      STATES.forEach(c => deck.classList.remove(c));
+      deck.classList.add(s);
+      state = s;
+      // on rend la main au CSS, pas d'inline persistant
+      deck.style.top = '';
+      deck.style.height = '';
+      // évite le scroll de la page quand la deck est en plein écran
+      document.body.style.overflow = (s === 'full') ? 'hidden' : '';
+    }
+
+    // Mesure les positions pixel réelles définies par ton CSS (80/50/18vh)
+    function measureTops() {
+      const tops = {};
+      const curState = state;
+      const saved = {
+        transition: deck.style.transition,
+        top: deck.style.top,
+        height: deck.style.height
+      };
+      deck.style.transition = 'none';
+
+      STATES.forEach(s => {
+        STATES.forEach(c => deck.classList.remove(c));
+        deck.classList.add(s);
+        deck.style.top = '';
+        deck.style.height = '';
+        // force reflow et lit la position réelle
+        tops[s] = deck.getBoundingClientRect().top;
+      });
+
+      // restore
+      STATES.forEach(c => deck.classList.remove(c));
+      deck.classList.add(curState);
+      deck.style.transition = saved.transition;
+      deck.style.top = saved.top;
+      deck.style.height = saved.height;
+
+      return tops;
+    }
+
+    let TOPS = measureTops();
+    window.addEventListener('resize', () => {
+      TOPS = measureTops();
+      setState(state); // réaligne visuellement
+    });
+
+    // Tap/clic sur le handle : cycle collapsed -> half -> full -> collapsed
+    handle.addEventListener('click', () => {
+      setState(state === 'collapsed' ? 'half' : state === 'half' ? 'full' : 'collapsed');
+    });
+
+    // Drag du handle
+    let dragging = false, startY = 0, startTop = 0;
+
+    function onDown(e) {
+      dragging = true;
+      deck.style.transition = 'none';
+      startY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startTop = deck.getBoundingClientRect().top;
+
+      document.addEventListener('mousemove', onMove, { passive: false });
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('mouseup', onUp);
+      document.addEventListener('touchend', onUp);
+    }
+
+    function onMove(e) {
+      if (!dragging) return;
+      if (e.cancelable) e.preventDefault(); // évite le scroll pendant le drag
+
+      const y = (e.touches ? e.touches[0].clientY : e.clientY);
+      const dy = y - startY;
+
+      const min = TOPS.full;        // plus haut (18vh)
+      const max = TOPS.collapsed;   // plus bas (80vh)
+
+      let newTop = startTop + dy;
+      if (newTop < min) newTop = min;
+      if (newTop > max) newTop = max;
+
+      deck.style.top = `${newTop}px`;
+    }
+
+    function onUp() {
+      if (!dragging) return;
+      dragging = false;
+      deck.style.transition = ''; // remet la transition CSS
+
+      const curTop = deck.getBoundingClientRect().top;
+      const candidates = [
+        { s: 'collapsed', v: TOPS.collapsed },
+        { s: 'half',      v: TOPS.half },
+        { s: 'full',      v: TOPS.full }
+      ].sort((a, b) => Math.abs(curTop - a.v) - Math.abs(curTop - b.v));
+
+      setState(candidates[0].s);
+
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchend', onUp);
+    }
+
+    handle.addEventListener('mousedown', onDown);
+    handle.addEventListener('touchstart', onDown, { passive: true });
+  });
+})();
