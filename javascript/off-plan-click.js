@@ -28,6 +28,34 @@ function normKey(k){
   return key;
 }
 
+
+// Retourne TOUTES les photos (bucket d'abord, accepte aussi http)
+function resolveAllPhotosFromBucket(val){
+  const cand = parseCandidates(val);     // déjà défini plus haut
+  const out = [];
+
+  for (const c of cand){
+    const raw = String(c || "").trim().replace(/^["']+|["']+$/g, "");
+    if (!raw) continue;
+
+    let url = null;
+
+    // Si c'est une clé/URL Supabase -> construit l'URL publique depuis la clé normalisée
+    if (!/^https?:\/\//i.test(raw) || /\/storage\/v1\/object\/public\//i.test(raw)){
+      url = sbPublicUrl(normKey(raw));   // sbPublicUrl + normKey déjà définis
+    } else {
+      url = raw; // http(s) externe
+    }
+
+    if (url && !out.includes(url)) out.push(url);
+  }
+
+  return out;
+}
+
+
+
+
 // PHOTO: priorité au bucket (clé ou URL supabase), sinon 1ère http(s)
 function resolvePhotoBucketFirst(val){
   const cand = parseCandidates(val);
@@ -237,31 +265,122 @@ async function renderRecommended(list, COL){
   }
 
   /* ============ Rendu principal ============ */
-  function fillMain(row, COL, extras){
+function fillMain(row, COL, extras){
+  // ========= Helpers (bucket -> URL publique) =========
+  const STORAGE_BUCKET = window.STORAGE_BUCKET || "photos_biens";
+
+  function normKey(s){
+    if (!s) return "";
+    let k = String(s).trim().replace(/^["']+|["']+$/g, "");
+    // si URL publique Supabase -> ne garder que la clé objet
+    k = k.replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/[^/]+\//i, "");
+    k = k.replace(/^\/+/, ""); // slashes tête
+    k = k.replace(new RegExp(`^(?:${STORAGE_BUCKET}\\/)+`, "i"), ""); // préfixe bucket répété
+    return k;
+  }
+  function sbPublicUrl(key){
+    if (!key) return null;
+    const { data } = window.supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
+    return data?.publicUrl || null;
+  }
+  function parseCandidates(val){
+    if (val == null) return [];
+    if (Array.isArray(val)) return val;
+    let s = String(val).replace(/\u200B|\u200C|\u200D|\uFEFF/g, "").trim();
+    if (!s) return [];
+    // Postgres text[] "{a,b}"
+    if (s[0]==="{" && s[s.length-1]==="}") return s.slice(1,-1).split(",").map(x=>x.trim());
+    // JSON array '["a","b"]'
+    if (s[0]==="[" && s[s.length-1]==="]") {
+      try { return JSON.parse(s); } catch { return [s]; }
+    }
+    // CSV / multi-lignes
+    return s.split(/[\n,;|]+/).map(x=>x.trim());
+  }
+  function resolveAllPhotosFromBucket(raw){
+    const out = [];
+    const seen = new Set();
+    for (const c of parseCandidates(raw)){
+      if (c == null) continue;
+      let t = String(c).trim().replace(/^["']+|["']+$/g, "");
+      if (!t) continue;
+
+      // URL http externe (non-supabase) => garder tel quel
+      if (/^https?:\/\//i.test(t) && !/\/storage\/v1\/object\/public\//i.test(t)) {
+        if (!seen.has(t)) { out.push(t); seen.add(t); }
+        continue;
+      }
+
+      // clé supabase (ou URL publique supabase)
+      const key = normKey(t);
+      const url = key ? sbPublicUrl(key) : null;
+      if (url && !seen.has(url)) { out.push(url); seen.add(url); }
+    }
+    return out;
+  }
+  function resolveOneFromBucket(raw){
+    const arr = resolveAllPhotosFromBucket(raw);
+    return arr[0] || null;
+  }
+  function resolveLogoAny(rawLogo){
+    const fromBucket = resolveOneFromBucket(rawLogo);
+    if (fromBucket) return fromBucket;
+    const s = String(rawLogo || "").trim();
+    return /^https?:\/\//i.test(s) ? s : null;
+  }
+
+  // ========= Champs de base =========
   const title    = row[COL.title]     || "Untitled";
   const location = row[COL.location]  || "";
   const dev      = row[COL.dev]       || "";
   const status   = row[COL.status]    || "";
   const handover = row[COL.handover]  || "";
-  const priceNum = num(row[COL.price]);
+  const priceNum = (()=>{
+    const v = row[COL.price];
+    const n = typeof v === "number" ? v : Number(String(v ?? "").replace(/[^\d.]/g,""));
+    return Number.isFinite(n) ? n : null;
+  })();
   const units    = row[COL.units]     || "";
   const pay      = row[COL.payment]   || "";
   const desc     = row[COL.desc]      || extras?.description || "";
-  const brochure = row[COL.brochure]  || "#";
 
-  // ===== médias: BUCKET D'ABORD pour la photo principale =====
-  const rawPhoto = row.photo_url ?? row[COL.imageUrl];
-  const rawLogo  = row.developer_photo_url ?? row[COL.logoUrl];
+  // Brochure: accepte URL ou clé bucket
+  let brochure = row[COL.brochure] || "";
+  if (brochure && !/^https?:\/\//i.test(brochure)) {
+    const k = normKey(brochure);
+    const u = sbPublicUrl(k);
+    brochure = u || "";
+  }
 
-  const imgMain = resolvePhotoBucketFirst(rawPhoto)
-               || resolveLogoHttpFirst(rawLogo)
-               || "styles/photo/dubai-map.jpg";
+  // ========= Médias (photos + extras via bucket) =========
+  const photosMain = resolveAllPhotosFromBucket(row[COL.imageUrl]);
 
-  const imgLogo = resolveLogoHttpFirst(rawLogo)
-               || resolvePhotoBucketFirst(rawPhoto);
+  // Champs "extras" où tu peux avoir des photos additionnelles
+  const extraFields = ["photos", "images", "gallery", "galerie", "image_urls", "photos_urls"];
+  const photosExtra = [];
+  extraFields.forEach(f => {
+    if (extras?.[f]) {
+      photosExtra.push(...resolveAllPhotosFromBucket(extras[f]));
+    }
+  });
 
-  // debug utile
-  console.log("[click media]", row[COL.id], { rawPhoto, imgMain, rawLogo, imgLogo });
+  const logo = resolveLogoAny(row[COL.logoUrl]);
+
+  // Ordre carrousel: toutes les photos (main + extras), puis logo en dernier, sinon fallback
+  const all = [...photosMain, ...photosExtra];
+  const seenAll = new Set();
+  let images = all.filter(u => !!u && !seenAll.has(u) && seenAll.add(u));
+  if (!images.length && logo) images = [logo];
+  if (!images.length) images = ["styles/photo/dubai-map.jpg"];
+  else if (logo && !seenAll.has(logo)) images.push(logo);
+
+  // ========= Injection textes =========
+  const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || ""; };
+  const currencyAED = (n) => {
+    if (n == null) return "";
+    try { return new Intl.NumberFormat("en-AE",{ style:"currency", currency:"AED", maximumFractionDigits:0 }).format(n); }
+    catch { return `AED ${Number(n).toLocaleString()}`; }
+  };
 
   setText("projectTitle", title);
   setText("projectLocation", location);
@@ -273,30 +392,30 @@ async function renderRecommended(list, COL){
   setText("paymentPlan", pay);
   setText("description", desc);
 
-  const a = document.getElementById("brochureLink");
-  if (a){
-    if (brochure && brochure !== "#") { a.href = brochure; a.style.display = ""; }
-    else { a.style.display = "none"; }
+  const brochureLink = document.getElementById("brochureLink");
+  if (brochureLink){
+    if (brochure) { brochureLink.href = brochure; brochureLink.style.display = ""; }
+    else { brochureLink.style.display = "none"; }
   }
 
-  // --- carrousel (photo + logo si dispo) ---
-  const images  = [imgMain, imgLogo].filter(Boolean);
-  const mainImg = document.getElementById("mainProjectImage");
-  const count   = document.getElementById("photoCount");
-  const indWrap = document.getElementById("carousel-indicators");
+  // ========= Carrousel / Image principale =========
+  const mainImg  = document.getElementById("mainProjectImage");
+  const count    = document.getElementById("photoCount");
+  const indWrap  = document.getElementById("carousel-indicators");
+  const mainWrap = document.getElementById("mainImage");
   let idx = 0;
 
   function drawIndicators(){
     if (!indWrap) return;
     indWrap.innerHTML = "";
-    for (let i=0;i<images.length;i++){
+    images.forEach((_, i) => {
       const dot = document.createElement("div");
       dot.className = "carousel-indicator-dot" + (i===idx ? " active" : "");
-      dot.onclick = (e)=>{ e.stopPropagation(); idx = i; update(); };
+      dot.onclick = (e)=>{ e.stopPropagation(); idx = i; updateImage(); };
       indWrap.appendChild(dot);
-    }
+    });
   }
-  function update(){
+  function updateImage(){
     if (mainImg){
       mainImg.src = images[idx];
       mainImg.onerror = function(){ this.onerror=null; this.src="styles/photo/dubai-map.jpg"; };
@@ -304,28 +423,92 @@ async function renderRecommended(list, COL){
     if (count) count.textContent = String(images.length);
     drawIndicators();
   }
-  update();
+  updateImage();
 
-  // swipe
-  let tsX=0, teX=0;
-  const wrap = document.getElementById("mainImage");
-  if (wrap){
-    wrap.addEventListener("touchstart", e=>{ if (e.touches.length===1) tsX = e.touches[0].clientX; });
-    wrap.addEventListener("touchmove",  e=>{ if (e.touches.length===1) teX = e.touches[0].clientX; });
-    wrap.addEventListener("touchend",   ()=>{ const d=teX-tsX; if (d>50) idx=(idx-1+images.length)%images.length; if (d<-50) idx=(idx+1)%images.length; update(); tsX=teX=0; });
+  // Swipe (mobile) sur l'image principale
+  if (mainWrap){
+    let tsX=0, teX=0;
+    mainWrap.addEventListener("touchstart", e=>{ if (e.touches.length===1) tsX = e.touches[0].clientX; }, { passive:true });
+    mainWrap.addEventListener("touchmove",  e=>{ if (e.touches.length===1) teX = e.touches[0].clientX; }, { passive:true });
+    mainWrap.addEventListener("touchend",   ()=>{
+      const d = teX - tsX;
+      if (d > 50)  idx = (idx - 1 + images.length) % images.length;
+      if (d < -50) idx = (idx + 1) % images.length;
+      updateImage(); tsX=teX=0;
+    }, { passive:true });
   }
 
-  // lightbox
-  const lb = document.getElementById("lightbox");
-  const lbImg = document.getElementById("lightbox-img");
+  // ========= Lightbox (clic hors image + Esc) =========
+  const lb        = document.getElementById("lightbox");
+  const lbImg     = document.getElementById("lightbox-img");
+  const lbPrev    = document.getElementById("lightbox-prev");
+  const lbNext    = document.getElementById("lightbox-next");
+  const lbOverlay = document.getElementById("lightboxOverlay"); // si présent
+  // on tente de cibler le conteneur du contenu (pour fermer si clic EN DEHORS)
+  const lbContent = document.getElementById("lightboxContent")
+                  || (lbImg ? lbImg.closest(".lightbox-content, .lightbox-inner, .content") : null)
+                  || (lbImg ? lbImg.parentElement : null);
+
+  function openLightbox(){
+    if (!lb || !lbImg) return;
+    lb.style.display = "flex";
+    lbImg.src = images[idx];
+  }
+  function closeLightbox(){
+    if (lb) lb.style.display = "none";
+  }
+  function showPrev(){
+    idx = (idx - 1 + images.length) % images.length;
+    if (lbImg) lbImg.src = images[idx];
+    updateImage();
+  }
+  function showNext(){
+    idx = (idx + 1) % images.length;
+    if (lbImg) lbImg.src = images[idx];
+    updateImage();
+  }
+
   if (mainImg && lb && lbImg){
-    mainImg.onclick = ()=>{ lb.style.display="flex"; lbImg.src = images[idx]; };
-    document.getElementById("lightboxOverlay").onclick = ()=>{ lb.style.display="none"; };
-    document.getElementById("lightbox-prev").onclick   = ()=>{ idx=(idx-1+images.length)%images.length; lbImg.src=images[idx]; update(); };
-    document.getElementById("lightbox-next").onclick   = ()=>{ idx=(idx+1)%images.length; lbImg.src=images[idx]; update(); };
+    mainImg.onclick = openLightbox;
+
+    lbPrev?.addEventListener("click", (e)=>{ e.stopPropagation(); showPrev(); });
+    lbNext?.addEventListener("click", (e)=>{ e.stopPropagation(); showNext(); });
+
+    // Empêche la fermeture quand on clique dans le contenu
+    [lbImg, lbPrev, lbNext, lbContent].forEach(el => {
+      el && el.addEventListener("click", (e)=> e.stopPropagation());
+    });
+
+    // 1) clic sur l'overlay dédié
+    lbOverlay && lbOverlay.addEventListener("click", closeLightbox);
+
+    // 2) clic n'importe où sur la lightbox **en dehors** du contenu => ferme
+    lb.addEventListener("click", (e) => {
+      // si on a un conteneur de contenu, on teste contains(); sinon on exige un clic direct sur lb
+      if (lbContent) {
+        if (!lbContent.contains(e.target)) closeLightbox();
+      } else if (e.target === lb) {
+        closeLightbox();
+      }
+    });
+
+    // Esc pour fermer
+    const onEsc = (e)=>{ if (e.key === "Escape" && lb.style.display !== "none") closeLightbox(); };
+    document.addEventListener("keydown", onEsc, { passive:true });
+
+    // Swipe dans la lightbox
+    let lsX=0, leX=0;
+    lb.addEventListener("touchstart", e=>{ if (e.touches.length===1) lsX = e.touches[0].clientX; }, { passive:true });
+    lb.addEventListener("touchmove",  e=>{ if (e.touches.length===1) leX = e.touches[0].clientX; }, { passive:true });
+    lb.addEventListener("touchend",   ()=>{
+      const d = leX - lsX;
+      if (d > 50)  showPrev();
+      if (d < -50) showNext();
+      lsX=leX=0;
+    }, { passive:true });
   }
 
-  // payment details (si plusieurs lignes)
+  // ========= Payment details (toggle) =========
   const lines = String(pay).split(/[\n•;,;-]+/).map(s=>s.trim()).filter(Boolean);
   const paymentToggle = document.getElementById("paymentToggle");
   const paymentDetail = document.getElementById("paymentDetail");
@@ -336,14 +519,14 @@ async function renderRecommended(list, COL){
     };
   }
 
-  // carte
+  // ========= Carte =========
   const lat = row[COL.lat], lon = row[COL.lon];
   if (lat != null && lon != null){
     const iframe = document.querySelector(".location iframe");
     if (iframe) iframe.src = `https://www.google.com/maps?q=${encodeURIComponent(lat)},${encodeURIComponent(lon)}&z=15&output=embed`;
   }
 
-  // agent (placeholder)
+  // ========= Agent (conservé) =========
   const agentContact = document.getElementById("agentContact");
   if (agentContact){
     agentContact.innerHTML = `
@@ -352,8 +535,9 @@ async function renderRecommended(list, COL){
       <p><i class="fas fa-envelope"></i> <a href="mailto:contact@propindubai.com">contact@propindubai.com</a></p>`;
   }
 
-  // vision / autres projets (table liée)
-  setText("developerVision", extras?.["developer vision"] || "");
+  // ========= Vision / autres projets (extras) =========
+  const setVision = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || ""; };
+  setVision("developerVision", extras?.["developer vision"] || "");
   const devList = document.getElementById("developerProjects");
   if (devList){
     devList.innerHTML = "";
@@ -367,9 +551,15 @@ async function renderRecommended(list, COL){
       });
   }
 
-  // tableau unités
+  // ========= Tableau unités =========
   fillUnitsTable(row, COL);
+
+  // debug
+  console.log("[click media]", row[COL.id], { photosMain, photosExtra, logo, imagesCount: images.length, images });
 }
+
+
+
 
 
   /* ============ Boot ============ */
