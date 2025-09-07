@@ -1,3 +1,54 @@
+// ========= Helpers Bucket (communs) =========
+const STORAGE_BUCKET = window.STORAGE_BUCKET || "photos_biens";
+
+function normKey(s){
+  if (!s) return "";
+  let k = String(s).trim().replace(/^["']+|["']+$/g, "");
+  k = k.replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/[^/]+\//i, "");
+  k = k.replace(/^\/+/, "");
+  const re = new RegExp(`^(?:${STORAGE_BUCKET}\\/)+`, "i");
+  k = k.replace(re, "");
+  return k;
+}
+function sbPublicUrl(key){
+  if (!key) return null;
+  const { data } = window.supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
+  return data?.publicUrl || null;
+}
+function parseCandidates(val){
+  if (val == null) return [];
+  if (Array.isArray(val)) return val;
+  let s = String(val).replace(/\u200B|\u200C|\u200D|\uFEFF/g, "").trim();
+  if (!s) return [];
+  if (s[0]==="{" && s[s.length-1]==="}") return s.slice(1,-1).split(",");
+  if (s[0]==="[" && s[s.length-1]==="]"){ try { return JSON.parse(s); } catch { return [s]; } }
+  return s.split(/[\n,;|]+/);
+}
+function resolveAllPhotosFromBucket(raw){
+  const out = [];
+  for (const c of parseCandidates(raw)){
+    if (c == null) continue;
+    const t = String(c).trim().replace(/^["']+|["']+$/g, "");
+    if (!t) continue;
+    if (/^https?:\/\//i.test(t) && !/\/storage\/v1\/object\/public\//i.test(t)){
+      if (!out.includes(t)) out.push(t);
+      continue;
+    }
+    const key = normKey(t);
+    const url = key ? sbPublicUrl(key) : null;
+    if (url && !out.includes(url)) out.push(url);
+  }
+  return out;
+}
+function resolveOneFromBucket(raw){
+  const arr = resolveAllPhotosFromBucket(raw);
+  return arr[0] || null;
+}
+
+
+
+
+
 /* =========================
    BIEN.JS — détail d’un bien (buy | rent | commercial)
    Dépend de window.supabase (fourni par supabaseClient.js)
@@ -119,23 +170,64 @@ async function fetchAgent(agentId){
 }
 
 // -------- Similaires ----------
-async function fetchSimilar(table,currentId,cols,limit=12){
-  const fields=[cols.id,cols.title,cols.propertyType,cols.price,cols.sqft,cols.photo,cols.bedrooms,cols.bathrooms,cols.created_at]
-    .filter(Boolean).map(q).join(",");
-  const orderCol=cols.created_at||cols.id;
-  const {data,error}=await window.supabase.from(table).select(fields).neq(cols.id,currentId).order(orderCol,{ascending:false}).limit(limit);
-  if(error) return [];
-  return (data||[]).map(r=>({
-    id:r[cols.id],
-    title:r[cols.title]||"",
-    images:[ r[cols.photo] || "https://via.placeholder.com/400x300" ],
-    price:r[cols.price],
-    bedrooms:r[cols.bedrooms],
-    bathrooms:r[cols.bathrooms],
-    size:r[cols.sqft],
-    source:table
-  }));
+async function fetchSimilar(table, currentId, cols, limit=12){
+  const fields = [
+    cols.id, cols.title, cols.propertyType, cols.price, cols.sqft,
+    cols.photo, cols.bedrooms, cols.bathrooms, cols.created_at
+  ].filter(Boolean).map(q).join(",");
+
+  const orderCol = cols.created_at || cols.id;
+  let qy = window.supabase.from(table).select(fields).order(orderCol, { ascending:false }).limit(limit + 6);
+  if (currentId) qy = qy.neq(cols.id, currentId);
+
+  const { data, error } = await qy;
+  if (error) { console.error('similar error:', error); return []; }
+
+  const mapped = (data||[]).map(r=>{
+    const raw = cols.photo ? r[cols.photo] : null;
+    const imgs = resolveAllPhotosFromBucket(raw);
+    return {
+      id: r[cols.id],
+      title: r[cols.title] || "",
+      images: imgs.length ? imgs : ["styles/photo/dubai-map.jpg"],
+      price: r[cols.price],
+      bedrooms: r[cols.bedrooms],
+      bathrooms: r[cols.bathrooms],
+      size: r[cols.sqft],
+      source: table
+    };
+  });
+
+  // on garde les derniers, max = limit
+  const out = mapped.slice(0, limit);
+  if (out.length) return out;
+
+  // 👉 Fallback: aller piocher dans les autres tables si vide
+  const tables = ['buy','rent','commercial'].filter(t => t !== table);
+  const results = [];
+  for (const t of tables){
+    try{
+      const dcols = await detectCols(t);
+      const f = [dcols.id, dcols.title, dcols.propertyType, dcols.price, dcols.sqft, dcols.photo, dcols.bedrooms, dcols.bathrooms, dcols.created_at]
+        .filter(Boolean).map(q).join(",");
+      const ord = dcols.created_at || dcols.id;
+      const { data: d } = await window.supabase.from(t).select(f).order(ord, {ascending:false}).limit(limit);
+      (d||[]).forEach(r=>{
+        const imgs = resolveAllPhotosFromBucket(dcols.photo ? r[dcols.photo] : null);
+        results.push({
+          id: r[dcols.id],
+          title: r[dcols.title] || "",
+          images: imgs.length ? imgs : ["styles/photo/dubai-map.jpg"],
+          price: r[dcols.price], bedrooms: r[dcols.bedrooms], bathrooms: r[dcols.bathrooms],
+          size: r[dcols.sqft], source: t
+        });
+      });
+      if (results.length >= limit) break;
+    }catch(_){}
+  }
+  return results.slice(0, limit);
 }
+
 
 
 /* =========================
@@ -315,15 +407,14 @@ async function main(){
 
   // Normalise pour l’UI
 // Normalise pour l’UI
+// Normalise pour l’UI
 let images = [];
 if (rec){
   const rawImg = cols.photo ? rec[cols.photo] : null;
-  images = Array.isArray(rawImg) ? rawImg : (rawImg ? [rawImg] : []);
-  propertyData.images = images.length ? images : ["https://via.placeholder.com/800x500"];
+  const resolved = resolveAllPhotosFromBucket(rawImg);
+  propertyData.images = resolved.length ? resolved : ["https://via.placeholder.com/800x500"];
 
-  // H2 (titre d’annonce)
   propertyData.location = rec[cols.title] || "Dubai";
-
   const priceRaw = cols.price ? rec[cols.price] : null;
   propertyData.price = AED(priceRaw) + (type === 'rent' && priceRaw ? ' /year' : '');
 
@@ -332,7 +423,6 @@ if (rec){
   propertyData.size      = (cols.sqft && rec[cols.sqft]) ? `${rec[cols.sqft]} sqft` : '';
   propertyData.propertyType = cols.propertyType ? (rec[cols.propertyType] || 'Apartment') : 'Apartment';
 
-  // Description (ou fallback)
   const dbDesc = cols.description ? (rec[cols.description] || "") : "";
   propertyData.description = dbDesc || [
     propertyData.propertyType || "Property",
@@ -341,15 +431,14 @@ if (rec){
     propertyData.size ? `• ${propertyData.size}` : ""
   ].filter(Boolean).join(" ");
 
-  // 👇 Localisation accueil (lu dans le même SELECT principal)
   propertyData.locationText = cols.localisationAccueil ? (rec[cols.localisationAccueil] || "") : "";
 } else {
-  // Fallback total
   propertyData.images = ["https://via.placeholder.com/800x500"];
   propertyData.location = "Dubai";
   propertyData.locationText = "";
   propertyData.description = "";
 }
+
 
 
   // Agent
