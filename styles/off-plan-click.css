@@ -968,10 +968,77 @@
   .all-button.menu-open {
     display: flex;
   }
-
-
-
-  
 }
 
 
+.header-btn:focus,
+.header-btn:active {
+  background: none !important;
+  color: inherit !important;
+  box-shadow: none !important;
+}
+
+
+
+/* ====== LIGHTBOX : même taille pour toutes les images ====== */
+/* Cadre fixe (mais responsive) pour l'image agrandie */
+.lightbox-content{
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* 👇 même cadre pour toutes les images */
+  width: clamp(680px, 76vw, 1100px);
+  height: clamp(380px, 66vh, 760px);
+
+  padding: 12px;
+  background: rgba(20,20,20,0.25); /* léger liseré autour */
+  border-radius: 18px;
+}
+
+/* L'image remplit le cadre SANS déformation */
+.lightbox .lightbox-content img{
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;   /* contient dans le cadre, garde le ratio */
+  border-radius: 14px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.35);
+}
+
+/* Flèches centrées sur la hauteur, à l'intérieur du cadre */
+.lightbox-arrow{
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.9);
+  color: #222;
+  border: 0;
+  font-size: 2rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 2;
+}
+.lightbox-arrow:hover{ background: #fff; color:#f9aa00; }
+#lightbox-prev{ left: 12px; }
+#lightbox-next{ right: 12px; }
+
+/* Mobile : même principe, cadre un peu plus grand en largeur et plus bas en hauteur */
+@media (max-width: 900px){
+  .lightbox-content{
+    width: 92vw;
+    height: 72vh;
+    border-radius: 16px;
+  }
+  .lightbox .lightbox-content img{
+    border-radius: 12px;
+  }
+  .lightbox-arrow{
+    font-size: 1.8rem;
+    width: 38px; height: 38px;
+  }
+}
