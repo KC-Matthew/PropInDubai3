@@ -1,4 +1,62 @@
 
+// ========= Helpers Bucket (communs) =========
+const STORAGE_BUCKET = window.STORAGE_BUCKET || "photos_biens";
+
+function normKey(s){
+  if (!s) return "";
+  let k = String(s).trim().replace(/^["']+|["']+$/g, "");
+  // si URL publique Supabase -> ne garder que la clé objet
+  k = k.replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/[^/]+\//i, "");
+  k = k.replace(/^\/+/, "");                         // enlève / de tête
+  const re = new RegExp(`^(?:${STORAGE_BUCKET}\\/)+`, "i");
+  k = k.replace(re, "");                              // enlève préfixes bucket répétés
+  return k;
+}
+function sbPublicUrl(key){
+  if (!key) return null;
+  const { data } = window.supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
+  return data?.publicUrl || null;
+}
+function parseCandidates(val){
+  if (val == null) return [];
+  if (Array.isArray(val)) return val;
+  let s = String(val).replace(/\u200B|\u200C|\u200D|\uFEFF/g, "").trim();
+  if (!s) return [];
+  if (s[0]==="{" && s[s.length-1]==="}") return s.slice(1,-1).split(","); // postgres text[]
+  if (s[0]==="[" && s[s.length-1]==="]") {                                  // JSON array
+    try { return JSON.parse(s); } catch { return [s]; }
+  }
+  return s.split(/[\n,;|]+/);                                               // CSV / multi-lignes
+}
+function resolveAllPhotosFromBucket(raw){
+  const out = [];
+  for (const c of parseCandidates(raw)){
+    if (c == null) continue;
+    const t = String(c).trim().replace(/^["']+|["']+$/g, "");
+    if (!t) continue;
+    // http externe (WordPress, etc.) -> garder tel quel
+    if (/^https?:\/\//i.test(t) && !/\/storage\/v1\/object\/public\//i.test(t)){
+      if (!out.includes(t)) out.push(t);
+      continue;
+    }
+    const key = normKey(t);
+    const url = key ? sbPublicUrl(key) : null;
+    if (url && !out.includes(url)) out.push(url);
+  }
+  return out;
+}
+function resolveOneFromBucket(raw){
+  const arr = resolveAllPhotosFromBucket(raw);
+  return arr[0] || null;
+}
+function resolveLogoAny(rawLogo){
+  const fromBucket = resolveOneFromBucket(rawLogo);
+  if (fromBucket) return fromBucket;
+  const s = String(rawLogo || "").trim();
+  return /^https?:\/\//i.test(s) ? s : null;
+}
+
+
 
 // --- Appliquer les filtres de l'URL à l'UI (robuste : alias + "2+" corrigé) ---
 function applyURLFiltersToUI() {
@@ -134,7 +192,9 @@ let minPrice = 0, maxPrice = 0;
 let globalMinPrice = 0, globalMaxPrice = 0;
 const PRICE_STEP = 10000;
 
-// ---------- LECTURE 100% BDD ----------
+
+
+// ---------- LECTURE 100% BDD (avec Bucket) ----------
 async function loadPropertiesFromDB() {
   const sb = window.supabase;
   if (!sb) {
@@ -146,80 +206,99 @@ async function loadPropertiesFromDB() {
   const { data: agentRows, error: agentErr } = await sb
     .from('agent')
     .select('id,name,photo_agent_url,phone,email,whatsapp,agency_id,rating');
-  if (agentErr) { console.error(agentErr); return []; }
-  const agentsById = Object.fromEntries((agentRows || []).map(a => [a.id, a]));
+  if (agentErr) console.error(agentErr);
 
-  // 2) Agencies (pour récupérer l’address + logo)
+  // 2) Agencies
   const { data: agencyRows, error: agencyErr } = await sb
     .from('agency')
     .select('id,logo_url,address');
-  if (agencyErr) { console.error(agencyErr); }
-  const agenciesById = Object.fromEntries((agencyRows || []).map(a => [a.id, a]));
+  if (agencyErr) console.error(agencyErr);
 
-  function getAgencyForAgent(agentId) {
+  // ▶ Résolution via bucket
+  const agentsById = Object.fromEntries(
+    (agentRows || []).map(a => [a.id, {
+      ...a,
+      // avatar agent prioritaire depuis le bucket (clé/URL, csv, json, text[])
+      photo_agent_url_resolved: resolveOneFromBucket(a.photo_agent_url) || a.photo_agent_url || ""
+    }])
+  );
+  const agenciesById = Object.fromEntries(
+    (agencyRows || []).map(a => [a.id, {
+      ...a,
+      // logo agence (bucket ou http) – résolu une fois
+      logo_url_resolved: resolveLogoAny(a.logo_url) || ""
+    }])
+  );
+  const getAgencyForAgent = (agentId) => {
     const ag = agentsById[agentId];
     return ag ? agenciesById[ag.agency_id] : undefined;
-  }
+  };
 
-// 3) Biens BUY
-const { data: buyRows, error: buyErr } = await sb
-  .from('buy')
-  .select('id,title,property_type,bedrooms,bathrooms,price,sqft,photo_bien_url,agent_id,created_at,"localisation accueil"');
+  // 3) BUY
+  const { data: buyRows, error: buyErr } = await sb
+    .from('buy')
+    .select('id,title,property_type,bedrooms,bathrooms,price,sqft,photo_bien_url,agent_id,created_at,"localisation accueil"');
+  if (buyErr) console.error(buyErr);
 
-  
-  
-// 4) Biens RENT
-const { data: rentRows, error: rentErr } = await sb
-  .from('rent')
-  .select('id,title,property_type,bedrooms,bathrooms,price,sqft,photo_url,agent_id,created_at,"localisation accueil"');
+  // 4) RENT
+  const { data: rentRows, error: rentErr } = await sb
+    .from('rent')
+    .select('id,title,property_type,bedrooms,bathrooms,price,sqft,photo_url,agent_id,created_at,"localisation accueil"');
+  if (rentErr) console.error(rentErr);
 
-
-  // 5) Biens COMMERCIAL
+  // 5) COMMERCIAL
   const { data: comRows, error: comErr } = await sb
     .from('commercial')
-    .select('id,title,rental_period,property_type,"property type",bedrooms,bathrooms,price,sqft,photo_url,agent_id,created_at');
+    .select('id,title,rental_period,property_type,"property type",bedrooms,bathrooms,price,sqft,photo_url,agent_id,created_at,"localisation accueil"');
   if (comErr) console.error(comErr);
 
   const out = [];
 
   function rowToProperty(row, tableName) {
-  const agent = agentsById[row.agent_id] || {};
-  const agency = getAgencyForAgent(row.agent_id) || {};
-  const ptype = row.property_type ?? row['property type'] ?? 'Unknown';
-  const mainPhoto = row.photo_bien_url || row.photo_url || null;
+    const agent  = agentsById[row.agent_id] || {};
+    const agency = getAgencyForAgent(row.agent_id) || {};
+    const ptype  = row.property_type ?? row['property type'] ?? 'Unknown';
 
-  const images = [];
-  if (mainPhoto) images.push(mainPhoto);
-  if (agency?.logo_url) images.push(agency.logo_url);
+    // --- PHOTOS DU BIEN (depuis le bucket) ---
+    // Peut être: clé simple, CSV, JSON array, Postgres text[] ou URL publique supabase
+    const propertyPhotos = resolveAllPhotosFromBucket(row.photo_bien_url || row.photo_url);
+    const logo           = agency?.logo_url_resolved || "";
 
-  // 👇 Priorité à "localisation accueil", sinon adresse d’agence
-  const localisationAccueil = row['localisation accueil'] || row.localisation_accueil || '';
+    // ➜ Utiliser UNIQUEMENT les photos du bien si présentes; sinon fallback sur logo, sinon image par défaut
+    const images = propertyPhotos.length
+      ? propertyPhotos
+      : (logo ? [logo] : ["styles/photo/dubai-map.jpg"]);
 
-  return {
-    title: ptype,
-    price: Number(row.price) || 0,
-    location: localisationAccueil || agency?.address || "",   // <-- ici
-    bedrooms: Number(row.bedrooms) || 0,
-    bathrooms: Number(row.bathrooms) || 0,
-    size: Number(row.sqft) || 0,
-    furnished: undefined,
-    amenities: [],
-    images,
-    agent: {
-      name: agent.name || "",
-      avatar: agent.photo_agent_url || "",
-      phone: agent.phone || "",
-      email: agent.email || "",
-      whatsapp: agent.whatsapp || "",
-      rating: agent.rating ?? null
-    },
-    description: row.title || "",
-    _id: row.id,
-    _table: tableName,
-    _created_at: row.created_at
-  };
-}
+    // --- AVATAR AGENT (bucket d’abord, sinon http, sinon vide) ---
+    const avatar = agent.photo_agent_url_resolved || resolveOneFromBucket(agent.photo_agent_url) || "";
 
+    // Localisation prioritaire
+    const localisationAccueil = row['localisation accueil'] || row.localisation_accueil || '';
+
+    return {
+      title: ptype,
+      price: Number(row.price) || 0,
+      location: localisationAccueil || agency?.address || "",
+      bedrooms: Number(row.bedrooms) || 0,
+      bathrooms: Number(row.bathrooms) || 0,
+      size: Number(row.sqft) || 0,
+      furnished: undefined,
+      amenities: [],
+      images, // ← tableau final prêt pour le carrousel (1..n)
+      agent: {
+        name: agent.name || "",
+        avatar,
+        phone: agent.phone || "",
+        email: agent.email || "",
+        whatsapp: agent.whatsapp || "",
+        rating: agent.rating ?? null
+      },
+      description: row.title || "",
+      _id: row.id,
+      _table: tableName,
+      _created_at: row.created_at
+    };
+  }
 
   (buyRows || []).forEach(r => out.push(rowToProperty(r, 'buy')));
   (rentRows || []).forEach(r => out.push(rowToProperty(r, 'rent')));
@@ -227,6 +306,9 @@ const { data: rentRows, error: rentErr } = await sb
 
   return out;
 }
+
+
+
 
 // === BURGER MENU MOBILE (header2) ===
 const burger = document.getElementById('burgerMenu');
@@ -487,6 +569,7 @@ function displayProperties(propsArray, page) {
   const start = (page - 1) * cardsPerPage;
   const end = start + cardsPerPage;
   const slice = propsArray.slice(start, end);
+  
 
   container.innerHTML = "";
   propertyCountDiv.textContent = `${fmt(propsArray.length)} properties found`;
