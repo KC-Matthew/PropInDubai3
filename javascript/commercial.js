@@ -1,28 +1,108 @@
-  // --- Appliquer les filtres de l'URL à l'UI ---
-  function applyURLFiltersToUI() {
-    const p = new URLSearchParams(location.search);
-    const q        = p.get('q') || '';
-    const type     = p.get('type') || '';
-    const bedrooms = p.get('bedrooms') || '';
-    const bathrooms= p.get('bathrooms') || '';
+  // ========= Helpers Bucket (communs) =========
+const STORAGE_BUCKET = window.STORAGE_BUCKET || "photos_biens";
 
-    // champ recherche (adapte l'ID si besoin)
-    const searchInput = document.getElementById('search')
-                    || document.querySelector('.searchbar input, input[type="search"], .search-input');
-    if (searchInput && q) searchInput.value = q;
-
-    if (type && document.getElementById('propertyType')) {
-      document.getElementById('propertyType').value = type;
+function normKey(s){
+  if (!s) return "";
+  let k = String(s).trim().replace(/^["']+|["']+$/g, "");
+  k = k.replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/[^/]+\//i, "");
+  k = k.replace(/^\/+/, "");
+  const re = new RegExp(`^(?:${STORAGE_BUCKET}\\/)+`, "i");
+  k = k.replace(re, "");
+  return k;
+}
+function sbPublicUrl(key){
+  if (!key) return null;
+  const { data } = window.supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
+  return data?.publicUrl || null;
+}
+function parseCandidates(val){
+  if (val == null) return [];
+  if (Array.isArray(val)) return val;
+  let s = String(val).replace(/\u200B|\u200C|\u200D|\uFEFF/g, "").trim();
+  if (!s) return [];
+  if (s[0]==="{" && s[s.length-1]==="}") return s.slice(1,-1).split(","); // postgres text[]
+  if (s[0]==="[" && s[s.length-1]==="]") { try { return JSON.parse(s); } catch { return [s]; } }
+  return s.split(/[\n,;|]+/); // CSV / multi-lignes
+}
+function resolveAllPhotosFromBucket(raw){
+  const out = [];
+  for (const c of parseCandidates(raw)){
+    if (c == null) continue;
+    const t = String(c).trim().replace(/^["']+|["']+$/g, "");
+    if (!t) continue;
+    if (/^https?:\/\//i.test(t) && !/\/storage\/v1\/object\/public\//i.test(t)){ // http externe
+      if (!out.includes(t)) out.push(t);
+      continue;
     }
-    if (bedrooms && document.getElementById('bedrooms')) {
-      document.getElementById('bedrooms').value =
-        (bedrooms === 'studio') ? '0' : (bedrooms === '7plus' ? '7' : bedrooms);
-    }
-    if (bathrooms && document.getElementById('bathrooms')) {
-      document.getElementById('bathrooms').value =
-        (bathrooms === '7plus' ? '7' : bathrooms);
-    }
+    const key = normKey(t);
+    const url = key ? sbPublicUrl(key) : null;
+    if (url && !out.includes(url)) out.push(url);
   }
+  return out;
+}
+function resolveOneFromBucket(raw){
+  const arr = resolveAllPhotosFromBucket(raw);
+  return arr[0] || null;
+}
+function resolveLogoAny(rawLogo){
+  const fromBucket = resolveOneFromBucket(rawLogo);
+  if (fromBucket) return fromBucket;
+  const s = String(rawLogo || "").trim();
+  return /^https?:\/\//i.test(s) ? s : null;
+}
+
+  
+  
+  
+  // --- Appliquer les filtres de l'URL à l'UI ---
+// --- Appliquer les filtres de l'URL à l'UI (robuste) ---
+function applyURLFiltersToUI() {
+  const p = new URLSearchParams(location.search);
+
+  const q         = p.get('q')        ?? p.get('search')   ?? '';
+  const type      = p.get('type')     ?? '';
+  const bedroomsR = p.get('bedrooms') ?? p.get('beds')     ?? '';
+  const bathsR    = p.get('bathrooms')?? p.get('baths')    ?? p.get('ba') ?? '';
+
+  // normalize "2+", "7plus", "2%2B", "studio" -> "1+"
+  const normPlus = (v) => {
+    if (!v) return '';
+    let s = String(v).toLowerCase().trim();
+    s = s.replace(/%2b/gi, '+').replace(/\s+/g, '');
+    if (s === 'studio' || s === '0') return '1+';
+    if (s === '7plus') s = '7+';
+    if (/^\d+$/.test(s)) return s + '+';
+    return s;
+  };
+  const bedrooms  = normPlus(bedroomsR);
+  const bathrooms = normPlus(bathsR);
+
+  const searchInput = document.getElementById('search')
+                   || document.querySelector('.searchbar input, input[type="search"], .search-input');
+  if (searchInput && q) searchInput.value = q;
+
+  if (type && document.getElementById('propertyType')) {
+    document.getElementById('propertyType').value = type;
+  }
+
+  const setPlusSelect = (id, raw) => {
+    const sel = document.getElementById(id);
+    if (!sel || !raw) return;
+    const wanted = raw; // ex: "2+"
+    const opts = Array.from(sel.options).map(o => (o.value || o.textContent).trim());
+    const exact = opts.find(v => v.toLowerCase() === wanted.toLowerCase());
+    if (exact) { sel.value = exact; return; }
+    const req = parseInt(wanted, 10);
+    const nums = opts.map(v => parseInt(String(v).toLowerCase(), 10)).filter(Number.isFinite);
+    if (Number.isFinite(req) && nums.length) {
+      const best = nums.filter(n => n <= req).sort((a,b)=>b-a)[0] ?? nums[0];
+      sel.value = `${best}+`;
+    }
+  };
+  setPlusSelect('bedrooms',  bedrooms);
+  setPlusSelect('bathrooms', bathrooms);
+}
+
 
 
   // ====== Supabase query avec filtres ======
@@ -131,32 +211,65 @@
   const PRICE_STEP=10000;
 
   /* ---------- CHARGEMENT BDD (table: commercial) ---------- */
+/* ---------- CHARGEMENT BDD (table: commercial) ---------- */
 async function loadCommercialFromDB() {
   const sb = window.supabase;
   if (!sb) { console.error('Supabase client non trouvé.'); return []; }
 
-  // Agents
-  const { data: agents, error: e1 } = await sb
+  // Agents (+ photo bucket)
+  const { data: agentRows, error: e1 } = await sb
     .from('agent')
-    .select('id,name,photo_agent_url,phone,email,whatsapp');
+    .select('id,name,photo_agent_url,phone,email,whatsapp,agency_id,rating');
   if (e1) console.error(e1);
-  const agentsById = Object.fromEntries((agents || []).map(a => [a.id, a]));
 
-  // ✅ Alias corrects: alias: "colonne avec espace"
+  // Agencies (+ logo bucket)
+  const { data: agencyRows, error: e2 } = await sb
+    .from('agency')
+    .select('id,logo_url,address');
+  if (e2) console.error(e2);
+
+  const agentsById = Object.fromEntries(
+    (agentRows || []).map(a => [a.id, {
+      ...a,
+      photo_agent_url_resolved: resolveOneFromBucket(a.photo_agent_url) || a.photo_agent_url || ""
+    }])
+  );
+  const agenciesById = Object.fromEntries(
+    (agencyRows || []).map(a => [a.id, {
+      ...a,
+      logo_url_resolved: resolveLogoAny(a.logo_url) || ""
+    }])
+  );
+  const getAgencyForAgent = (agentId) => {
+    const ag = agentsById[agentId];
+    return ag ? agenciesById[ag.agency_id] : undefined;
+  };
+
+  // ✅ Alias corrects (colonnes avec espaces)
   const { data: rows, error } = await sb
     .from('commercial')
     .select(`
       id, created_at, title,
       rental_period:"rental period",
       property_type:"property type",
-      bedrooms, bathrooms, price, sqft, photo_url, agent_id,
+      bedrooms, bathrooms, price, sqft,
+      photo_url, agent_id,
       localisation_accueil:"localisation accueil"
     `);
-
   if (error) { console.error('[commercial select error]', error); return []; }
 
   return (rows || []).map(r => {
-    const ag = agentsById[r.agent_id] || {};
+    const ag     = agentsById[r.agent_id] || {};
+    const agency = getAgencyForAgent(r.agent_id) || {};
+
+    // Images du bien (0..n) + logo agence en dernier
+    const allPhotos = resolveAllPhotosFromBucket(r.photo_url);
+    const logo      = agency?.logo_url_resolved || "";
+    const images    = [...new Set([ ...(allPhotos.length ? allPhotos : []), ...(logo ? [logo] : []) ])];
+    if (!images.length) images.push('styles/photo/dubai-map.jpg');
+
+    const avatar = ag.photo_agent_url_resolved || resolveOneFromBucket(ag.photo_agent_url) || "";
+
     const rentalRaw = (r.rental_period ?? '').toString().trim();
     const commercialType = rentalRaw ? 'Commercial Rent' : 'Commercial Buy';
 
@@ -167,24 +280,26 @@ async function loadCommercialFromDB() {
       size: Number(r.sqft) || 0,
       bedrooms: Number(r.bedrooms) || 0,
       bathrooms: Number(r.bathrooms) || 0,
-      location: r.localisation_accueil || '',
-      images: r.photo_url ? [r.photo_url] : [],
+      location: r.localisation_accueil || agency?.address || '',
+      images,
       commercialType,
-      licenseType: '',
-      furnished: false,
-      amenities: [],
+      licenseType: '',            // (pas dans le schéma actuel)
+      furnished: false,           // idem
+      amenities: [],              // idem
       agent: {
         name: ag.name || '',
-        avatar: ag.photo_agent_url || '',
+        avatar,
         phone: ag.phone || '',
         email: ag.email || '',
-        whatsapp: ag.whatsapp || ''
+        whatsapp: ag.whatsapp || '',
+        rating: ag.rating ?? null
       },
       _id: r.id,
       _created_at: r.created_at
     };
   });
 }
+
 
 
 
@@ -762,6 +877,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!dd.contains(e.target)) dd.classList.remove('open');
     });
   }
+
+
 
 
 
