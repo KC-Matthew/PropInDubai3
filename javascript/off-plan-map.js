@@ -9,9 +9,65 @@ let leafletMarkers = [];
 let map; // Leaflet
 let priceSlider = null;
 
+
 /* ======== CONFIG SOURCE ======== */
-const OFFPLAN_TABLES = ["offplan"]; // ordre d'essai
-const STORAGE_BUCKET = "properties"; // si tu utilises Supabase Storage
+const OFFPLAN_TABLES = ["offplan"];
+const STORAGE_BUCKET = "photos_biens";
+const DEBUG_IMAGES = false;  // passe à false en prod
+
+
+
+function storagePublicUrl(key){
+  if (!key) return null;
+  const { data } = window.supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
+  return data?.publicUrl ?? null;
+}
+
+// Nettoyage minimal + conversion vers "clé" interne du bucket
+function toBucketKey(value){
+  if (value == null) return null;
+
+  // Si Postgres a renvoyé un text[] => on prend le 1er élément non vide
+  if (Array.isArray(value)) {
+    for (const v of value) {
+      const k = toBucketKey(v);
+      if (k) return k;
+    }
+    return null;
+  }
+
+  let s = String(value)
+    .replace(/\u200B|\u200C|\u200D|\uFEFF/g, '')  // zero-width
+    .trim()
+    .replace(/^"+|"+$/g, '')                      // "xx"
+    .replace(/^'+|'+$/g, '');                     // 'xx'
+  if (!s) return null;
+
+  // text[] sérialisé "{a,b}" → "a"
+  if (s[0] === '{' && s[s.length-1] === '}'){
+    s = s.slice(1,-1).split(',')
+         .map(x => x.replace(/^"+|"+$/g,'').trim())
+         .find(Boolean) || '';
+  }
+  if (!s) return null;
+
+  // On NE GARDE PAS les URLs http(s) → on force l’usage du bucket
+  // On enlève les slashes de tête et tout préfixe "photos_biens/"
+  s = s.replace(/^\/+/, '');
+  const bucketRe = new RegExp(`^(?:${STORAGE_BUCKET}\\/)+`, 'i');
+  s = s.replace(bucketRe, '');
+
+  if (DEBUG_IMAGES) console.log('[bucket:key]', value, '=>', s);
+  return s || null;
+}
+
+// value → URL publique du bucket (ou null)
+function toPublicUrlFromBucket(value){
+  const key = toBucketKey(value);
+  return key ? storagePublicUrl(key) : null;
+}
+
+
 
 /* ======== HELPERS ======== */
 const num = (v) => {
@@ -30,12 +86,64 @@ const currencyAED = (n) => {
 };
 
 
-  
 function storagePublicUrl(path){
   if (!path) return null;
   const { data } = window.supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-  return data?.publicUrl || null;
+  return data?.publicUrl ?? null;
 }
+
+// Nettoie les bizarreries fréquentes (espaces invisibles, guillemets, etc.)
+function cleanString(s){
+  return String(s)
+    .replace(/\u200B|\u200C|\u200D|\uFEFF/g, '')   // zero-width & BOM
+    .replace(/^\s+|\s+$/g, '')                    // trim normal
+    .replace(/^"+|"+$/g, '')                      // guillemets entourant
+    .replace(/^'+|'+$/g, '');                     // apostrophes entourant
+}
+
+// Chemin -> URL publique (gère string, text[], {"..."}), ou garde http(s)
+function toPublicUrl(value){
+  if (value == null) return null;
+
+  // Postgres text[] déjà parsé en JS
+  if (Array.isArray(value)){
+    for (const v of value){
+      const u = toPublicUrl(v);
+      if (u) return u;
+    }
+    return null;
+  }
+
+  let s = cleanString(value);
+  if (!s) return null;
+
+  // text[] sérialisé: "{a,b}" -> on garde le 1er non vide
+  if (s[0] === '{' && s[s.length-1] === '}'){
+    const first = s.slice(1,-1).split(',')
+      .map(x => cleanString(x.replace(/^"(.*)"$/, '$1')))
+      .find(Boolean);
+    s = first || '';
+  }
+  if (!s) return null;
+
+  // Déjà URL absolue
+  if (/^https?:\/\//i.test(s)) return s;
+
+  // Enlève slashes de tête + tout préfixe "bucket/" répété
+  s = s.replace(/^\/+/, '');
+  const bucketRe = new RegExp(`^(?:${STORAGE_BUCKET}\\/)+`, 'i');
+  s = s.replace(bucketRe, '');   // "photos_biens/biens2.jpg" -> "biens2.jpg"
+
+  const url = storagePublicUrl(s);
+  if (DEBUG_IMAGES){
+    console.log('[img] raw=', value, '| cleaned=', s, '| url=', url);
+  }
+  return url;
+}
+
+
+
+
 
 
 /* ======== DÉTECTION DES COLONNES (exacte + fallback léger) ======== */
@@ -49,16 +157,16 @@ async function detectColumns(table){
   return {
     id:           pick("id","uuid"),
 
-    // D’APRÈS TES CAPTURES
     title:        pick("titre","title","name"),
     location:     pick("localisation","location"),
 
     status:       pick("project status","status","project_status"),
-    handover:     pick("handover estimated","handover"),
-    price:        pick("price starting","price"),
+    handover:     pick("handover estimated","handover","handover_estimated"),
+    price:        pick("price starting","price","price_starting"),
 
-    dev:          pick("developer name","developer"),
-    logoUrl:      pick("developer photo_url","developer_logo","logo_url"),
+    dev:          pick("developer name","developer","developer_name"),
+    // ⬇️ ajout du nom correct avec underscore
+    logoUrl:      pick("developer_photo_url","developer photo_url","developer_logo","logo_url"),
 
     imageUrl:     pick("photo_url","image_url","cover_url"),
     brochureUrl:  pick("brochure_url"),
@@ -67,13 +175,14 @@ async function detectColumns(table){
     desc:         pick("description","summary"),
 
     type:         pick("units types","unit_types","unit_type","property_type"),
-    rooms:        pick("rooms","bedrooms","br"),     // pas dans ta table → restera vide
-    bathrooms:    pick("bathrooms","baths","ba"),    // pas dans ta table → restera vide
+    rooms:        pick("rooms","bedrooms","br"),
+    bathrooms:    pick("bathrooms","baths","ba"),
 
     lat:          pick("lat","latitude"),
     lon:          pick("lon","lng","longitude"),
   };
 }
+
 
 
 
@@ -89,14 +198,84 @@ async function waitForSupabase(timeout=8000){
 }
 
 
-
-/* ======== MAPPING DB -> format UI attendu ======== */
 function mapRow(row, COL){
   const priceNum = num(row[COL.price]);
-  const img  = row[COL.imageUrl] || row[COL.logoUrl] || "styles/photo/dubai-map.jpg";
-  const logo = row[COL.logoUrl] || img;
 
-  // statut : label = texte DB, phase = couleur
+  // --- helpers locaux : ne touchent pas le reste du fichier ---
+  const parseCandidates = (val) => {
+    if (val == null) return [];
+    if (Array.isArray(val)) return val;
+    let s = String(val).replace(/[\u200B-\u200D\uFEFF\u00A0]/g, "").trim(); // invisibles
+    if (!s) return [];
+    if (s[0]==="{" && s[s.length-1]==="}") return s.slice(1,-1).split(",");
+    if (s[0]==="[" && s[s.length-1]==="]") {
+      try { return JSON.parse(s); } catch { return [s]; }
+    }
+    return s.split(/[\n,;|]/);
+  };
+  const normKey = (k) => {
+    let key = String(k).trim().replace(/^["']+|["']+$/g, "");
+    if (!key) return "";
+    // si c’est déjà une URL publique supabase -> on ne garde que la clé après le bucket
+    key = key.replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/[^/]+\//i, "");
+    key = key.replace(/^\/+/, "");
+    key = key.replace(new RegExp(`^(?:${STORAGE_BUCKET}\\/)+`, "i"), "");
+    return key;
+  };
+  const publicFromBucketKey = (key) => {
+    if (!key) return null;
+    const { data } = window.supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
+    return data?.publicUrl || null;
+  };
+
+  // --- Résolution des médias ---
+  // 1) PHOTO: on privilégie *toujours* une clé du bucket; si rien -> fallback sur http
+  const resolvePhoto = (val) => {
+    const cand = parseCandidates(val);
+    // a) clés du bucket d’abord
+    for (const c of cand) {
+      const s = String(c).trim();
+      if (!/^https?:\/\//i.test(s)) {
+        const url = publicFromBucketKey(normKey(s));
+        if (url) return url;
+      }
+      if (/\/storage\/v1\/object\/public\//i.test(s)) {
+        const url = publicFromBucketKey(normKey(s));
+        if (url) return url;
+      }
+    }
+    // b) sinon 1er http(s) valable
+    for (const c of cand) {
+      const s = String(c).trim().replace(/^["']+|["']+$/g, "");
+      if (/^https?:\/\//i.test(s)) return s;
+    }
+    return null;
+  };
+
+  // 2) LOGO: on garde http d’abord (tu n’as pas de logos dans le bucket), puis bucket si fourni
+  const resolveLogo = (val) => {
+    const cand = parseCandidates(val);
+    for (const c of cand) {
+      const s = String(c).trim().replace(/^["']+|["']+$/g, "");
+      if (/^https?:\/\//i.test(s)) return s; // http prioritaire pour logo
+    }
+    for (const c of cand) {
+      const url = publicFromBucketKey(normKey(c));
+      if (url) return url;
+    }
+    return null;
+  };
+
+  const rawPhoto = row.photo_url ?? row[COL.imageUrl];
+  const rawLogo  = row.developer_photo_url ?? row[COL.logoUrl];
+
+  const mainImg = resolvePhoto(rawPhoto);
+  const logoImg = resolveLogo(rawLogo);
+
+  const img  = mainImg || logoImg || "styles/photo/dubai-map.jpg";
+  const logo = logoImg || img;
+
+  // ---- Statut / handover ----
   const statusRaw   = String(row[COL.status] ?? "").trim();
   const handoverStr = String(row[COL.handover] ?? "").trim();
   const statusPhase =
@@ -105,36 +284,49 @@ function mapRow(row, COL){
     /\bQ[1-4]\s*20\d{2}\b/i.test(handoverStr)  ? "handover" : "launch";
   const statusLabel = statusRaw || (statusPhase === "handover" ? "Handover Soon" : "Launch Soon");
 
-  // bullets
-  let det = [];
+  // ---- Bullets ----
+  const details = [];
   if (row[COL.paymentPlan]) {
-    String(row[COL.paymentPlan]).split(/\s*[\n•;,;-]\s*/).map(s=>s.trim()).filter(Boolean).forEach(x=>det.push(x));
+    String(row[COL.paymentPlan]).split(/\s*[\n•;,;-]\s*/).map(s=>s.trim()).filter(Boolean).forEach(x=>details.push(x));
   }
-  if (priceNum != null && !det.some(d => /AED/i.test(d))) det.unshift(`From ${currencyAED(priceNum)}`);
-  if (row[COL.desc] && det.length < 3) {
-    String(row[COL.desc]).split(/\s*[\n•;,;-]\s*/).map(s=>s.trim()).filter(Boolean).slice(0, 3 - det.length).forEach(x=>det.push(x));
+  if (Number.isFinite(priceNum) && !details.some(d => /AED/i.test(d))) {
+    details.unshift(`From ${currencyAED(priceNum)}`);
+  }
+  if (row[COL.desc] && details.length < 3) {
+    String(row[COL.desc]).split(/\s*[\n•;,;-]\s*/).map(s=>s.trim()).filter(Boolean).slice(0, 3 - details.length).forEach(x=>details.push(x));
   }
 
+  // log ciblé pour vérifier bien1/bien2
+  console.log("[media]", row[COL.id], {
+    rawPhoto, resolvedImage: mainImg,
+    rawLogo,  resolvedLogo: logoImg
+  });
+
   return {
-    id:  row[COL.id],   
+    id:  row[COL.id],
     lat: Number(row[COL.lat]),
     lon: Number(row[COL.lon]),
-    statusPhase,                 // pour la couleur (launch|handover)
-    statusLabel,                 // texte DB affiché
+    statusPhase,
+    statusLabel,
     titre: row[COL.title] || "Untitled",
     location: row[COL.location] || "",
     logo,
     image: img,
-    prix: priceNum != null ? currencyAED(priceNum) : "—",
+    prix: Number.isFinite(priceNum) ? currencyAED(priceNum) : "—",
     handover: handoverStr,
     dev: row[COL.dev] || "",
-    details: det,
+    details,
     rooms: row[COL.rooms] ?? "",
     bathrooms: row[COL.bathrooms] ?? "",
     type: row[COL.type] || "",
-    _priceNum: priceNum
+    _priceNum: Number.isFinite(priceNum) ? priceNum : null
   };
 }
+
+
+
+
+
 
 
 
@@ -233,6 +425,14 @@ async function loadProjectsFromSupabase(){
     console.warn("Aucune donnée off-plan trouvée (table vide, mauvais nom, ou RLS bloque la lecture).");
   }
   projets = data;
+  if (DEBUG_IMAGES){
+  projets.forEach(p => {
+    if (!p.image || /dubai-map\.jpg$/i.test(p.image)){
+      console.warn('[img-missing]', p.id, p.titre, 'image=', p.image, 'logo=', p.logo);
+    }
+  });
+}
+
   recomputePriceBounds();
   refreshDropdownOptions();
   applyAllFilters(); // synchronise la carte avec les filtres en l'état
