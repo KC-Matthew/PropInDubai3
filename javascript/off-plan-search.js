@@ -1,3 +1,75 @@
+// ====== STORAGE ======
+const STORAGE_BUCKET = "photos_biens";
+
+// URL publique depuis une clé du bucket
+function sbPublicUrl(key){
+  if (!key) return null;
+  const { data } = window.supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
+  return data?.publicUrl || null;
+}
+
+// "photo_url" peut contenir: array JS, "{a,b}", "[...]", lignes, "a,b; c|d"
+function parseCandidates(val){
+  if (val == null) return [];
+  if (Array.isArray(val)) return val;
+  let s = String(val).replace(/[\u200B-\u200D\uFEFF\u00A0]/g, "").trim(); // invisibles
+  if (!s) return [];
+  if (s[0]==="{" && s[s.length-1]==="}") return s.slice(1,-1).split(",");
+  if (s[0]==="[" && s[s.length-1]==="]") { try { return JSON.parse(s); } catch { return [s]; } }
+  return s.split(/[\n,;|]/);
+}
+
+// normalise une "clé" potentielle (retire url publique, bucket/, slashes et guillemets)
+function normKey(k){
+  let key = String(k || "").trim().replace(/^["']+|["']+$/g, "");
+  if (!key) return "";
+  // si l'utilisateur a collé une URL publique supabase -> on ne garde que la clé
+  key = key.replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/[^/]+\//i, "");
+  key = key.replace(/^\/+/, "");
+  key = key.replace(new RegExp(`^(?:${STORAGE_BUCKET}\\/)+`, "i"), "");
+  return key;
+}
+
+// PHOTO: priorité au bucket (clé ou URL publique supabase), puis fallback http(s)
+function resolvePhotoBucketFirst(val){
+  const cand = parseCandidates(val);
+
+  // a) clés/urls supabase d'abord
+  for (const c of cand){
+    const raw = String(c).trim();
+    if (!/^https?:\/\//i.test(raw) || /\/storage\/v1\/object\/public\//i.test(raw)){
+      const url = sbPublicUrl(normKey(raw));
+      if (url) return url;
+    }
+  }
+  // b) sinon 1er http(s)
+  for (const c of cand){
+    const s = String(c).trim().replace(/^["']+|["']+$/g, "");
+    if (/^https?:\/\//i.test(s)) return s;
+  }
+  return null;
+}
+
+// LOGO: http(s) d'abord (tes logos sont en externe), puis bucket si fourni
+function resolveLogoHttpFirst(val){
+  const cand = parseCandidates(val);
+  for (const c of cand){
+    const s = String(c).trim().replace(/^["']+|["']+$/g, "");
+    if (/^https?:\/\//i.test(s)) return s;
+  }
+  for (const c of cand){
+    const url = sbPublicUrl(normKey(c));
+    if (url) return url;
+  }
+  return null;
+}
+
+
+
+
+
+
+
 // --- Appliquer les filtres de l'URL à l'UI ---
 function applyURLFiltersToUI() {
   const p = new URLSearchParams(location.search);
@@ -169,10 +241,21 @@ async function detectColumns(table){
 }
 
 // Map 1 ligne DB -> format des cartes de listing
+// Map 1 ligne DB -> format des cartes de listing (avec résolution via bucket)
 function mapRowToCard(row, COL){
   const priceNum   = num(row[COL.price]);
   const statusRaw  = String(row[COL.status] ?? "").trim();
   const handover   = String(row[COL.handover] ?? "").trim();
+
+  // ---- médias (photo & logo) ----
+  const rawPhoto = row.photo_url ?? row[COL.imageUrl];             // colonne de ta table
+  const rawLogo  = row.developer_photo_url ?? row[COL.logoUrl];
+
+  const mainImg = resolvePhotoBucketFirst(rawPhoto);  // bucket prioritaire
+  const logoImg = resolveLogoHttpFirst(rawLogo);      // http prioritaire
+
+  const img  = mainImg || logoImg || "styles/photo/dubai-map.jpg";
+  const logo = logoImg || img;
 
   // phase + badge
   const phase = /handover|ready|complete/i.test(statusRaw) || /\bQ[1-4]\s*20\d{2}\b/i.test(handover)
@@ -182,15 +265,21 @@ function mapRowToCard(row, COL){
     color: phase === "handover" ? "orange" : "blue"
   };
 
-  // petit tag (prend 1er bout du payment plan ou le type)
+  // petit tag (1er bout du payment plan ou le type)
   let tag = "";
   if (row[COL.payment]) {
     tag = String(row[COL.payment]).split(/[\n•;,;-]+/).map(s=>s.trim()).filter(Boolean)[0] || "";
   }
   if (!tag && row[COL.type]) tag = String(row[COL.type]);
 
+  // log utile pour debug (tu peux le laisser)
+  console.log("[listing media]", row[COL.id], {
+    rawPhoto, resolvedImage: mainImg,
+    rawLogo,  resolvedLogo: logoImg
+  });
+
   return {
-    id:         row[COL.id],  
+    id:         row[COL.id],
     title:      row[COL.title]     || "Untitled",
     location:   row[COL.location]  || "",
     developer:  row[COL.dev]       || "",
@@ -201,12 +290,17 @@ function mapRowToCard(row, COL){
     price:      priceNum ?? 0,
     priceLabel: priceNum ? `From ${currencyAED(priceNum)}` : "",
     tag,
-    img:        row[COL.imageUrl] || row[COL.logoUrl] || "styles/photo/dubai-map.jpg",
+    // ↓↓↓ images normalisées
+    img,            // image principale pour la carte
+    image: img,     // alias pour tes fallback existants
+    logo,           // logo (si dispo)
+    logoUrl: logo,  // alias
     action:     "View Project",
     actionColor: badge.color,
     delivery:   handover
   };
 }
+
 
 // Récupération Supabase
 async function fetchOffplanForListing(){
