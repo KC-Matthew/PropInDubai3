@@ -1,3 +1,68 @@
+// ========= Helpers Bucket (communs) =========
+const STORAGE_BUCKET = window.STORAGE_BUCKET || "photos_biens";
+
+function normKey(s){
+  if (!s) return "";
+  let k = String(s).trim().replace(/^["']+|["']+$/g, "");
+  k = k.replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/[^/]+\//i, "");
+  k = k.replace(/^\/+/, "");
+  const re = new RegExp(`^(?:${STORAGE_BUCKET}\\/)+`, "i");
+  k = k.replace(re, "");
+  return k;
+}
+function sbPublicUrl(key){
+  if (!key) return null;
+  const { data } = window.supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
+  return data?.publicUrl || null;
+}
+function parseCandidates(val){
+  if (val == null) return [];
+  if (Array.isArray(val)) return val;
+  let s = String(val).replace(/\u200B|\u200C|\u200D|\uFEFF/g, "").trim();
+  if (!s) return [];
+  if (s[0]==="{" && s[s.length-1]==="}") return s.slice(1,-1).split(","); // postgres text[]
+  if (s[0]==="[" && s[s.length-1]==="]") { try { return JSON.parse(s); } catch { return [s]; } }
+  return s.split(/[\n,;|]+/); // CSV / multi-lignes
+}
+function resolveAllPhotosFromBucket(raw){
+  const out = [];
+  for (const c of parseCandidates(raw)){
+    if (c == null) continue;
+    const t = String(c).trim().replace(/^["']+|["']+$/g, "");
+    if (!t) continue;
+    // URL http externe -> garder tel quel
+    if (/^https?:\/\//i.test(t) && !/\/storage\/v1\/object\/public\//i.test(t)){
+      if (!out.includes(t)) out.push(t);
+      continue;
+    }
+    const key = normKey(t);
+    const url = key ? sbPublicUrl(key) : null;
+    if (url && !out.includes(url)) out.push(url);
+  }
+  return out;
+}
+function resolveOneFromBucket(raw){
+  const arr = resolveAllPhotosFromBucket(raw);
+  return arr[0] || null;
+}
+function resolveLogoAny(rawLogo){
+  const fromBucket = resolveOneFromBucket(rawLogo);
+  if (fromBucket) return fromBucket;
+  const s = String(rawLogo || "").trim();
+  return /^https?:\/\//i.test(s) ? s : null;
+}
+
+/* Petit helper pratique : si le bien a des photos on les prend,
+   sinon on retombe sur le logo d’agence, sinon un fallback. */
+function pickImagesForListing(rawPropertyPhotos, rawLogo){
+  const photos = resolveAllPhotosFromBucket(rawPropertyPhotos);
+  const logo   = resolveLogoAny(rawLogo);
+  if (photos.length) return photos;
+  if (logo) return [logo];
+  return ['styles/photo/dubai-map.jpg'];
+}
+
+
 
 // --- Appliquer les filtres de l'URL à l'UI ---
 function applyURLFiltersToUI() {
@@ -109,88 +174,111 @@ const waLink  = v => `https://wa.me/${String(v||"").replace(/[^\d+]/g,"")}`;
 /* =========================
    LOAD FROM DB (table: rent)
    ========================= */
+// ===========================
+// LOAD FROM DB (RENT + BUCKET)
+// ===========================
 async function loadRentFromDB(){
   const sb = window.supabase;
-  if(!sb){ console.error("Supabase client introuvable"); return []; }
+  if (!sb) { console.error("Supabase client introuvable (window.supabase)"); return []; }
 
-  // Agents
-  const { data: agents, error: e1 } = await sb
+  // -- Agents
+  const { data: agentRows, error: agentErr } = await sb
     .from('agent')
     .select('id,name,photo_agent_url,phone,email,whatsapp,agency_id,rating');
-  if(e1){ console.error(e1); return []; }
-  const agentsById = Object.fromEntries((agents||[]).map(a=>[a.id,a]));
+  if (agentErr) console.error(agentErr);
 
-  // Agencies
-  const { data: agencies, error: e2 } = await sb
+  // -- Agencies
+  const { data: agencyRows, error: agencyErr } = await sb
     .from('agency')
     .select('id,logo_url,address');
-  if(e2){ console.error(e2); }
-  const agenciesById = Object.fromEntries((agencies||[]).map(a=>[a.id,a]));
-  const getAgencyForAgent = (agentId)=>{
+  if (agencyErr) console.error(agencyErr);
+
+  // Résolution via bucket
+  const agentsById = Object.fromEntries(
+    (agentRows || []).map(a => [a.id, {
+      ...a,
+      photo_agent_url_resolved: resolveOneFromBucket(a.photo_agent_url) || a.photo_agent_url || ""
+    }])
+  );
+  const agenciesById = Object.fromEntries(
+    (agencyRows || []).map(a => [a.id, {
+      ...a,
+      logo_url_resolved: resolveLogoAny(a.logo_url) || ""
+    }])
+  );
+  const getAgencyForAgent = (agentId) => {
     const ag = agentsById[agentId];
     return ag ? agenciesById[ag.agency_id] : undefined;
   };
 
-  // Biens à LOUER (SELECT inchangé pour ne rien casser)
-  const { data: rows, error: e3 } = await sb
-    .from('rent')
-    .select('id,created_at,title,property_type,bedrooms,bathrooms,price,sqft,photo_url,agent_id');
-  if(e3){ console.error(e3); return []; }
+  // -- Biens à louer (sélection robuste de la localisation personnalisée)
+  let rows = [];
+  let req = await sb.from('rent')
+    .select('id,created_at,title,property_type,bedrooms,bathrooms,price,sqft,photo_url,agent_id,"localisation accueil"');
 
-  // Récupération séparée de "localisation accueil" (safe)
-  let locById = {};
-  // 1er essai : orthographe "accueil"
-  let locReq = await sb.from('rent').select('id,"localisation accueil"');
-  if(locReq.error){
-    console.warn('Colonne "localisation accueil" introuvable, essai avec "localisation acceuil"...');
-    // 2e essai : "acceuil"
-    locReq = await sb.from('rent').select('id,"localisation acceuil"');
-  }
-  if(!locReq.error && Array.isArray(locReq.data)){
-    locById = Object.fromEntries(
-      locReq.data.map(r => [
-        r.id,
-        // supporte les deux noms
-        r['localisation accueil'] || r['localisation acceuil'] || ''
-      ])
-    );
-  } else if(locReq.error){
-    console.warn('Impossible de lire la localisation custom :', locReq.error);
+  if (req.error) {
+    // essai avec l’orthographe "acceuil"
+    req = await sb.from('rent')
+      .select('id,created_at,title,property_type,bedrooms,bathrooms,price,sqft,photo_url,agent_id,"localisation acceuil"');
+
+    if (req.error) {
+      console.warn('Localisation personnalisée introuvable, lecture sans cette colonne :', req.error);
+      const fallback = await sb.from('rent')
+        .select('id,created_at,title,property_type,bedrooms,bathrooms,price,sqft,photo_url,agent_id');
+      if (fallback.error) { console.error(fallback.error); return []; }
+      rows = fallback.data || [];
+    } else {
+      rows = req.data || [];
+    }
+  } else {
+    rows = req.data || [];
   }
 
-  // Map -> format UI
-  return (rows||[]).map(r=>{
-    const ag = agentsById[r.agent_id] || {};
+  // -- Mapping vers format UI
+  return rows.map(r => {
+    const ag     = agentsById[r.agent_id] || {};
     const agency = getAgencyForAgent(r.agent_id) || {};
-    const images = [];
-    if(r.photo_url) images.push(r.photo_url);
-    if(agency?.logo_url) images.push(agency.logo_url);
+    const ptype  = r.property_type || 'Unknown';
 
-    const localisationAccueil = locById[r.id] || '';
+    // Photos du bien depuis le bucket (CSV / JSON / text[] / URL publique supabase acceptés)
+    const propertyPhotos = resolveAllPhotosFromBucket(r.photo_url);
+    const logo           = agency?.logo_url_resolved || "";
+
+    // 👉 si on a des photos du bien, on les garde seules; sinon on tombe sur le logo; sinon fallback
+    const images = propertyPhotos.length
+      ? propertyPhotos
+      : (logo ? [logo] : ['styles/photo/dubai-map.jpg']);
+
+    // Avatar agent via bucket (ou http), sinon vide
+    const avatar = ag.photo_agent_url_resolved || resolveOneFromBucket(ag.photo_agent_url) || "";
+
+    // Localisation perso prioritaire (deux orthographes supportées)
+    const localisationAccueil = r['localisation accueil'] || r['localisation acceuil'] || '';
 
     return {
-      title: r.property_type || "Unknown",
-      listingTitle: r.title || "",
-      price: Number(r.price)||0,
-      // 👇 priorité à la localisation personnalisée, sinon adresse d’agence
+      title: ptype,                 // (type: Apartment / Villa…)
+      listingTitle: r.title || "",  // titre d’annonce
+      price: Number(r.price) || 0,
       location: localisationAccueil || agency?.address || "",
-      bedrooms: Number(r.bedrooms)||0,
-      bathrooms: Number(r.bathrooms)||0,
-      size: Number(r.sqft)||0,
-      images,
+      bedrooms: Number(r.bedrooms) || 0,
+      bathrooms: Number(r.bathrooms) || 0,
+      size: Number(r.sqft) || 0,
+      images,                       // ← tableau prêt pour le carrousel (1..n)
       agent: {
         name: ag.name || "",
-        avatar: ag.photo_agent_url || "",
+        avatar,
         phone: ag.phone || "",
         email: ag.email || "",
         whatsapp: ag.whatsapp || "",
         rating: ag.rating ?? null
       },
       _id: r.id,
+      _table: 'rent',
       _created_at: r.created_at
     };
   });
 }
+
 
 
 /* ================
