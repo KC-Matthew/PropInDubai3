@@ -1,3 +1,60 @@
+// ========= Helpers Bucket (communs) =========
+const STORAGE_BUCKET = window.STORAGE_BUCKET || "photos_biens";
+
+function normKey(s){
+  if (!s) return "";
+  let k = String(s).trim().replace(/^["']+|["']+$/g, "");
+  // si URL publique Supabase -> ne garder que la clé objet
+  k = k.replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/[^/]+\//i, "");
+  k = k.replace(/^\/+/, "");                         // enlève / de tête
+  const re = new RegExp(`^(?:${STORAGE_BUCKET}\\/)+`, "i");
+  k = k.replace(re, "");                              // enlève préfixes bucket répétés
+  return k;
+}
+function sbPublicUrl(key){
+  if (!key) return null;
+  const { data } = window.supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
+  return data?.publicUrl || null;
+}
+function parseCandidates(val){
+  if (val == null) return [];
+  if (Array.isArray(val)) return val;
+  let s = String(val).replace(/\u200B|\u200C|\u200D|\uFEFF/g, "").trim();
+  if (!s) return [];
+  if (s[0]==="{" && s[s.length-1]==="}") return s.slice(1,-1).split(","); // postgres text[]
+  if (s[0]==="[" && s[s.length-1]==="]"){ try { return JSON.parse(s); } catch { return [s]; } } // JSON array
+  return s.split(/[\n,;|]+/);                                               // CSV / multi-lignes
+}
+function resolveAllPhotosFromBucket(raw){
+  const out = [];
+  for (const c of parseCandidates(raw)){
+    if (c == null) continue;
+    const t = String(c).trim().replace(/^["']+|["']+$/g, "");
+    if (!t) continue;
+    // http externe (WordPress, etc.) -> garder tel quel
+    if (/^https?:\/\//i.test(t) && !/\/storage\/v1\/object\/public\//i.test(t)){
+      if (!out.includes(t)) out.push(t);
+      continue;
+    }
+    const key = normKey(t);
+    const url = key ? sbPublicUrl(key) : null;
+    if (url && !out.includes(url)) out.push(url);
+  }
+  return out;
+}
+function resolveOneFromBucket(raw){
+  const arr = resolveAllPhotosFromBucket(raw);
+  return arr[0] || null;
+}
+function resolveLogoAny(rawLogo){
+  const fromBucket = resolveOneFromBucket(rawLogo);
+  if (fromBucket) return fromBucket;
+  const s = String(rawLogo || "").trim();
+  return /^https?:\/\//i.test(s) ? s : null;
+}
+
+
+
 // javascript/findagent.js — même rendu que la démo, via Supabase (tables: agent, agency)
 
 /* ========== Utils ========== */
@@ -55,7 +112,7 @@ async function detectAgentCols(){
     agency_id:    pickFrom(s, "agency_id","agency","agence_id"),
     about:        pickFrom(s, "about agent","about_agent","about"),
 
-    // Champs "démo" (optionnels)
+    // (optionnels pour vos KPIs)
     price_range:  pickFrom(s, "priceRange","price_range","price range"),
     price_min:    pickFrom(s, "price_min","min_price","price min"),
     price_max:    pickFrom(s, "price_max","max_price","price max"),
@@ -69,6 +126,7 @@ async function detectAgentCols(){
   };
 }
 
+
 async function detectAgencyCols(){
   const { data, error } = await window.supabase.from("agency").select("*").limit(1);
   if (error) throw error;
@@ -79,9 +137,10 @@ async function detectAgencyCols(){
     logo_url: pickFrom(s, "logo_url","logo","photo_url"),
     about:    pickFrom(s, "about the agency","about","description"),
     address:  pickFrom(s, "address","addr","location"),
-    total_sales: pickFrom(s, "totalSales","total_sales","total sales"), // optionnel
+    total_sales: pickFrom(s, "totalSales","total_sales","total sales"),
   };
 }
+
 
 /* ========== Fetch + mapping ========== */
 async function fetchData(){
@@ -93,7 +152,7 @@ async function fetchData(){
   if (e1) throw e1;
   aRows = aRows || [];
 
-  // Agencies (celles référencées + un peu de rab pour l’onglet companies)
+  // Agencies (celles référencées + fallback)
   const agencyIds = [...new Set(aRows.map(a => a[AGCOL.agency_id]).filter(Boolean))];
   let { data: cRows, error: e2 } = agencyIds.length
     ? await window.supabase.from("agency").select("*").in(ACCOL.id || "id", agencyIds)
@@ -107,8 +166,10 @@ async function fetchData(){
     const agency = agencyById.get(r[AGCOL.agency_id]) || {};
     const langs = AGCOL.languages ? parseList(r[AGCOL.languages]) : [];
     const servs = AGCOL.services ? parseList(r[AGCOL.services]) : [];
-    // price range: priorité à la chaîne, sinon min/max
-    let priceRange = clean(AGCOL.price_range ? r[AGCOL.price_range] : "");
+
+    // price range
+    let priceRange = "";
+    if (AGCOL.price_range) priceRange = (r[AGCOL.price_range] ?? "").toString().trim();
     if (!priceRange && (AGCOL.price_min || AGCOL.price_max)) {
       const lo = AGCOL.price_min ? toNum(r[AGCOL.price_min], NaN) : NaN;
       const hi = AGCOL.price_max ? toNum(r[AGCOL.price_max], NaN) : NaN;
@@ -120,21 +181,25 @@ async function fetchData(){
 
     const ratingVal = AGCOL.rating ? toNum(r[AGCOL.rating], NaN) : NaN;
 
+    // ✅ PHOTO via Bucket (agent d’abord, sinon logo d’agence, sinon fallback)
+    const agentPhoto =
+      resolveOneFromBucket(r[AGCOL.photo_url]) ||
+      resolveLogoAny(ACCOL.logo_url ? agency?.[ACCOL.logo_url] : "") ||
+      FALLBACK_IMG;
+
     return {
-      // rendu démo
       name: clean(r[AGCOL.name]),
-      company: clean(agency?.[ACCOL.name] || ""),
+      company: clean(ACCOL.name && agency?.[ACCOL.name] ? agency[ACCOL.name] : ""),
       priceRange,
       sales12m: toNum(AGCOL.sales12m ? r[AGCOL.sales12m] : null, 0),
       totalSales: toNum(AGCOL.total_sales ? r[AGCOL.total_sales] : null, 0),
-      photo: clean(r[AGCOL.photo_url]) || clean(agency?.[ACCOL.logo_url]) || FALLBACK_IMG,
+      photo: agentPhoto,
       nationality: clean(AGCOL.nationality ? r[AGCOL.nationality] : ""),
       languages: langs,
       rating: Number.isFinite(ratingVal) ? (Math.round(ratingVal*10)/10) : "—",
       superagent: AGCOL.superagent ? toBool(r[AGCOL.superagent]) : false,
       services: servs,
 
-      // navigation
       _id: r[AGCOL.id],
       _agency_id: r[AGCOL.agency_id] || null,
     };
@@ -148,15 +213,17 @@ async function fetchData(){
   });
 
   const COMPANIES = cRows.map(r => ({
-    name: clean(r[ACCOL.name]),
+    name: clean(ACCOL.name ? r[ACCOL.name] : ""),
     agents: countByAgency[r[ACCOL.id]] || 0,
     totalSales: toNum(ACCOL.total_sales ? r[ACCOL.total_sales] : null, 0),
-    photo: clean(r[ACCOL.logo_url]) || FALLBACK_IMG,
+    // ✅ LOGO via Bucket (logo agence → URL publique)
+    photo: resolveLogoAny(ACCOL.logo_url ? r[ACCOL.logo_url] : "") || FALLBACK_IMG,
     _id: r[ACCOL.id],
   }));
 
   return { AGENTS, COMPANIES };
 }
+  
 
 /* ========== État & DOM ========== */
 let MODE = "agent";
@@ -375,4 +442,3 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!buyDropdown.contains(e.target)) buyDropdown.classList.remove('open');
   });
 });
-
