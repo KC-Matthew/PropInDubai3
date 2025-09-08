@@ -1,19 +1,107 @@
 /* off-plan-map.js — data 100% depuis Supabase, UI inchangée */
+function detailHref(projet){
+  const url = new URL('off-plan-click.html', location.href);
+  if (projet?.id != null) url.searchParams.set('id', String(projet.id));
+  if (projet?.titre)   url.searchParams.set('project', String(projet.titre));
+  return url.toString();
+}
 
 /* ======== ÉTATS / GLOBALES ======== */
 let projets = [];                    // remplace l'ancien tableau d'exemples
 let filteredProjets = [];
 let globalMinPrice = 500000, globalMaxPrice = 20000000, PRICE_STEP = 10000;
 let windowSelectedMinPrice = globalMinPrice, windowSelectedMaxPrice = globalMaxPrice;
-let leafletMarkers = [];
-let map; // Leaflet
-let priceSlider = null;
+
+let priceSlider = null; // <-- ajoute ça en haut avec les autres let
+
+let gmap;                     // Google Map
+let gmarkers = [];            // AdvancedMarkerElement[]
+let infoWindow = null;        // une seule InfoWindow réutilisée
+
+// mémoire pour popups (évite le “flash”)
+const OPEN_INFO = { id: null, html: "", marker: null };
+
+// ferme-pas-la-popup à cause du clic carte hérité
+let canCloseByMap = true;
+
+// overlay pour conversions pixels <-> latLng (sert au pan offseté smooth)
+let _overlay = null;
 
 
 /* ======== CONFIG SOURCE ======== */
 const OFFPLAN_TABLES = ["offplan"];
 const STORAGE_BUCKET = "photos_biens";
 const DEBUG_IMAGES = false;  // passe à false en prod
+
+
+function ensureOverlay() {
+  if (_overlay) return _overlay;
+  const Ov = function(){};
+  Ov.prototype = new google.maps.OverlayView();
+  Ov.prototype.onAdd = function(){};
+  Ov.prototype.onRemove = function(){};
+  Ov.prototype.draw = function(){};
+  _overlay = new Ov();
+  _overlay.setMap(gmap);
+  return _overlay;
+}
+
+function panToWithOffset(latLng, offsetX, offsetY) {
+  if (!gmap || !latLng) return;
+  const ov = ensureOverlay();
+  const proj = ov.getProjection();
+  if (!proj) { setTimeout(() => gmap.panTo(latLng), 0); return; }
+  const pt = proj.fromLatLngToDivPixel(latLng);
+  pt.x += offsetX;  // + = droite
+  pt.y += offsetY;  // + = bas
+  const target = proj.fromDivPixelToLatLng(pt);
+  gmap.panTo(target); // ✅ une seule anim
+}
+
+function panToMarkerSmooth(marker) {
+  const pos = marker.position;
+  if (!pos) return;
+  gmap.panTo(pos); // pas d’offset ici, l’ajustement se fera après rendu du popup
+}
+
+
+
+function desiredTopGap(){           // marge voulue
+  return window.innerWidth < 701 ? 100 : 50;
+}
+
+// élément du popup (selon versions de Google Maps)
+function getIwEl(){
+  const root = gmap?.getDiv?.();
+  return root?.querySelector('.gm-style-iw-d')
+      || root?.querySelector('.gm-style-iw')
+      || document.querySelector('.gm-style-iw-d')
+      || document.querySelector('.gm-style-iw');
+}
+
+// boucle d’ajustement : mesure -> panBy -> attend 'idle' -> re-mesure
+function nudgePopupTop(targetGap = desiredTopGap(), tries = 6){
+  const iw = getIwEl();
+  if (!iw || !gmap) return;
+  const mapRect = gmap.getDiv().getBoundingClientRect();
+  const r = iw.getBoundingClientRect();
+  const current = r.top - mapRect.top;          // marge actuelle
+  const delta   = Math.round(targetGap - current);
+  if (Math.abs(delta) <= 1 || tries <= 0) return;
+
+  gmap.panBy(0, delta);
+  google.maps.event.addListenerOnce(gmap, 'idle', () => nudgePopupTop(targetGap, tries - 1));
+}
+
+function panToMarkerSmooth(marker){
+  const pos = marker.position;
+  if (!pos) return;
+  gmap.panTo(pos);
+}
+
+
+
+
 
 
 
@@ -332,6 +420,7 @@ function mapRow(row, COL){
 
 
 
+
 /* ======== FETCH MULTI-TABLE (avec fallback) ======== */
 async function fetchOffplanData(){
   for (const table of OFFPLAN_TABLES){
@@ -450,11 +539,10 @@ function createPromoteurMarker(projet) {
       <img src="${projet.logo}" class="promoteur-marker-logo" alt="logo"/>
       <div class="promoteur-marker-title small">${projet.dev}</div>
       ${badge}
-      <div class="promoteur-marker-arrow">
-        <svg width="33" height="14" viewBox="0 0 33 14" fill="none"><polygon points="16.5,14 0,0 33,0" fill="#fff"/></svg>
-      </div>
+      <span class="promoteur-marker-pin"></span>
     </div>`;
 }
+
 
 
 
@@ -493,21 +581,103 @@ function applyAllFilters() {
 
 
 function updateMapMarkers() {
-  leafletMarkers.forEach(m => map.removeLayer(m));
-  leafletMarkers = [];
-  filteredProjets.forEach(projet => {
-    const icon = L.divIcon({
-      className: '',
-      html: createPromoteurMarker(projet),
-      iconSize: [100, 85],
-      iconAnchor: [50, 77],
-      popupAnchor: [0, -80]
-    });
-    const marker = L.marker([projet.lat, projet.lon], { icon }).addTo(map);
-    marker.on('click', (e) => showProjectPopup(projet, e.latlng));
-    leafletMarkers.push(marker);
+  // clear
+  gmarkers.forEach(m => { try { m.setMap && m.setMap(null); } catch{} });
+  gmarkers = [];
+
+  const hasAdvanced = !!(google.maps.marker && google.maps.marker.AdvancedMarkerElement);
+
+  // helper: OverlayView HTML quand la lib 'marker' n'est pas dispo
+  function makeHtmlOverlay(position, html, onClick) {
+    class HtmlMarker extends google.maps.OverlayView {
+      constructor(pos, html, onClick) { super(); this.position = pos; this.html = html; this.onClick = onClick; this._div = null; }
+      onAdd() {
+        this._div = document.createElement('div');
+        this._div.className = 'gm-card-pin';
+        this._div.innerHTML = this.html;
+        this._div.style.position = 'absolute';
+        this._div.style.transform = 'translate(-50%, -100%)'; // ancre en bas-centre
+        this._div.style.cursor = 'pointer';
+        if (this.onClick) this._div.addEventListener('click', this.onClick);
+        this.getPanes().overlayMouseTarget.appendChild(this._div);
+      }
+      draw() {
+        const proj = this.getProjection();
+        if (!proj || !this._div) return;
+        const p = proj.fromLatLngToDivPixel(this.position);
+        this._div.style.left = p.x + 'px';
+        this._div.style.top  = p.y + 'px';
+      }
+      onRemove() { if (this._div) { this._div.remove(); this._div = null; } }
+    }
+    return new HtmlMarker(position, html, onClick);
+  }
+
+  filteredProjets.forEach((projet) => {
+    const pos = { lat: projet.lat, lng: projet.lon };
+    let marker;
+
+    if (hasAdvanced) {
+      // --- Carte blanche custom (photo + Launch/Handover + promoteur)
+      const wrapper = document.createElement('div');
+      wrapper.className = 'gm-card-pin';
+      wrapper.innerHTML = createPromoteurMarker(projet);
+
+      marker = new google.maps.marker.AdvancedMarkerElement({
+        map: gmap,
+        position: pos,
+        content: wrapper,
+        gmpClickable: true,
+        collisionBehavior: google.maps.CollisionBehavior.REQUIRED,
+        zIndex: Math.round(pos.lat * 1e6)
+      });
+
+      marker.addListener('click', () => {
+        canCloseByMap = false;
+        panToMarkerSmooth(marker);
+        showProjectPopup(projet, marker); // ancré au marker
+        setTimeout(() => { canCloseByMap = true; }, 160);
+      });
+    } else {
+      // --- Fallback: OverlayView HTML (aucune goutte non plus)
+      const onClick = () => {
+        canCloseByMap = false;
+        const dy = window.innerWidth < 701 ? -160 : -110;
+        panToWithOffset(new google.maps.LatLng(pos), 0, dy);
+        showProjectPopup(projet, pos); // on passe la position (pas d'ancre)
+        setTimeout(() => { canCloseByMap = true; }, 160);
+      };
+      marker = makeHtmlOverlay(pos, createPromoteurMarker(projet), onClick);
+      marker.setMap(gmap);
+      marker.__pos = pos; // pour réancrage popup
+    }
+
+    marker.__pid = projet.id;
+    gmarkers.push(marker);
   });
+
+  // si une popup était ouverte, on la ré-ancre proprement
+  if (OPEN_INFO.id) {
+    const mk = gmarkers.find(m => m.__pid === OPEN_INFO.id);
+    if (mk) {
+      if (infoWindow.getContent() !== OPEN_INFO.html) infoWindow.setContent(OPEN_INFO.html);
+      if (mk.position) {
+        // AdvancedMarker -> on ancre
+        infoWindow.open({ anchor: mk, map: gmap });
+        OPEN_INFO.marker = mk;
+      } else if (mk.__pos) {
+        // Overlay fallback -> on positionne
+        infoWindow.setPosition(mk.__pos);
+        infoWindow.open({ map: gmap });
+        OPEN_INFO.marker = null;
+      }
+    }
+  }
 }
+
+
+
+
 
 /* ======== POPUP PRIX & HISTO ======== */
 function fmt(n) { return Number(n).toLocaleString('en-US'); }
@@ -617,62 +787,103 @@ function drawPriceHistogram(min, max, [sliderMin, sliderMax]=[min,max]) {
 }
 
 /* ======== POPUP LEAFLET (zone cliquable -> fiche) ======== */
-function showProjectPopup(projet, latlng) {
-  const popupContent = `
-    <div style="width:250px;min-width:180px;padding-bottom:7px;box-shadow:0 4px 18px 0 rgba(32,32,32,0.14);border-radius:14px;background:#fff;overflow:hidden;position:relative;">
-      <button class="popup-close" title="Fermer" onclick="closeLeafletPopup()" style="position:absolute;top:7px;left:8px;border:none;background:#fff;font-size:1.13rem;border-radius:8px;width:30px;height:30px;box-shadow:0 1px 8px #0001;cursor:pointer;z-index:3;">&times;</button>
-      <div class="popup-clickable" role="button" tabindex="0" style="cursor:pointer;outline:none;">
-        <div style="height:93px;overflow:hidden;">
-          <img src="${projet.image || projet.logo}" style="width:100%;height:93px;object-fit:cover;"
-               onerror="this.onerror=null;this.src='styles/photo/dubai-map.jpg';" alt="${projet.titre || 'Project'}">
+function showProjectPopup(projet, markerOrLatLng) {
+
+const href = detailHref(projet);
+
+const html = `
+  <a class="offplan-iw-card popup-clickable"
+     href="${href}"
+     style="width:290px;display:block;color:inherit;text-decoration:none;cursor:pointer;">
+
+    <div class="offplan-iw-hero">
+      <img src="${projet.image || projet.logo}"
+           onerror="this.onerror=null;this.src='styles/photo/dubai-map.jpg';"
+           alt="${projet.titre || 'Project'}">
+    </div>
+
+    <div style="padding:10px 14px 0 14px;">
+      <div class="offplan-iw-body">
+        <div style="font-size:1.11rem;font-weight:700;margin-bottom:2px;">${projet.titre || ''}</div>
+        <div style="color:#999;font-size:1rem;margin-bottom:5px;">
+          <img src="https://img.icons8.com/ios-filled/15/aaaaaa/marker.png" style="margin-bottom:-2px;opacity:.68;">
+          ${projet.location || ''}
         </div>
-        <div style="padding:10px 14px 0 14px;">
-          <div style="font-size:1.11rem;font-weight:700;margin-bottom:2px;">${projet.titre || ''}</div>
-          <div style="color:#999;font-size:1rem;margin-bottom:5px;">
-            <img src="https://img.icons8.com/ios-filled/15/aaaaaa/marker.png" style="margin-bottom:-2px;opacity:.68;">
-            ${projet.location || ''}
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
-            <span style="color:#ff9100;font-weight:700;font-size:1.08rem;">${projet.prix || '—'}</span>
-            <span style="font-weight:600;border-radius:9px;padding:2.5px 13px;font-size:.98rem;
-              background:${projet.statusPhase==='launch'?'#f6efff':'#fff6e0'};
-              color:${projet.statusPhase==='launch'?'#8429d3':'#ff9100'};">
-              ${projet.statusLabel || ''}
-            </span>
-          </div>
-          <div style="color:#757575;font-size:.99rem;margin-bottom:4px;">
-            <img src="https://img.icons8.com/ios-glyphs/16/aaaaaa/clock--v1.png" style="margin-bottom:-2px;opacity:.8;"> <b>${projet.handover || ''}</b>
-            &nbsp; <img src="https://img.icons8.com/ios-glyphs/16/aaaaaa/worker-male--v2.png" style="margin-bottom:-2px;opacity:.7;"> <b>${projet.dev || ''}</b>
-          </div>
-          ${(projet.details || []).map(d => `<div style="font-size:.98rem;color:#3d3d3d;">• ${d}</div>`).join('')}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+          <span style="color:#ff9100;font-weight:700;font-size:1.08rem;">${projet.prix || '—'}</span>
+          <span style="font-weight:600;border-radius:9px;padding:2.5px 13px;font-size:.98rem;
+            background:${projet.statusPhase==='launch'?'#f6efff':'#fff6e0'};
+            color:${projet.statusPhase==='launch'?'#8429d3':'#ff9100'};">
+            ${projet.statusLabel || ''}
+          </span>
         </div>
+        <div style="color:#757575;font-size:.99rem;margin-bottom:4px;">
+          <img src="https://img.icons8.com/ios-glyphs/16/aaaaaa/clock--v1.png" style="margin-bottom:-2px;opacity:.8;"> <b>${projet.handover || ''}</b>
+          &nbsp; <img src="https://img.icons8.com/ios-glyphs/16/aaaaaa/worker-male--v2.png" style="margin-bottom:-2px;opacity:.7;"> <b>${projet.dev || ''}</b>
+        </div>
+        ${(projet.details || []).map(d => `<div style="font-size:.98rem;color:#3d3d3d;">• ${d}</div>`).join('')}
       </div>
     </div>
-    <div style="left:50%;transform:translateX(-50%);bottom:-20px;position:absolute;">
-      <svg width="44" height="22" viewBox="0 0 44 22" fill="none"><polygon points="22,22 0,0 44,0" fill="#fff"/></svg>
-    </div>
-  `;
+  </a>
+`;
 
-  // Ferme l’ancien popup s’il existe
-  if (window._leafletCustomPopup) {
-    map.closePopup(window._leafletCustomPopup);
-    window._leafletCustomPopup = null;
+
+
+  // ne remets pas le même contenu si déjà correct
+  if (OPEN_INFO.html !== html) {
+    infoWindow.setContent(html);
   }
 
-  const leafletPopup = L.popup({
-    maxWidth: 290,
-    closeButton: false,
-    className: "leaflet-airbnb-popup",
-    autoPan: true,
-    offset: [0, -70]
-  }).setLatLng(latlng).setContent(popupContent).openOn(map);
+  // ouvre (ancre marker si dispo, sinon latLng)
+  if (markerOrLatLng?.position) {
+    infoWindow.open({ anchor: markerOrLatLng, map: gmap });
 
-  window._leafletCustomPopup = leafletPopup;
 
-  // Branche les events sur CE popup uniquement
+    google.maps.event.addListenerOnce(infoWindow, 'domready', () => {
+  // 1) premier ajustement après que le DOM du popup existe
+  nudgePopupTop();
+
+  // 2) si l’image change la hauteur, on réajuste
+  const iw = getIwEl();
+  const img = iw?.querySelector?.('.offplan-iw-hero img');
+  if (img && !img.complete) img.addEventListener('load', () => nudgePopupTop(), { once: true });
+
+  // 3) filet de sécurité (layout async)
+  setTimeout(() => nudgePopupTop(), 120);
+});
+
+// et si tu veux, encore un ajustement quand la carte a fini de recentrer
+google.maps.event.addListenerOnce(gmap, 'idle', () => nudgePopupTop());
+
+
+    google.maps.event.addListenerOnce(infoWindow, 'domready', () => {
+  // 1er réglage immédiat
+  setPopupTopGap();
+
+  // re-réglage après chargement de l’image (la hauteur change)
+  const iw = document.querySelector('.gm-style-iw') || document.querySelector('.gm-style-iw-d');
+  const img = iw?.querySelector?.('.offplan-iw-hero img');
+  if (img && !img.complete) img.addEventListener('load', () => setPopupTopGap(), { once: true });
+
+  // filet de sécurité (layout async)
+  setTimeout(() => setPopupTopGap(), 120);
+});
+
+    setTimeout(() => ensurePopupVisible(), 0);
+    OPEN_INFO.marker = markerOrLatLng;
+  } else if (markerOrLatLng?.lat && markerOrLatLng?.lng) {
+    infoWindow.setPosition(markerOrLatLng);
+    infoWindow.open({ map: gmap });
+    OPEN_INFO.marker = null;
+  }
+
+  OPEN_INFO.id = projet.id;
+  OPEN_INFO.html = html;
+
+  // branche le “click to detail” sur le DOM de l'InfoWindow
   setTimeout(() => {
-    const root = leafletPopup.getElement?.() || null;
-    const clickable = root ? root.querySelector('.popup-clickable') : null;
+    const iw = document.querySelector(".gm-style-iw") || document.body;
+    const clickable = iw.querySelector?.(".popup-clickable");
     if (!clickable) return;
 
     const goToDetail = (e) => {
@@ -687,8 +898,11 @@ function showProjectPopup(projet, latlng) {
     clickable.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goToDetail(e); }
     });
+
+    window.__closeOffplanIW = () => infoWindow.close();
   }, 0);
 }
+
 
 
 function closeLeafletPopup() {
@@ -698,11 +912,56 @@ function closeLeafletPopup() {
   }
 }
 
+function initOffplanMap() {
+  const el = document.getElementById('map');
+  if (!el) return;
+
+  gmap = new google.maps.Map(el, {
+    center: { lat: 25.2048, lng: 55.2708 },
+    zoom: 11,
+    mapTypeControl: false,
+    fullscreenControl: true,
+    streetViewControl: false,
+  });
+
+  infoWindow = new google.maps.InfoWindow({
+    shouldFocus: false,
+    disableAutoPan: true  // évite le micro “bump”
+  });
+
+  // clic à l’extérieur → ferme la popup (sauf clic hérité de marker)
+  gmap.addListener("click", () => {
+    if (!canCloseByMap) return;
+    if (infoWindow && infoWindow.getMap()) {
+      infoWindow.close();
+      OPEN_INFO.id = null; OPEN_INFO.html = ""; OPEN_INFO.marker = null;
+    }
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && infoWindow && infoWindow.getMap()) {
+      infoWindow.close();
+      OPEN_INFO.id = null; OPEN_INFO.html = ""; OPEN_INFO.marker = null;
+    }
+  });
+
+  ensureOverlay(); // pour le pan offset
+
+  // si on a déjà les données, on affiche; sinon updateMapMarkers sera appelé après load
+  if (filteredProjets.length) updateMapMarkers();
+}
+
+// expose pour le callback script
+window.initOffplanMap = initOffplanMap;
+// compat si le HTML appelle initMap
+window.initMap = initOffplanMap;
+
+
+
 /* ======== INIT GLOBAL (UI inchangée) ======== */
 document.addEventListener('DOMContentLoaded', async function () {
   // 1) Carte
-  map = L.map('map').setView([25.2048, 55.2708], 11);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
 
   // 2) Filtres
   document.getElementById('handoverFilter')    ?.addEventListener('change', applyAllFilters);
