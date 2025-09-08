@@ -1,4 +1,65 @@
+// ========= Helpers Bucket (communs) =========
+const STORAGE_BUCKET = window.STORAGE_BUCKET || "photos_biens";
+
+function normKey(s){
+  if (!s) return "";
+  let k = String(s).trim().replace(/^["']+|["']+$/g, "");
+  // si URL publique Supabase -> ne garder que la clé objet
+  k = k.replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/[^/]+\//i, "");
+  k = k.replace(/^\/+/, "");
+  const re = new RegExp(`^(?:${STORAGE_BUCKET}\\/)+`, "i");
+  k = k.replace(re, "");
+  return k;
+}
+function sbPublicUrl(key){
+  if (!key) return null;
+  const { data } = window.supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
+  return data?.publicUrl || null;
+}
+function parseCandidates(val){
+  if (val == null) return [];
+  if (Array.isArray(val)) return val;
+  let s = String(val).replace(/\u200B|\u200C|\u200D|\uFEFF/g, "").trim();
+  if (!s) return [];
+  if (s[0]==="{" && s[s.length-1]==="}") return s.slice(1,-1).split(","); // postgres text[]
+  if (s[0]==="[" && s[s.length-1]==="]") {
+    try { return JSON.parse(s); } catch { return [s]; }
+  }
+  return s.split(/[\n,;|]+/);
+}
+function resolveAllPhotosFromBucket(raw){
+  const out = [];
+  for (const c of parseCandidates(raw)){
+    if (c == null) continue;
+    const t = String(c).trim().replace(/^["']+|["']+$/g, "");
+    if (!t) continue;
+    // http externe (WordPress, etc.) -> garder tel quel
+    if (/^https?:\/\//i.test(t) && !/\/storage\/v1\/object\/public\//i.test(t)){
+      if (!out.includes(t)) out.push(t);
+      continue;
+    }
+    const key = normKey(t);
+    const url = key ? sbPublicUrl(key) : null;
+    if (url && !out.includes(url)) out.push(url);
+  }
+  return out;
+}
+function resolveOneFromBucket(raw){
+  const arr = resolveAllPhotosFromBucket(raw);
+  return arr[0] || null;
+}
+function resolveLogoAny(rawLogo){
+  const fromBucket = resolveOneFromBucket(rawLogo);
+  if (fromBucket) return fromBucket;
+  const s = String(rawLogo || "").trim();
+  return /^https?:\/\//i.test(s) ? s : null;
+}
+
+
+
+
 // javascript/infoagent.js — FICHE AGENT 100% Supabase (agent, agency, commercial, buy, rent)
+
 
 /* ========= Utils ========= */
 const FALLBACK_AGENT_IMG = "styles/photo/profil.png";
@@ -113,13 +174,13 @@ function makePriceRange(min, max, direct){
 
 async function loadAgentFromURL(){
   const params = new URLSearchParams(location.search);
-  const idParam = clean(params.get("id"));
-  const nameParam = clean(params.get("name"));
+  const idParam   = (params.get("id")||"").trim();
+  const nameParam = (params.get("name")||"").trim();
 
   const AG = await detectAgentCols();
   const AC = await detectAgencyCols();
 
-  // Agent
+  // ---- Agent
   let agentRow = null;
   if (idParam){
     const { data } = await window.supabase.from("agent").select("*").eq(AG.id, idParam).limit(1);
@@ -135,7 +196,7 @@ async function loadAgentFromURL(){
   }
   if (!agentRow) throw new Error("No agent found");
 
-  // Agency
+  // ---- Agency
   let agencyRow = null;
   const agencyId = agentRow?.[AG.agency_id] || null;
   if (agencyId){
@@ -143,22 +204,26 @@ async function loadAgentFromURL(){
     agencyRow = data?.[0] || null;
   }
 
-  // Mapping
+  // ---- Mapping + IMAGES via Bucket
   const langs = AG.languages ? parseList(agentRow?.[AG.languages]) : [];
-  const priceRange = makePriceRange(agentRow?.[AG.price_min], agentRow?.[AG.price_max], clean(AG.price_range ? agentRow?.[AG.price_range] : ""));
+  const priceRange = makePriceRange(
+    agentRow?.[AG.price_min],
+    agentRow?.[AG.price_max],
+    (AG.price_range ? (agentRow?.[AG.price_range]||"").trim() : "")
+  );
 
   const agent = {
     id:         agentRow?.[AG.id],
-    name:       clean(agentRow?.[AG.name]) || "Agent",
-    email:      clean(agentRow?.[AG.email]),
-    phone:      clean(agentRow?.[AG.phone]),
-    whatsapp:   clean(agentRow?.[AG.whatsapp]) || clean(agentRow?.[AG.phone]),
-    photo:      clean(agentRow?.[AG.photo_url]) || FALLBACK_AGENT_IMG,
-    about:      clean(agentRow?.[AG.about]),
-    rating:     AG.rating ? (clean(agentRow?.[AG.rating]) || "—") : "—",
+    name:       (agentRow?.[AG.name]||"").trim() || "Agent",
+    email:      (agentRow?.[AG.email]||"").trim(),
+    phone:      (agentRow?.[AG.phone]||"").trim(),
+    whatsapp:   (agentRow?.[AG.whatsapp] || agentRow?.[AG.phone] || "").toString().trim(),
+    photo:      resolveOneFromBucket(agentRow?.[AG.photo_url]) || FALLBACK_AGENT_IMG, // ✅ Bucket
+    about:      (agentRow?.[AG.about]||"").trim(),
+    rating:     AG.rating ? ((agentRow?.[AG.rating] ?? "—").toString().trim() || "—") : "—",
     superagent: AG.superagent ? Boolean(agentRow?.[AG.superagent]) : false,
     languages:  langs,
-    nationality: clean(agentRow?.[AG.nationality]),
+    nationality:(agentRow?.[AG.nationality]||"").toString().trim(),
     priceRange,
     sales12m:   toNum(agentRow?.[AG.sales12m], 0),
     totalSales: toNum(agentRow?.[AG.total_sales], 0),
@@ -167,12 +232,13 @@ async function loadAgentFromURL(){
 
   const agency = agencyRow ? {
     id:   agencyRow?.[AC.id],
-    name: clean(agencyRow?.[AC.name]),
-    logo: clean(agencyRow?.[AC.logo_url]) || FALLBACK_AGENT_IMG,
+    name: (agencyRow?.[AC.name]||"").trim(),
+    logo: resolveLogoAny(agencyRow?.[AC.logo_url]) || FALLBACK_AGENT_IMG, // ✅ Bucket
   } : { id:null, name:"", logo:FALLBACK_AGENT_IMG };
 
   return { agent, agency };
 }
+
 
 /* ========= Propriétés par agent (commercial + buy + rent) ========= */
 async function fetchAgentProperties(agentId){
@@ -182,33 +248,48 @@ async function fetchAgentProperties(agentId){
     { name:"rent",       bucket:"rent" },
   ];
   const props = [];
+
   for (const t of tables){
     try{
       const PC = await detectPropertyCols(t.name);
-      if (!PC.agent_id) continue; // table inadaptée
-      let q = window.supabase.from(t.name).select("*").eq(PC.agent_id, agentId).limit(500);
-      const { data, error } = await q;
+      if (!PC.agent_id) continue;
+
+      const { data, error } = await window.supabase
+        .from(t.name)
+        .select("*")
+        .eq(PC.agent_id, agentId)
+        .limit(500);
+
       if (error) { console.warn(`[${t.name}]`, error.message); continue; }
+
       (data||[]).forEach(r=>{
+        // ✅ Résolution IMAGES : accepte clé, array JSON, text[] Postgres, ou URL publique Supabase
+        const imgs = resolveAllPhotosFromBucket(r[PC.photo]);
+        const firstImg = imgs[0] || FALLBACK_PROP_IMG;
+
         props.push({
-          bucket: t.bucket,                  // sale | rent
+          bucket: t.bucket,                  // sale | rent (logique existante)
           created_at: r[PC.created_at],
-          title:  clean(r[PC.title]) || "—",
-          type:   clean(r[PC.type]),
-          location: clean(r[PC.location]),
+          title:  (r[PC.title]||"—").trim(),
+          type:   (r[PC.type] ||"").trim(),
+          location: (r[PC.location]||"").trim(),
           price:  r[PC.price],
           priceText: AED(r[PC.price]),
           bedrooms: toNum(r[PC.bedrooms], null),
           bathrooms: toNum(r[PC.bathrooms], null),
           sqft: toNum(r[PC.sqft], null),
-          img: clean(r[PC.photo]) || FALLBACK_PROP_IMG,
-          rental_period: clean(r[PC.rental_period] || ""),
+          img: firstImg,                     // ✅ 1ère photo pour la carte
+          images: imgs,                      // (optionnel) toutes les photos si tu veux un carrousel
+          rental_period: (r[PC.rental_period]||"").toString().trim(),
         });
       });
-    }catch(e){ console.warn(`Fail on ${t.name}:`, e?.message||e); }
+    }catch(e){
+      console.warn(`Fail on ${t.name}:`, e?.message||e);
+    }
   }
   return props;
 }
+
 
 /* ========= Remplir le header ========= */
 function fillHeader({ agent, agency }){
