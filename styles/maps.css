@@ -694,9 +694,7 @@ body {
   .header2 {
     z-index: 30!important;
   }
-  .maps-main, .property-search-bar {
-  
-  }
+
   .property-search-bar {
     position: sticky;
     z-index: 29 !important;
@@ -727,7 +725,7 @@ body {
   margin-top: 3px;
   z-index: 100;
   box-shadow: 0 8px 24px rgba(255,136,0,0.11);
-  max-height: 300px;
+  max-height: 500px;
   overflow-y: auto;
   min-width: 150px;
   width: calc(100% - 6px);
@@ -752,3 +750,50 @@ body {
   border-color: white;
   border-radius: 50px;
 } 
+
+
+/* maps.html — make the InfoWindow content full-bleed */
+#leafletMap .gm-style-iw-c,
+#leafletMap .gm-style-iw-d,
+#leafletMapMobile .gm-style-iw-c,
+#leafletMapMobile .gm-style-iw-d{
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+/* hide the little white pointer/tip */
+#leafletMap .gm-style-iw-tc,
+#leafletMapMobile .gm-style-iw-tc{ display:none !important; }
+
+/* (optionnel) si tu veux enlever le "X" natif de Google ici aussi */
+/* #leafletMap button.gm-ui-hover-effect,
+   #leafletMapMobile button.gm-ui-hover-effect{ display:none !important; } */
+
+
+
+/* InfoWindow sans padding, pour que la carte touche les bords */
+#leafletMap .gm-style-iw-c,
+#leafletMap .gm-style-iw-d,
+#leafletMapMobile .gm-style-iw-c,
+#leafletMapMobile .gm-style-iw-d{
+  padding:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  overflow:visible !important;
+}
+
+/* la carte gère les coins, l'image ne doit PAS avoir de rayon */
+.gm-style .map-mini-card { border-radius:16px; overflow:hidden; }
+.gm-style .map-mini-card img { border-radius:0 !important; display:block; }
+
+
+
+
+/* Kill the default × button in the Google InfoWindow */
+#leafletMap .gm-ui-hover-effect[aria-label="Close"],
+#leafletMapMobile .gm-ui-hover-effect[aria-label="Close"],
+#leafletMap .gm-ui-hover-effect,
+#leafletMapMobile .gm-ui-hover-effect {
+  display: none !important;
+}
