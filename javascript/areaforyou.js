@@ -53,18 +53,62 @@ async function detectColumns(table) {
 
 
 
-/* ===== FETCH PROPERTIES (même logique, juste le format prix) ===== */
+/* ===== FETCH PROPERTIES (bucket-aware + Offplan) ===== */
 async function fetchProperties({ type = "all", limit = 30 } = {}) {
-  const qq = (name) => {
+  // cite un nom de colonne si besoin (différent de ton qq() global)
+  const qcol = (name) => {
     if (!name) return null;
     const s = String(name);
     return /[^a-zA-Z0-9_]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
-  const normalizeImages = (raw) =>
-    Array.isArray(raw) ? raw.filter(Boolean) : (raw ? [raw] : []);
 
-  // ---------- OFF PLAN (indépendant) ----------
-  if (type === "offplan") {
+  // transforme raw (array, JSON string, lignes/virgules/;|) -> [str, ...]
+  const toList = (raw) => {
+    if (!raw && raw !== 0) return [];
+    if (Array.isArray(raw)) return raw.filter(Boolean).map(String);
+    const s = String(raw).trim();
+    if (!s) return [];
+    if ((s.startsWith('[') && s.endsWith(']'))) {
+      try { const arr = JSON.parse(s); if (Array.isArray(arr)) return arr.filter(Boolean).map(String); } catch {}
+    }
+    return s.replace(/^\[|\]$/g,'').split(/[\n,;|]+/).map(x=>x.trim()).filter(Boolean);
+  };
+
+  // résout une liste de clés/URLs vers des URLs publiques via Supabase Storage
+  const toPublicUrls = (raw, defaultBucket) => {
+    const FALLBACK = "https://via.placeholder.com/400x300";
+    const list = toList(raw);
+    const out = [];
+    const allowed = new Set(["buy","rent","commercial","offplan","photos_biens","agents","agency","images","uploads"]);
+
+    for (let item of list) {
+      if (!item) continue;
+      let v = String(item).replace(/^["']+|["']+$/g, "").trim();
+
+      // déjà une URL publique -> garder
+      if (/^https?:\/\//i.test(v) || /\/storage\/v1\/object\/public\//i.test(v)) { out.push(v); continue; }
+
+      // sinon, construire via bucket
+      let bucket = String(defaultBucket || "buy").toLowerCase();
+      let key = v.replace(/^\/+/, "");
+
+      // si la clé commence par "bucket/..."
+      const m = /^([^/]+)\/(.+)$/.exec(key);
+      if (m && allowed.has(m[1].toLowerCase())) { bucket = m[1].toLowerCase(); key = m[2]; }
+      if (key.toLowerCase().startsWith(bucket + "/")) key = key.slice(bucket.length + 1);
+
+      try {
+        const { data } = window.supabase?.storage?.from(bucket)?.getPublicUrl(key) || {};
+        if (data?.publicUrl) out.push(data.publicUrl);
+      } catch {}
+    }
+
+    const uniq = Array.from(new Set(out));
+    return uniq.length ? uniq : [FALLBACK];
+  };
+
+  // ---- OFF PLAN ----
+  const fetchOffplan = async () => {
     const selectOffplan = [
       "id",
       `"titre"`,
@@ -74,14 +118,13 @@ async function fetchProperties({ type = "all", limit = 30 } = {}) {
       `"project status"`,
       "photo_url",
       `"developer photo_url"`,
-      "brochure_url",
       "description",
       "lat",
       "lon",
       "created_at"
     ].join(",");
 
-    const { data: off, error } = await window.supabase
+    const { data, error } = await window.supabase
       .from("offplan")
       .select(selectOffplan)
       .order("created_at", { ascending: false })
@@ -89,35 +132,37 @@ async function fetchProperties({ type = "all", limit = 30 } = {}) {
 
     if (error) { console.error("Error fetching offplan", error); return []; }
 
-    return (off || []).map(p => ({
-      id: p.id,
-      title: p["titre"] || "",
-      location: p["localisation"] || "Dubai",
-      bedrooms: p["units types"] || "",
-      bathrooms: p["project status"] || "",
-      size: "",
-      // 👇 prix formaté EN
-      price: (p["price starting"] != null) ? `From ${formatAED_EN(p["price starting"])}` : "",
-      images: [p.photo_url || p["developer photo_url"] || "https://via.placeholder.com/400x300"],
-      description: p.description || "",
-      brochure_url: p.brochure_url || "",
-      lat: p.lat ?? null,
-      lon: p.lon ?? null,
-      source: "offplan"
-    }));
-  }
+    return (data || []).map(p => {
+      const imgs = toPublicUrls([p.photo_url, p["developer photo_url"]], "offplan");
+      return {
+        id: p.id,
+        title: p["titre"] || "",
+        location: p["localisation"] || "Dubai",
+        bedrooms: p["units types"] || "",
+        bathrooms: p["project status"] || "",
+        size: "",
+        price: (p["price starting"] != null) ? `From ${formatAED_EN(p["price starting"])}` : "",
+        images: imgs,
+        description: p.description || "",
+        brochure_url: "", // colonne absente dans ton schéma actuel
+        lat: p.lat ?? null,
+        lon: p.lon ?? null,
+        source: "offplan"
+      };
+    });
+  };
 
-  // ---------- helper pour 1 table standard (rent/buy/commercial) ----------
+  // ---- 1 table standard (rent/buy/commercial) ----
   const fetchOneTable = async (tableName) => {
     try {
       const c = await detectColumns(tableName);
 
       const base = [c.id, c.title, c.bedrooms, c.bathrooms, c.price, c.sqft, c.photo, c.created_at]
         .filter(Boolean)
-        .map(qq);
+        .map(qcol);
 
-      if (c.localisationAccueil) base.push(`localisation_accueil:${qq(c.localisationAccueil)}`);
-      if (c.propertyType)        base.push(`ptype:${qq(c.propertyType)}`);
+      if (c.localisationAccueil) base.push(`localisation_accueil:${qcol(c.localisationAccueil)}`);
+      if (c.propertyType)        base.push(`ptype:${qcol(c.propertyType)}`);
 
       const { data: rows, error } = await window.supabase
         .from(tableName)
@@ -127,29 +172,26 @@ async function fetchProperties({ type = "all", limit = 30 } = {}) {
 
       if (error) { console.error(`Error fetching from ${tableName}`, error); return []; }
 
-      return (rows || []).map(r => {
-        const imgs = normalizeImages(r[c.photo]);
-        return {
-          id:        r[c.id],
-          title:     r[c.title] || "",
-          location:  r.localisation_accueil || "",
-          typeLabel: r.ptype || "",
-          bedrooms:  r[c.bedrooms] ?? "",
-          bathrooms: r[c.bathrooms] ?? "",
-          size:      r[c.sqft] ?? "",
-          images:    imgs.length ? imgs : ["https://via.placeholder.com/400x300"],
-          // ⚠️ on laisse la valeur brute ici;
-          // on formatte à l’affichage pour cette page.
-          price:     r[c.price],
-          _table:    tableName
-        };
-      });
+      return (rows || []).map(r => ({
+        id:        r[c.id],
+        title:     r[c.title] || "",
+        location:  r.localisation_accueil || "",
+        typeLabel: r.ptype || "",
+        bedrooms:  r[c.bedrooms] ?? "",
+        bathrooms: r[c.bathrooms] ?? "",
+        size:      r[c.sqft] ?? "",
+        images:    toPublicUrls(r[c.photo], tableName), // ← bucket en fonction de la table
+        price:     r[c.price],                          // format à l’affichage via formatAED_EN
+        _table:    tableName
+      }));
     } catch (e) {
       console.error(`Failed to detect columns for ${tableName}`, e);
       return [];
     }
   };
 
+  // ---- router ----
+  if (type === "offplan") return await fetchOffplan();
   if (type === "all") {
     const parts = await Promise.all([
       fetchOneTable("rent"),
@@ -163,6 +205,8 @@ async function fetchProperties({ type = "all", limit = 30 } = {}) {
   }
   return [];
 }
+
+
 
 
 
@@ -433,26 +477,28 @@ function setupFilters() {
       document.querySelectorAll('.chat-pick-btn-v2').forEach(b => b.classList.remove('active'));
       this.classList.add('active');
 
-      let type = this.dataset.type;
+      // normalize dataset values like "Off Plan", "off-plan", "OFFPLAN"
+      const raw = (this.dataset.type || '').trim().toLowerCase();
+      const norm = raw.replace(/[\s_-]+/g, '');  // "off plan" → "offplan"
 
-      // Map propre -> table Supabase
       const map = {
         offplan: 'offplan',
         off: 'offplan',
-        new: 'offplan',        // <— "new" = offplan (on laisse offplan indépendant)
+        new: 'offplan',
         buy: 'buy',
         rent: 'rent',
         commercial: 'commercial',
         all: 'all'
       };
 
-      type = map[type] || 'all';
+      const type = map[norm] || 'all';
 
       const data = await fetchProperties({ type });
       renderProperties(data);
     });
   });
 }
+
 
 
 // ========= DOM READY =========
