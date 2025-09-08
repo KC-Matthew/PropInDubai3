@@ -218,13 +218,118 @@ function getFavs() { return JSON.parse(localStorage.getItem('favorites') || '[]'
 function saveFavs(arr) { localStorage.setItem('favorites', JSON.stringify(arr)); }
 
 
+
+
+
+
 /* ===== RENDU DES BIENS (prix affiché en "250,000 AED") ===== */
+/* === STYLES CARROUSEL — ne change PAS la taille de l’image === */
+function ensurePropertyCarouselStyles() {
+  if (document.getElementById('prop-carousel-styles')) return;
+  const css = `
+  .prop-slider{ position:relative; overflow:hidden; }              /* pas de width/height ici */
+  .prop-slider .nav{
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:36px; height:36px; border:none; border-radius:50%;
+    background:#fff; box-shadow:0 4px 14px rgba(0,0,0,.18);
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    font-size:20px; line-height:1; opacity:.95
+  }
+  .prop-slider .nav.prev{ left:10px }
+  .prop-slider .nav.next{ right:10px }
+  .prop-slider .nav:active{ transform:translateY(-50%) scale(.97) }
+  .prop-slider .count-badge{
+    position:absolute; left:10px; bottom:10px; padding:6px 9px; border-radius:12px;
+    background:rgba(0,0,0,.55); color:#fff; font:600 12px/1.1 system-ui;
+    display:flex; gap:6px; align-items:center
+  }
+  .prop-slider .count-badge i{ font-size:13px }
+  `;
+  const tag = document.createElement('style');
+  tag.id = 'prop-carousel-styles';
+  tag.textContent = css;
+  document.head.appendChild(tag);
+}
+
+/* === INIT CARROUSEL — remplace juste la src, sans toucher aux dimensions === */
+function initCardSlider(rootEl, images) {
+  const pics = (Array.isArray(images) && images.length ? images : ["https://via.placeholder.com/800x500"]);
+  const imgEl = rootEl.querySelector('img.property-img-v2') || rootEl.querySelector('img');
+  const prev  = rootEl.querySelector('.nav.prev');
+  const next  = rootEl.querySelector('.nav.next');
+  const nSpan = rootEl.querySelector('.img-total');
+  let i = 0;
+
+  // copie le border-radius de l'image pour que tout clippe pareil
+  if (imgEl) {
+    const br = getComputedStyle(imgEl).borderRadius;
+    if (br) rootEl.style.borderRadius = br;
+  }
+
+  // aligne les flèches sur le bord VISUEL de l'image (pas du card)
+  function alignNavToImage() {
+    if (!imgEl) return;
+    const sr = rootEl.getBoundingClientRect();
+    const ir = imgEl.getBoundingClientRect();
+    const leftGap  = Math.max(0, ir.left  - sr.left);
+    const rightGap = Math.max(0, sr.right - ir.right);
+
+    if (prev) prev.style.left  = `${10 + leftGap}px`;
+    if (next) next.style.right = `${10 + rightGap}px`;
+  }
+
+  if (nSpan) nSpan.textContent = pics.length;
+  const showNav = pics.length > 1;
+  if (prev) prev.style.display = showNav ? '' : 'none';
+  if (next) next.style.display = showNav ? '' : 'none';
+
+  function show(k){
+    i = (k + pics.length) % pics.length;
+    if (imgEl) imgEl.src = pics[i];
+    // realigner au cas où le chargement d’image modifie la boîte
+    requestAnimationFrame(alignNavToImage);
+  }
+
+  if (prev) prev.addEventListener('click', (e)=>{ e.stopPropagation(); show(i-1); });
+  if (next) next.addEventListener('click', (e)=>{ e.stopPropagation(); show(i+1); });
+
+  // swipe mobile
+  let sx = null;
+  rootEl.addEventListener('touchstart', (e)=>{ sx = e.touches[0].clientX; }, {passive:true});
+  rootEl.addEventListener('touchend',   (e)=>{
+    if (sx == null) return;
+    const dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 40) show(i + (dx < 0 ? 1 : -1));
+    sx = null;
+  }, {passive:true});
+
+  // resize/reflow → on recale
+  const ro = new ResizeObserver(()=> alignNavToImage());
+  if (imgEl) ro.observe(imgEl);
+  window.addEventListener('resize', alignNavToImage);
+
+  show(0);
+  alignNavToImage();
+}
+
+
+
+
+  
+
+
+
+
+/* ===== RENDU DES BIENS (carrousel par-dessus l’image existante) ===== */
 function renderProperties(list) {
+  ensurePropertyCarouselStyles();
+
   const container = document.getElementById("property-cards-container");
   container.innerHTML = "";
   const favs = getFavs();
 
-  list.forEach(property => {
+  list.forEach((property, idx) => {
+    const sliderId = `ps-${property.id || idx}-${Math.random().toString(36).slice(2,7)}`;
     const card = document.createElement("div");
     card.className = "property-card-ui-v2";
     card.style.cursor = "pointer";
@@ -239,7 +344,15 @@ function renderProperties(list) {
 
     card.innerHTML = `
       ${favBtn}
-      <img src="${property.images[0]}" class="property-img-v2" alt="${property.title}">
+
+      <!-- on garde TA taille via .property-img-v2, on ne la touche pas -->
+      <div class="prop-slider" id="${sliderId}">
+        <img src="${(property.images && property.images[0]) || ''}" class="property-img-v2" alt="${property.title}" loading="lazy" decoding="async">
+        <button class="nav prev"  aria-label="Previous image" onclick="event.stopPropagation()">‹</button>
+        <button class="nav next"  aria-label="Next image"     onclick="event.stopPropagation()">›</button>
+        <div class="count-badge"><i class="fa fa-camera"></i><span class="img-total">1</span></div>
+      </div>
+
       <div class="property-title-ui-v2">${property.title}</div>
       <div class="property-loc-ui-v2"><i class="fas fa-map-marker-alt"></i> ${property.location || ""}</div>
       <div class="property-features-ui-v2">
@@ -248,8 +361,6 @@ function renderProperties(list) {
         <span><i class="fas fa-ruler-combined"></i> ${property.size ?? ""} sqft</span>
       </div>
       <div class="property-desc-ui-v2">${property.description || ''}</div>
-
-      <!-- 🏷️ prix formaté UNIQUEMENT à l’affichage sur cette page -->
       <div class="property-price-ui-v2">${formatAED_EN(property.price)}</div>
 
       <div class="property-actions-ui-v2">
@@ -259,6 +370,7 @@ function renderProperties(list) {
       </div>
     `;
 
+    // clic carte -> détail
     card.addEventListener("click", () => {
       if (property.source === 'offplan') {
         sessionStorage.setItem('selected_offplan', JSON.stringify({ id: property.id, type: 'offplan' }));
@@ -271,10 +383,19 @@ function renderProperties(list) {
     });
 
     container.appendChild(card);
+
+    // init carrousel (ne modifie PAS les dimensions)
+    const sliderEl = document.getElementById(sliderId);
+    initCardSlider(sliderEl, property.images);
   });
 
   setupFavBtns();
 }
+
+
+
+
+
 
 
 function setupFavBtns() {
