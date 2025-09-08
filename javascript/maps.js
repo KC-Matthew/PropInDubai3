@@ -231,14 +231,61 @@ async function geocodePlace(placeRaw) {
    =========================== */
 
 // rows -> property
+// Remplacer TOUTE la fonction rowToProperty par ceci
 function rowToProperty(row, tableName, coords) {
-  const image = row.image_url || "styles/photo/fond.jpg";
+  // 1) récupérer la "première" image depuis image_url (json/array/texte)
+  let first = null;
+  const raw = row.image_url;
+
+  if (Array.isArray(raw)) {
+    first = raw[0];
+  } else if (typeof raw === "string") {
+    const s = raw.trim();
+    if (s.startsWith("[") && s.endsWith("]")) {
+      try {
+        const arr = JSON.parse(s);
+        if (Array.isArray(arr)) first = arr[0];
+      } catch { /* ignore */ }
+    }
+    if (!first) {
+      const parts = s.replace(/^\[|\]$/g, "").split(/[\n,;,|]+/).map(x=>x.trim()).filter(Boolean);
+      first = parts[0] || s;
+    }
+  }
+
+  // 2) Résoudre en URL publique
+  let imgUrl = "styles/photo/fond.jpg";
+  if (first) {
+    // a) URL http déjà publique → on garde
+    if (/^https?:\/\//i.test(first) || /\/storage\/v1\/object\/public\//i.test(first)) {
+      imgUrl = first;
+    }
+    // b) Clé d'objet → on fabrique l'URL publique via supabase.storage
+    else if (window.supabase?.storage) {
+      const allowed = new Set(["buy","rent","commercial","offplan","agents","agency","photos_biens"]);
+      let bucket = String(tableName || "buy").toLowerCase();
+      let key = String(first).replace(/^["']+|["']+$/g, "").replace(/^\/+/, "");
+
+      // si la clé commence par un bucket connu → on l’utilise
+      const m = /^([^/]+)\/(.+)$/.exec(key);
+      if (m && allowed.has(m[1].toLowerCase())) {
+        bucket = m[1].toLowerCase();
+        key = m[2];
+      }
+      // évite le doublon "bucket/bucket/..."
+      if (key.toLowerCase().startsWith(bucket + "/")) key = key.slice(bucket.length + 1);
+
+      const { data } = window.supabase.storage.from(bucket).getPublicUrl(key);
+      if (data?.publicUrl) imgUrl = data.publicUrl;
+    }
+  }
+
   const location = row.localisation_accueil || "Dubai";
   const priceNum = Number(row.price) || 0;
 
   return {
-    id: row.id,                  // <-- ID Supabase (obligatoire)
-    type: tableName,             // <-- 'buy' | 'rent' | 'commercial'
+    id: row.id,                       // ID Supabase
+    type: tableName,                  // 'buy' | 'rent' | 'commercial'
     title: row.title || row.property_type || "Property",
     location,
     price: `${priceNum.toLocaleString("en-US")} AED`,
@@ -246,11 +293,12 @@ function rowToProperty(row, tableName, coords) {
     bedrooms: Number(row.bedrooms) || 0,
     bathrooms: Number(row.bathrooms) || 0,
     size: row.sqft ? `${row.sqft} sqft` : "",
-    image,
+    image: imgUrl,                    // ✅ URL publique du Bucket (ou fallback)
     lat: coords.lat,
     lng: coords.lng
   };
 }
+
 
 async function loadPropertiesFromSupabase() {
   const rows = await loadRows();
