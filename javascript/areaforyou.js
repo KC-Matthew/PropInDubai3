@@ -1,1034 +1,2148 @@
-
-// -- helpers pour citer les colonnes avec espaces + formater le prix
-function q(name){ if(!name) return ""; return /[\s()\-]/.test(name) ? `"${String(name).replace(/"/g,'""')}"` : name; }
-function formatAED(v){
-  const n = Number(v);
-  return Number.isFinite(n) ? `${n.toLocaleString()} AED` : (v ?? "");
+html, body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", Arial, sans-serif;
+  background: #fef7ef;
+  overflow: hidden;
 }
 
+/* ========== HEADER ========== */
+.header2 {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  padding: 0 20px;
+  z-index: 10;
+  border-bottom: 1px solid #ddd;
+  gap: 20px;
+}
+.logo {
+  width: 130px;
+  height: auto;
+  display: block;
+}
+.all-button {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 15px;
+  max-width: 1000px;
+}
+.header-btn {
+  max-width: 150px;
+  padding: 8px 12px;
+  border: none;
+  background: #fff;
+  color: #686868;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: bold;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: background 0.2s, height 0.2s;
+  height: 60px;
+}
+.header-btn:hover {
+  background: #f5f5f5;
+}
+.login-button {
+  background: #fff;
+  color: #686868;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ff9900;
+}
+.profil-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+.burger { display: none; }
 
-/* ===== Helper prix — EN uniquement pour CETTE page ===== */
-function formatAED_EN(value){
-  // si value est numérique (ou string numérique) -> "250,000 AED"
-  const n = Number(value);
-  if (Number.isFinite(n)) {
-    return `${new Intl.NumberFormat('en-US').format(n)} AED`;
+/* ========== SIDEBAR ========== */
+.multi-sidebar {
+  width: 250px;
+  background: #fff7ed;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border-right: 1.5px solid #f2e8dc;
+  box-shadow: 1px 0 10px rgba(255,168,16,0.04);
+  z-index: 10;
+  min-width: 190px;
+  max-width: 350px;
+  position: relative;
+}
+.multi-logo {
+  text-align: center;
+  font-size: 2.1rem;
+  color: #ff9100;
+  margin: 30px 0 19px 0;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+.multi-new-chat-btn {
+  margin: 0 20px 16px 20px;
+  padding: 13px 0;
+  border-radius: 16px;
+  background: #ff9100;
+  color: #fff;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.17s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.multi-new-chat-btn:hover {
+  background: #ffb33a;
+  color: #fff;
+}
+.multi-chat-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  margin: 0 10px 0 10px;
+  padding-bottom: 24px;
+}
+.multi-chat-list-item {
+  padding: 14px 18px;
+  margin-bottom: 10px;
+  background: #fff;
+  border-radius: 14px;
+  color: #3a2c14;
+  font-weight: 500;
+  font-size: 1.05rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1.5px solid transparent;
+  transition: border 0.18s, background 0.13s;
+}
+.multi-chat-list-item.active,
+.multi-chat-list-item:focus {
+  background: #fff4e6;
+  border: 1.5px solid #ff9100;
+  color: #ff9100;
+}
+.multi-chat-list-item:hover:not(.active) {
+  background: #ffe1b9;
+}
+.multi-chat-list-item span {
+  display: block;
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.delete-chat-btn {
+  background: none;
+  border: none;
+  color: #b1a89c;
+  cursor: pointer;
+  font-size: 1.04rem;
+  margin-left: 5px;
+  padding: 2px 2px 2px 7px;
+  opacity: 0.7;
+  transition: color 0.15s, opacity 0.12s;
+  outline: none;
+}
+.delete-chat-btn:hover {
+  color: #ff9100;
+  opacity: 1;
+}
+.multi-shortcuts {
+  display: flex;
+  flex-direction: row;
+  gap: 14px;
+  justify-content: center;
+  padding: 20px 0 18px 0;
+  border-top: 1px solid #ffe6c3;
+  background: #fff7ed;
+}
+.sidebar-btn {
+  width: 44px;
+  height: 44px;
+  background: #ff9100;
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  box-shadow: 0 2px 8px rgba(255,168,16,0.07);
+}
+.sidebar-btn.active,
+.sidebar-btn:focus {
+  background: #fff;
+  color: #ff9100;
+  outline: none;
+  border: 2.5px solid #ff9100;
+}
+.sidebar-btn:hover:not(.active) {
+  background: #ffb33a;
+  color: #fff;
+}
+
+/* ========== LAYOUT PRINCIPAL ========== */
+.main-layout {
+  display: flex;
+  height: calc(100vh - 60px);
+  width: 100vw;
+  margin-top: 60px;
+  position: relative;
+}
+.main-content-v2 {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  background: transparent;
+  height: 100%;
+  min-height: 0;
+}
+.content-card-wrap {
+  width: 100vw;
+  max-width: 1600px;
+  margin: auto;
+  background: #fff;
+  border-radius: 26px;
+  box-shadow: 0 8px 32px rgba(170,120,40,0.08);
+  display: flex;
+  min-width: 800px;
+  height: 95vh;
+  overflow: hidden;
+  min-height: 0;
+  position: relative;
+  margin-top: 0;
+}
+@media (max-width: 1150px) {
+  .main-content-v2, .content-card-wrap { flex-direction: column; }
+  .chat-col-v2, .properties-col-v2 { min-width: unset; width: 100%; }
+  .properties-col-v2 { padding: 24px; }
+  .chat-col-v2 { padding: 0; border-right: none;}
+}
+
+/* ========== CHAT COLONNE ========== */
+.chat-col-v2 {
+  width: 38%;
+  min-width: 340px;
+  max-width: 530px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-right: 1.5px solid #f2e8dc;
+  height: 100%;
+  min-height: 0;
+  position: relative;
+}
+.multi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 42px 18px 36px;
+  background: #fff;
+  font-size: 1.23rem;
+  font-weight: 700;
+  color: #181d1e;
+  border-bottom: 1.5px solid #f2e8dc;
+  min-height: 34px;
+}
+.multi-reset-btn {
+  background: none;
+  border: none;
+  color: #ff9100;
+  font-size: 1.17rem;
+  cursor: pointer;
+  padding: 7px 0 0 7px;
+  margin-left: 9px;
+}
+.chat-messages-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+#chat-messages-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  justify-content: flex-end;
+  padding: 18px 36px 0 36px;
+  box-sizing: border-box;
+}
+.chat-message-bot {
+  background: #fff;
+  color: #222;
+  align-self: flex-start;
+  border-radius: 20px;
+  padding: 18px 24px 15px 24px;
+  font-size: 1.11rem;
+  box-shadow: 0 2px 18px 0 rgba(253, 139, 8, 0.07);
+  max-width: 88%;
+  margin: 0;
+  border: 1.1px solid #f6e7cc;
+}
+.chat-message-user {
+  background: #ff9100;
+  color: #fff;
+  align-self: flex-end;
+  border-radius: 20px;
+  padding: 18px 24px 15px 24px;
+  font-size: 1.11rem;
+  font-weight: 500;
+  box-shadow: 0 2px 18px 0 rgba(253, 139, 8, 0.07);
+  max-width: 88%;
+  margin: 0;
+  border: 1.1px solid #ffe2bb;
+}
+.chat-input-form-v2 {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-top: 1.5px solid #f2e8dc;
+  padding: 14px 36px 14px 36px;
+  box-sizing: border-box;
+  gap: 10px;
+  margin-bottom: 0;
+}
+.chat-input-form-v2 input {
+  flex: 1;
+  border-radius: 22px;
+  border: 1.5px solid #eaeaea;
+  font-size: 1.11rem;
+  padding: 13px 20px;
+  outline: none;
+  transition: border 0.18s;
+}
+.chat-input-form-v2 input:focus {
+  border: 1.5px solid #ff9100;
+}
+.chat-input-form-v2 button {
+  border: none;
+  background: #ff9100;
+  color: #fff;
+  border-radius: 50%;
+  width: 43px;
+  height: 43px;
+  font-size: 1.22rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s;
+}
+.chat-input-form-v2 button:hover {
+  background: #ffba49;
+}
+.chat-input-btns-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 0;
+  padding: 0 36px 10px 36px;
+  background: #fff;
+  margin-bottom: 15px;
+}
+.chat-pick-btn-v2 {
+  background: #ff9100;
+  border: none;
+  border-radius: 22px;
+  color: #fff;
+  font-size: 1.07rem;
+  font-weight: 500;
+  padding: 12px 20px;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.2s, color 0.2s;
+}
+.chat-pick-btn-v2.active,
+.chat-pick-btn-v2:active,
+.chat-pick-btn-v2:focus {
+  background: #ff9100;
+  color: #fff;
+}
+.chat-pick-btn-v2:not(.active):hover {
+  background: #fff0dc;
+  color: #ff9100;
+}
+
+/* ========== PROPRIÉTÉS (CARDS) ========== */
+.properties-col-v2 {
+  flex: 1;
+  padding: 48px 48px 0 48px;
+  background: #fff;
+  overflow-y: auto;
+  min-width: 440px;
+  height: 100%;
+  min-height: 0;
+}
+.property-card-ui-v2 {
+  background: #fff;
+  border-radius: 19px;
+  box-shadow: 0 2px 18px 0 rgba(253,139,8,0.09);
+  margin-bottom: 55px;
+  padding: 28px 28px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+  cursor: pointer;
+  transition: box-shadow 0.18s;
+}
+.property-card-ui-v2:hover {
+  box-shadow: 0 4px 24px 0 rgba(253,139,8,0.13);
+}
+.property-img-v2 {
+  width: 100%;
+  border-radius: 17px;
+  object-fit: cover;
+  margin-bottom: 16px;
+}
+.property-title-ui-v2 {
+  font-size: 1.29rem;
+  font-weight: 700;
+  color: #181d1e;
+  margin-bottom: 7px;
+}
+.property-loc-ui-v2 {
+  color: #b8b8b8;
+  font-size: 1.07rem;
+  margin-bottom: 11px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.property-features-ui-v2 {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 1.08rem;
+  color: #666;
+  margin-bottom: 12px;
+}
+.property-desc-ui-v2 {
+  font-size: 1.13rem;
+  color: #464646;
+  margin-bottom: 18px;
+}
+.property-price-ui-v2 {
+  font-size: 1.14rem;
+  font-weight: 700;
+  color: #24292c;
+  margin-bottom: 12px;
+}
+.property-actions-ui-v2 {
+  display: flex;
+  gap: 18px;
+  margin-top: 6px;
+}
+.property-actions-ui-v2 button {
+  flex: 1;
+  padding: 11px 0;
+  border: none;
+  border-radius: 10px;
+  background: #ff9100;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.property-actions-ui-v2 button:hover {
+  background: #ffba49;
+}
+.properties-col-v2::-webkit-scrollbar {
+  width: 8px;
+  background: #f1f1f1;
+}
+.properties-col-v2::-webkit-scrollbar-thumb {
+  background: #ffd39b;
+  border-radius: 6px;
+}
+
+/* ========== SPLITTER MOBILE ========== */
+@media (max-width: 800px) {
+  .burger {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 9999;
+    background: none;
+    border: none;
+    padding: 0;
   }
-  // sinon, on renvoie tel quel (ex: "From 250,000 AED")
-  return value ?? "";
+  .burger span {
+    display: block;
+    width: 25px;
+    height: 4px;
+    margin: 3.2px 0;
+    background: #ff9900;
+    border-radius: 5px;
+    transition: 0.2s;
+  }
+  .main-layout {
+    flex-direction: column;
+    margin-top: 54px;
+    height: calc(100vh - 54px);
+  }
+  .multi-sidebar {
+    position: fixed !important;
+    left: -100vw;
+    top: 0;
+    bottom: 0;
+    width: 80vw;
+    max-width: 320px;
+    min-width: 180px;
+    z-index: 2000;
+    height: 100vh;
+    background: #fff7ed;
+    box-shadow: 7px 0 32px 2px rgba(170,120,40,0.09);
+    transition: left 0.32s;
+    flex-direction: column;
+  }
+  .multi-sidebar.open {
+    left: 0 !important;
+  }
+  .mobile-sidebar-overlay {
+    display: none;
+    position: fixed;
+    left: 0; top: 0; width: 100vw; height: 100vh;
+    background: transparent;
+    z-index: 1100;
+  }
+  .mobile-sidebar-overlay.active {
+    display: block !important;
+  }
+  .content-card-wrap,
+  .main-content-v2 {
+    flex-direction: column !important;
+    min-width: 0 !important;
+    max-width: 100vw !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    overflow: hidden !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  #split-mobile-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - 54px) !important;
+    min-height: 0;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+  .chat-col-v2 {
+    width: 100vw !important;
+    min-width: 0 !important;
+    max-width: unset !important;
+    border: none !important;
+    padding-bottom: 0 !important;
+    flex: unset;
+    height: 58vh;
+    min-height: 70px;
+    overflow: hidden;
+  }
+  .properties-col-v2 {
+    padding: 12px 6px 0 6px !important;
+    min-width: 0 !important;
+    max-width: 100vw !important;
+    width: 100vw !important;
+    background: #fff;
+    height: 38vh !important;
+    min-height: 120px !important;
+    overflow-y: auto !important;
+    margin-top: 0 !important;
+    border-top: 1.5px solid #ffe6c3;
+    box-shadow: 0 -4px 28px rgba(220,150,50,0.06);
+  }
+  .property-card-ui-v2 { max-width: 99vw; padding: 13px 6px; margin-bottom: 20px; }
+  .property-img-v2 
+  { height: 130px; }
+
+  .multi-header { padding: 14px 8px 10px 8px !important; font-size: 1.03rem; }
+  .chat-input-form-v2, .chat-input-btns-row, #chat-messages-container { padding-left: 8px !important; padding-right: 8px !important; }
+  .chat-messages-scroll {
+    max-height: 45vh;
+    min-height: 40px;
+    overflow-y: auto;
+    margin-bottom: 8px;
+    background: #fff;
+  }
+  .chat-input-form-v2 {
+    padding: 10px 8px 10px 8px !important;
+  }
+  .chat-input-btns-row {
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 8px 18px 8px !important;
+    background: #fff;
+    z-index: 2;
+  }
+  .splitter-bar {
+    width: 100vw;
+    height: 24px;
+    background: #ffe4bb;
+    cursor: ns-resize;
+    z-index: 5;
+    box-shadow: 0 3px 10px rgba(253,139,8,0.07);
+    border-top: 1px solid #ffba49;
+    border-bottom: 1px solid #ffd099;
+    touch-action: none;
+    transition: background 0.12s;
+    display: block;
+    position: relative;
+  }
+  .splitter-bar:before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 4px;
+    background: #ffba49;
+    border-radius: 5px;
+    transform: translate(-50%, -50%);
+    opacity: 0.8;
+  }
+}
+
+/* Desktop version for splitter (hide if not mobile) */
+@media (min-width: 801px) {
+  .splitter-bar { display: none !important; }
+}
+
+/* Hide burger and overlay on desktop */
+@media (min-width: 801px) {
+  .burger, .mobile-sidebar-overlay { display: none !important; }
+  .multi-sidebar { left: 0 !important; position: relative !important; }
 }
 
 
-// Quote un nom de colonne s'il contient des espaces  , parenthèses, tirets…
-function qq(name){
-  if(!name) return null;
-  return /[\s()\-]/.test(name) ? `"${String(name).replace(/"/g,'""')}"` : name;
+.fav-btn {
+  position: absolute;
+  top: 16px;
+  right: 22px;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  z-index: 10;
+  font-size: 1.7rem;
+  padding: 0;
+  transition: transform 0.1s;
+}
+.fav-btn:active { transform: scale(0.88);}
+.fav-btn .fa-heart {
+  color: #fff;
+  text-shadow: 0 2px 6px #999, 0 0px 1px #ccc;
+  transition: color 0.2s;
+  stroke: #ff9100;
+  stroke-width: 24;
+}
+.fav-btn.fav-active .fa-heart {
+  color: #ff9100;
+  text-shadow: 0 3px 12px #ffd8a7, 0 1px 1px #fff5e5;
+}
+.property-card-ui-v2 {
+  position: relative;
 }
 
 
 
-async function detectColumns(table) {
-  const { data, error } = await window.supabase.from(table).select("*").limit(1);
-  if (error) throw error;
-  const sample = (data && data[0]) || {};
-  const has  = (k) => Object.prototype.hasOwnProperty.call(sample, k);
-  const pick = (...c) => c.find(has);
 
-  return {
-    id:           pick("id","uuid"),
-    title:        pick("title","titre","name"),
-    propertyType: pick("property_type","property type"),
-    bedrooms:     pick("bedrooms","rooms"),
-    bathrooms:    pick("bathrooms"),
-    price:        pick("price"),
-    sqft:         pick("sqft","sqft (m²)"),
-    photo:        pick("photo_bien_url","photo_url","image_url","image"),
-    created_at:   pick("created_at"),
 
-    // 👉 NOUVEAU : on détecte explicitement la bonne localisation
-    localisationAccueil: pick("localisation accueil","localisation acceuil","localisation_accueil")
-  };
+
+
+
+
+
+
+
+
+
+.chat-pick-btn-v2 {
+  background: #fff0dc;
+  color: #ff9100;
+  border: 2px solid transparent;
+  transition: background 0.15s, color 0.15s, border 0.15s;
+}
+
+.chat-pick-btn-v2.active,
+.chat-pick-btn-v2:active,
+.chat-pick-btn-v2:focus {
+  background: #ff9100 !important;
+  color: #fff !important;
+  border: 2px solid #ff9100 !important;
+  box-shadow: 0 2px 9px rgba(255,145,0,0.11);
 }
 
 
 
 
-/* ===== FETCH PROPERTIES (bucket-aware + Offplan) ===== */
-async function fetchProperties({ type = "all", limit = 30 } = {}) {
-  // cite un nom de colonne si besoin (différent de ton qq() global)
-  const qcol = (name) => {
-    if (!name) return null;
-    const s = String(name);
-    return /[^a-zA-Z0-9_]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
+/* Bouton chat mobile à droite de "Chat" */
+.chat-toggle-btn-mobile {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: #ff9900;
+  cursor: pointer;
+  margin-left: 8px;
+}
 
-  // transforme raw (array, JSON string, lignes/virgules/;|) -> [str, ...]
-  const toList = (raw) => {
-    if (!raw && raw !== 0) return [];
-    if (Array.isArray(raw)) return raw.filter(Boolean).map(String);
-    const s = String(raw).trim();
-    if (!s) return [];
-    if ((s.startsWith('[') && s.endsWith(']'))) {
-      try { const arr = JSON.parse(s); if (Array.isArray(arr)) return arr.filter(Boolean).map(String); } catch {}
+@media (max-width: 800px) {
+  .chat-toggle-btn-mobile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+
+
+
+
+
+.multi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 12px;
+  background: #fff;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #181d1e;
+  border-bottom: 1.5px solid #f2e8dc;
+  min-height: 34px;
+  position: relative;
+}
+
+.multi-header #current-chat-title {
+  flex-grow: 1;
+  text-align: center;
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.chat-toggle-btn-mobile {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: #ff9900;
+  cursor: pointer;
+}
+
+@media (min-width: 801px) {
+  .chat-toggle-btn-mobile {
+    display: none;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* RESET de base */
+.header2, .all-button, .profil-block {
+  box-sizing: border-box;
+}
+
+.header2 {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 60px;
+  background: #fff;
+  border-bottom: 1.5px solid #ececec;
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  padding: 0 28px;
+}
+
+/* Logo & Burger */
+.logo {
+  height: 38px;
+  display: block;
+}
+
+.burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  margin-right: 16px;
+  cursor: pointer;
+}
+.burger span {
+  display: block;
+  width: 27px;
+  height: 3px;
+  background: #ff6600;
+  border-radius: 2px;
+  transition: 0.25s;
+}
+
+/* Nav */
+.all-button {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex: 1 1 auto;
+  justify-content: center;
+  min-width: 0;
+}
+
+.header-btn {
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-weight: 600;
+  font-size: 1.08rem;
+  color: #474747;
+  background: none;
+  border: none;
+  padding: 10px 19px;
+  border-radius: 7px;
+  margin: 0;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s, box-shadow 0.2s;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.header-btn:hover,
+.header-btn.active {
+  background: #faf7f3;
+  color: #ff6600;
+  box-shadow: 0 1px 4px 0 rgba(255, 102, 0, 0.09);
+}
+
+/* Dropdown - Desktop Only */
+.dropdown {
+  position: relative;
+  display: inline-block;
+  z-index: 99;
+}
+
+.buy-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+.arrow {
+  font-size: 0.8em;
+  transition: transform 0.2s;
+}
+.dropdown.open .arrow {
+  transform: rotate(180deg);
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 112%;
+  min-width: 170px;
+  background: #fff;
+  box-shadow: 0 8px 32px 0 rgba(31,31,35,0.10);
+  border-radius: 10px;
+  z-index: 12;
+  padding: 7px 0;
+  animation: fadeIn 0.17s;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+.dropdown.open .dropdown-content {
+  display: block;
+}
+.dropdown-option {
+  padding: 13px 20px 13px 24px;
+  display: block;
+  font-weight: 600;
+  color: #ff6600;
+  background: none;
+  border: none;
+  font-size: 1.03rem;
+  text-align: left;
+  border-radius: 6px;
+  transition: background 0.12s, color 0.12s;
+  cursor: pointer;
+  text-decoration: none;
+}
+.dropdown-option:hover {
+  background: #ff6600;
+  color: #fff;
+}
+
+/* Profil */
+.profil-block {
+  margin-left: 16px;
+}
+
+/* Responsive : MOBILE (<900px) */
+@media (max-width: 900px) {
+  .header2 {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    padding: 0 12px;
+    min-height: 52px;
+  }
+  .logo {
+    margin: 0 auto;
+    height: 30px;
+  }
+  .burger {
+    display: flex;
+  }
+  .profil-block {
+    margin-left: auto;
+    margin-right: 0;
+  }
+  /* Nav menu mobile */
+  .all-button {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 0;
+    background: #fff;
+    width: 100%;
+    box-shadow: none;
+    padding: 18px 0 0 0;
+    position: absolute;
+    left: 0;
+    top: 55px;
+    z-index: 21;
+    border-radius: 0 0 15px 15px;
+    border-top: 1.5px solid #ececec;
+    display: none; /* sera activé par JS burger */
+  }
+  .all-button.menu-open {
+    display: flex;
+  }
+  .header-btn,
+  .all-button > a {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 14px 0 14px 24px;
+    margin: 0;
+    font-size: 1.13rem;
+    border-radius: 0;
+    background: none;
+    color: #454545;
+    font-weight: 600;
+    box-shadow: none;
+    border-bottom: 1px solid #f5f5f5;
+    transition: background 0.13s, color 0.13s;
+  }
+  .header-btn:hover,
+  .all-button > a:hover {
+    background: #fff3e6;
+    color: #ff6600;
+  }
+  /* Plus de dropdown sur mobile */
+  .dropdown, .dropdown-content {
+    display: none !important;
+  }
+  /* Montrer les 3 liens Buy/Rent/Commercial sur mobile */
+  .mobile-buy-menu {
+    display: flex !important;
+    flex-direction: column;
+    width: 100%;
+    padding: 0;
+    margin: 0 0 0 0;
+    gap: 0;
+  }
+  .mobile-buy-menu a {
+    color: #454545;
+    font-weight: 600;
+    background: none;
+    border: none;
+    padding: 14px 0 14px 24px;
+    text-align: left;
+    width: 100%;
+    font-size: 1.13rem;
+    margin: 0;
+    border-radius: 0;
+    text-decoration: none;
+    border-bottom: 1px solid #f5f5f5;
+    box-sizing: border-box;
+    transition: color 0.15s, background 0.15s;
+  }
+  .mobile-buy-menu a:hover {
+    color: #ff6600;
+    background: #fff3e6;
+  }
+  /* One-line for chat property AI */
+  .chat-button {
+    white-space: nowrap;  
+    max-width: 97vw;
+  }
+}
+
+/* Désactive le menu mobile sur desktop */
+@media (min-width: 901px) {
+  .mobile-buy-menu {
+    display: none !important;
+  }
+
+}
+
+@media (max-width: 800px) {
+  .chat-pick-btn-v2:last-child {
+    margin-right: 12px;
+  }
+}
+
+
+
+
+
+
+/* --- Image un peu plus grande (desktop) --- */
+.property-img-v2{
+  height: 260px;            /* 210px -> 260px */
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* --- Mobile : un peu plus grande aussi --- */
+@media (max-width: 800px){
+  .property-img-v2{
+    height: 160px;          /* 130px -> 160px */
+  }
+}
+
+
+/* Center title, location, features and price inside the cards (this page only) */
+#property-cards-container .property-card-ui-v2 { 
+  margin-left: 30px;
+}
+
+/* rows that are flex: center them horizontally */
+#property-cards-container .property-loc-ui-v2,
+#property-cards-container .property-features-ui-v2 {
+   margin-left: 30px;
+}
+
+.property-title-ui-v2{
+  margin-left: 30px;
+}
+
+.property-price-ui-v2{
+  margin-left: 30px;
+}
+
+.property-desc-ui-v2{
+  margin-left: 30px;
+}
+
+
+
+.prop-slider {
+  margin-left: 30px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ===== Areaforyou → Chat drawer au-dessus du header + corrections ===== */
+@media (max-width:800px){
+  /* Drawer au-dessus de tout (y compris le header) */
+  .multi-sidebar{
+    position: fixed !important;
+    top: 0; bottom: 0; left: -100vw;
+    width: 80vw; max-width: 320px; min-width: 180px;
+    height: 100dvh;
+    background: #fff7ed;
+    z-index: 200000 !important;
+    transition: left .32s;
+  }
+  .multi-sidebar.open{ left: 0 !important; }
+
+  /* Overlay au-dessus du header */
+  .mobile-sidebar-overlay{
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.18);
+    z-index: 199990 !important;
+  }
+  .mobile-sidebar-overlay.active{ display: block !important; }
+
+  /* Le bouton d’ouverture se cache quand le drawer est ouvert */
+  body.drawer-open .chat-toggle-btn-mobile{ display: none !important; }
+
+  /* Cacher le burger du header pendant l’ouverture, pour éviter tout chevauchement */
+  body.drawer-open .header2 .burger{
+    visibility: hidden; pointer-events: none;
+  }
+
+  /* 🔥 Supprimer la flèche/poignée latérale si elle existe (legacy) */
+  .chat-prompt-tab,
+  .side-tab,
+  .drawer-handle,
+  .chat-side-handle{ display: none !important; }
+}
+
+
+  /* ------------- TABS & FILTERS ------------- */
+  .top-tabs-filters {
+    margin: 70px auto 0 auto;
+    max-width: 1100px;
+    width: 97vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 5;
+    position: relative;
+    gap: 16px;
+    margin-bottom: 0;
+  }
+.tabs {
+  display: flex;
+  gap: 7px;
+  background: #fff;
+  padding: 2px 6px;
+  border-radius: 18px;
+  box-shadow: 0 4px 18px 0 rgba(32,32,32,0.09);
+}
+
+.tab {
+  border: none;
+  background: none;
+  padding: 4px 18px;
+  border-radius: 15px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #474759;
+  cursor: pointer;
+  transition: background 0.13s, color 0.12s;
+}
+
+.tab.active,
+.tab:hover {
+  background: #ffeed9;
+  color: #ff9500;
+}
+
+  .filter-bar {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    align-items: center;
+    background: #fff;
+    padding: 8px 0;
+    border-radius: 12px;
+    box-shadow: 0 3px 24px rgba(230,155,0,0.03);
+    margin: 0 auto 0 auto;
+    width: fit-content;
+    max-width: auto;
+    max-height: 40px;
+    z-index: 7;
+    padding-left: 7px;
+    padding-right: 7px;
+    margin-bottom: 3px;
+    margin-top: 0;
+  }
+  .filter-btn,
+  .filter-bar select 
+  #openPriceFilter
+  {
+    background: #faf7f4;
+    border: none;
+    outline: none;
+    padding: 10px 32px 10px 18px;
+    border-radius: 16px;
+    font-size: 1 em;
+    color: #5e5360;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.16s, color 0.13s, box-shadow 0.13s;
+    box-shadow: 0 2px 9px rgba(220,180,140,0.05);
+    margin-right: 0;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: auto;
+  }
+  .filter-btn i {
+    font-size: 1.16em;
+    color: #ff9900;
+  }
+  .filter-btn.active,
+  .filter-bar select:focus,
+  .filter-bar select:active {
+    background: #fff3e5;
+    color: #e88b00;
+    box-shadow: 0 3px 12px #ffb3662b;
+  }
+  .filter-bar select {
+    border: none;
+    padding-right: 32px;
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='orange' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 18px 18px;
+  }
+  #openPriceFilter {
+
+    border-radius: 25px;
+    padding: 10px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 1px 7px rgba(232,66,66,0.07);
+    transition: background 0.14s, color 0.14s, border 0.14s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  #openPriceFilter:hover {
+    background: #ffeaea;
+    color: #b83838;
+  }
+  @media (max-width: 700px) {
+    .filter-bar {
+      flex-wrap: nowrap;
+      gap: 6px;
+      border-radius: 14px;
+      min-height: 48px;
+      padding: 7px 0;
+      box-shadow: 0 2px 10px #ffd7b175;
+      max-width: 99vw;
+      overflow-x: auto;
     }
-    return s.replace(/^\[|\]$/g,'').split(/[\n,;|]+/).map(x=>x.trim()).filter(Boolean);
-  };
-
-  // résout une liste de clés/URLs vers des URLs publiques via Supabase Storage
-  const toPublicUrls = (raw, defaultBucket) => {
-    const FALLBACK = "https://via.placeholder.com/400x300";
-    const list = toList(raw);
-    const out = [];
-    const allowed = new Set(["buy","rent","commercial","offplan","photos_biens","agents","agency","images","uploads"]);
-
-    for (let item of list) {
-      if (!item) continue;
-      let v = String(item).replace(/^["']+|["']+$/g, "").trim();
-
-      // déjà une URL publique -> garder
-      if (/^https?:\/\//i.test(v) || /\/storage\/v1\/object\/public\//i.test(v)) { out.push(v); continue; }
-
-      // sinon, construire via bucket
-      let bucket = String(defaultBucket || "buy").toLowerCase();
-      let key = v.replace(/^\/+/, "");
-
-      // si la clé commence par "bucket/..."
-      const m = /^([^/]+)\/(.+)$/.exec(key);
-      if (m && allowed.has(m[1].toLowerCase())) { bucket = m[1].toLowerCase(); key = m[2]; }
-      if (key.toLowerCase().startsWith(bucket + "/")) key = key.slice(bucket.length + 1);
-
-      try {
-        const { data } = window.supabase?.storage?.from(bucket)?.getPublicUrl(key) || {};
-        if (data?.publicUrl) out.push(data.publicUrl);
-      } catch {}
+    .filter-btn, .filter-bar select {
+      font-size: 1em;
+      padding: 7px 10px 7px 9px;
+      border-radius: 11px;
+      min-width: 76px;
     }
+  }
 
-    const uniq = Array.from(new Set(out));
-    return uniq.length ? uniq : [FALLBACK];
-  };
+  /* ------------- MAP ------------- */
+  #map {
+    height: calc(100vh - 220px);
+    width: 99vw;
+    margin: 5px auto 0 auto;
+    border-radius: 18px;
+    border: 2px solid #ffc174;
+    box-shadow: 0 7px 28px rgba(255,161,54,0.10);
+    z-index: 1;
+    position: relative;
+  }
 
-  // ---- OFF PLAN ----
-  const fetchOffplan = async () => {
-    const selectOffplan = [
-      "id",
-      `"titre"`,
-      `"localisation"`,
-      `"price starting"`,
-      `"units types"`,
-      `"project status"`,
-      "photo_url",
-      `"developer photo_url"`,
-      "description",
-      "lat",
-      "lon",
-      "created_at"
-    ].join(",");
+  .promoteur-marker {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px 0 rgba(255,161,54,0.12);
+    border: 1.2px solid #fff;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 4px 7px 6px 7px;
+  }
 
-    const { data, error } = await window.supabase
-      .from("offplan")
-      .select(selectOffplan)
-      .order("created_at", { ascending: false })
-      .limit(limit);
+  .promoteur-marker-logo {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    background: #f9f8fc;
+    border-radius: 4px;
+    margin-bottom: 3px;
+  }
 
-    if (error) { console.error("Error fetching offplan", error); return []; }
+  .marker-badge {
+    margin-top: 1px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    border-radius: 7px;
+    padding: 2.5px 9px 2.5px 9px;
+    color: #fff;
+    line-height: 1.1;
+    box-shadow: 0 1px 4px #fdc27630;
+  }
 
-    return (data || []).map(p => {
-      const imgs = toPublicUrls([p.photo_url, p["developer photo_url"]], "offplan");
-      return {
-        id: p.id,
-        title: p["titre"] || "",
-        location: p["localisation"] || "Dubai",
-        bedrooms: p["units types"] || "",
-        bathrooms: p["project status"] || "",
-        size: "",
-        price: (p["price starting"] != null) ? `From ${formatAED_EN(p["price starting"])}` : "",
-        images: imgs,
-        description: p.description || "",
-        brochure_url: "", // colonne absente dans ton schéma actuel
-        lat: p.lat ?? null,
-        lon: p.lon ?? null,
-        source: "offplan"
-      };
-    });
-  };
+  .marker-badge.launch { background: #8429d3; }
+  .marker-badge.handover { background: #ff9100; }
 
-  // ---- 1 table standard (rent/buy/commercial) ----
-  const fetchOneTable = async (tableName) => {
-    try {
-      const c = await detectColumns(tableName);
+  .promoteur-marker-arrow {
+    position: absolute;
+    left: 50%;
+    bottom: -7px;
+    transform: translateX(-50%);
+    width: 12px; height: 7px;
+    z-index: 5;
+  }
+  .promoteur-marker-arrow::after {
+    content: "";
+    display: block;
+    width: 0; height: 0;
+    margin: auto;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 7px solid #fff;
+  }
 
-      const base = [c.id, c.title, c.bedrooms, c.bathrooms, c.price, c.sqft, c.photo, c.created_at]
-        .filter(Boolean)
-        .map(qcol);
 
-      if (c.localisationAccueil) base.push(`localisation_accueil:${qcol(c.localisationAccueil)}`);
-      if (c.propertyType)        base.push(`ptype:${qcol(c.propertyType)}`);
+  /* ------------- POPUP PROJECT ------------- */
+  /* Animation popup "scale from marker" */
+  .project-popup-airbnb {
+    background: #fff !important; /* fond bien blanc */
+    border-radius: 22px;
+    width: 290px;
+    min-width: 200px;
+    max-width: 98vw;
+    box-shadow: 0 6px 30px rgba(30,30,34,0.12), 0 1px 8px #ffd6b440;
+    padding: 0 0 12px 0;
+    /* Animation effet sort du marker */
+    animation: popupFromMarker 0.22s cubic-bezier(.61,.01,.74,1.05);
+    transform-origin: bottom center;
+  }
 
-      const { data: rows, error } = await window.supabase
-        .from(tableName)
-        .select(base.join(","))
-        .order(c.created_at || c.id, { ascending: false })
-        .limit(limit);
-
-      if (error) { console.error(`Error fetching from ${tableName}`, error); return []; }
-
-      return (rows || []).map(r => ({
-        id:        r[c.id],
-        title:     r[c.title] || "",
-        location:  r.localisation_accueil || "",
-        typeLabel: r.ptype || "",
-        bedrooms:  r[c.bedrooms] ?? "",
-        bathrooms: r[c.bathrooms] ?? "",
-        size:      r[c.sqft] ?? "",
-        images:    toPublicUrls(r[c.photo], tableName), // ← bucket en fonction de la table
-        price:     r[c.price],                          // format à l’affichage via formatAED_EN
-        _table:    tableName
-      }));
-    } catch (e) {
-      console.error(`Failed to detect columns for ${tableName}`, e);
-      return [];
+  @keyframes popupFromMarker {
+    0% {
+      opacity: 0;
+      transform: scale(0.72) translateY(30px);
     }
-  };
-
-  // ---- router ----
-  if (type === "offplan") return await fetchOffplan();
-  if (type === "all") {
-    const parts = await Promise.all([
-      fetchOneTable("rent"),
-      fetchOneTable("buy"),
-      fetchOneTable("commercial")
-    ]);
-    return parts.flat();
-  }
-  if (["rent", "buy", "commercial"].includes(type)) {
-    return await fetchOneTable(type);
-  }
-  return [];
-}
-
-
-
-
-
-// ========= UTILS & LOCAL STORAGE =========
-function uuid() { return '_' + Math.random().toString(36).substr(2, 9); }
-function getChats() { return JSON.parse(localStorage.getItem('multiChatHistory') || '[]'); }
-function saveChats(chats) { localStorage.setItem('multiChatHistory', JSON.stringify(chats)); }
-function getFavs() { return JSON.parse(localStorage.getItem('favorites') || '[]'); }
-function saveFavs(arr) { localStorage.setItem('favorites', JSON.stringify(arr)); }
-
-
-
-
-
-
-/* ===== RENDU DES BIENS (prix affiché en "250,000 AED") ===== */
-/* === STYLES CARROUSEL — ne change PAS la taille de l’image === */
-function ensurePropertyCarouselStyles() {
-  if (document.getElementById('prop-carousel-styles')) return;
-  const css = `
-  .prop-slider{ position:relative; overflow:hidden; }              /* pas de width/height ici */
-  .prop-slider .nav{
-    position:absolute; top:50%; transform:translateY(-50%);
-    width:36px; height:36px; border:none; border-radius:50%;
-    background:#fff; box-shadow:0 4px 14px rgba(0,0,0,.18);
-    cursor:pointer; display:flex; align-items:center; justify-content:center;
-    font-size:20px; line-height:1; opacity:.95
-  }
-  .prop-slider .nav.prev{ left:10px }
-  .prop-slider .nav.next{ right:10px }
-  .prop-slider .nav:active{ transform:translateY(-50%) scale(.97) }
-  .prop-slider .count-badge{
-    position:absolute; left:10px; bottom:10px; padding:6px 9px; border-radius:12px;
-    background:rgba(0,0,0,.55); color:#fff; font:600 12px/1.1 system-ui;
-    display:flex; gap:6px; align-items:center
-  }
-  .prop-slider .count-badge i{ font-size:13px }
-  `;
-  const tag = document.createElement('style');
-  tag.id = 'prop-carousel-styles';
-  tag.textContent = css;
-  document.head.appendChild(tag);
-}
-
-/* === INIT CARROUSEL — remplace juste la src, sans toucher aux dimensions === */
-function initCardSlider(rootEl, images) {
-  const pics = (Array.isArray(images) && images.length ? images : ["https://via.placeholder.com/800x500"]);
-  const imgEl = rootEl.querySelector('img.property-img-v2') || rootEl.querySelector('img');
-  const prev  = rootEl.querySelector('.nav.prev');
-  const next  = rootEl.querySelector('.nav.next');
-  const nSpan = rootEl.querySelector('.img-total');
-  let i = 0;
-
-  // copie le border-radius de l'image pour que tout clippe pareil
-  if (imgEl) {
-    const br = getComputedStyle(imgEl).borderRadius;
-    if (br) rootEl.style.borderRadius = br;
-  }
-
-  // aligne les flèches sur le bord VISUEL de l'image (pas du card)
-  function alignNavToImage() {
-    if (!imgEl) return;
-    const sr = rootEl.getBoundingClientRect();
-    const ir = imgEl.getBoundingClientRect();
-    const leftGap  = Math.max(0, ir.left  - sr.left);
-    const rightGap = Math.max(0, sr.right - ir.right);
-
-    if (prev) prev.style.left  = `${10 + leftGap}px`;
-    if (next) next.style.right = `${10 + rightGap}px`;
-  }
-
-  if (nSpan) nSpan.textContent = pics.length;
-  const showNav = pics.length > 1;
-  if (prev) prev.style.display = showNav ? '' : 'none';
-  if (next) next.style.display = showNav ? '' : 'none';
-
-  function show(k){
-    i = (k + pics.length) % pics.length;
-    if (imgEl) imgEl.src = pics[i];
-    // realigner au cas où le chargement d’image modifie la boîte
-    requestAnimationFrame(alignNavToImage);
-  }
-
-  if (prev) prev.addEventListener('click', (e)=>{ e.stopPropagation(); show(i-1); });
-  if (next) next.addEventListener('click', (e)=>{ e.stopPropagation(); show(i+1); });
-
-  // swipe mobile
-  let sx = null;
-  rootEl.addEventListener('touchstart', (e)=>{ sx = e.touches[0].clientX; }, {passive:true});
-  rootEl.addEventListener('touchend',   (e)=>{
-    if (sx == null) return;
-    const dx = e.changedTouches[0].clientX - sx;
-    if (Math.abs(dx) > 40) show(i + (dx < 0 ? 1 : -1));
-    sx = null;
-  }, {passive:true});
-
-  // resize/reflow → on recale
-  const ro = new ResizeObserver(()=> alignNavToImage());
-  if (imgEl) ro.observe(imgEl);
-  window.addEventListener('resize', alignNavToImage);
-
-  show(0);
-  alignNavToImage();
-}
-
-
-
-
-  
-
-
-
-
-/* ===== RENDU DES BIENS (carrousel par-dessus l’image existante) ===== */
-function renderProperties(list) {
-  ensurePropertyCarouselStyles();
-
-  const container = document.getElementById("property-cards-container");
-  container.innerHTML = "";
-  const favs = getFavs();
-
-  list.forEach((property, idx) => {
-    const sliderId = `ps-${property.id || idx}-${Math.random().toString(36).slice(2,7)}`;
-    const card = document.createElement("div");
-    card.className = "property-card-ui-v2";
-    card.style.cursor = "pointer";
-    card.style.position = "relative";
-
-    const isFav = favs.includes(property.id);
-    const favBtn = `
-      <button class="fav-btn${isFav ? " fav-active" : ""}" data-id="${property.id}" aria-label="Ajouter aux favoris">
-        <i class="fa fa-heart"></i>
-      </button>
-    `;
-
-    card.innerHTML = `
-      ${favBtn}
-
-      <!-- on garde TA taille via .property-img-v2, on ne la touche pas -->
-      <div class="prop-slider" id="${sliderId}">
-        <img src="${(property.images && property.images[0]) || ''}" class="property-img-v2" alt="${property.title}" loading="lazy" decoding="async">
-        <button class="nav prev"  aria-label="Previous image" onclick="event.stopPropagation()">‹</button>
-        <button class="nav next"  aria-label="Next image"     onclick="event.stopPropagation()">›</button>
-        <div class="count-badge"><i class="fa fa-camera"></i><span class="img-total">1</span></div>
-      </div>
-
-      <div class="property-title-ui-v2">${property.title}</div>
-      <div class="property-loc-ui-v2"><i class="fas fa-map-marker-alt"></i> ${property.location || ""}</div>
-      <div class="property-features-ui-v2">
-        <span><i class="fas fa-bed"></i> ${property.bedrooms ?? ""}</span>
-        <span><i class="fas fa-bath"></i> ${property.bathrooms ?? ""}</span>
-        <span><i class="fas fa-ruler-combined"></i> ${property.size ?? ""} sqft</span>
-      </div>
-      <div class="property-desc-ui-v2">${property.description || ''}</div>
-      <div class="property-price-ui-v2">${formatAED_EN(property.price)}</div>
-
-      <div class="property-actions-ui-v2">
-        <button type="button" onclick="event.stopPropagation();window.location.href='tel:+000000000';">Call</button>
-        <button type="button" onclick="event.stopPropagation();window.location.href='mailto:info@propindubai.com';">Email</button>
-        <button type="button" onclick="event.stopPropagation();window.open('https://wa.me/', '_blank');">WhatsApp</button>
-      </div>
-    `;
-
-    // clic carte -> détail
-    card.addEventListener("click", () => {
-      if (property.source === 'offplan') {
-        sessionStorage.setItem('selected_offplan', JSON.stringify({ id: property.id, type: 'offplan' }));
-        window.location.href = `off-plan-click.html?id=${encodeURIComponent(property.id)}`;
-        return;
-      }
-      const type = property._table || 'buy';
-      sessionStorage.setItem('selected_property', JSON.stringify({ id: property.id, type }));
-      window.location.href = `bien.html?id=${encodeURIComponent(property.id)}&type=${encodeURIComponent(type)}`;
-    });
-
-    container.appendChild(card);
-
-    // init carrousel (ne modifie PAS les dimensions)
-    const sliderEl = document.getElementById(sliderId);
-    initCardSlider(sliderEl, property.images);
-  });
-
-  setupFavBtns();
-}
-
-
-
-
-
-
-
-function setupFavBtns() {
-  document.querySelectorAll('.fav-btn').forEach(btn => {
-    const id = btn.dataset.id;
-    btn.onclick = (e) => {
-      e.stopPropagation();
-      let favs = getFavs();
-      if (favs.includes(id)) {
-        favs = favs.filter(x => x !== id);
-        btn.classList.remove('fav-active');
-      } else {
-        favs.push(id);
-        btn.classList.add('fav-active');
-      }
-      saveFavs(favs);
-    };
-  });
-}
-
-// ========= RENDU CHAT =========
-function renderChatList(selectedId) {
-  const list = document.getElementById('chat-list');
-  const chats = getChats();
-  list.innerHTML = '';
-  chats.forEach(chat => {
-    const item = document.createElement('div');
-    item.className = 'multi-chat-list-item' + (chat.id === selectedId ? ' active' : '');
-    let chatName = chat.title || "New chat";
-    if (chatName.length > 30) chatName = chatName.slice(0, 30) + '…';
-    item.innerHTML = `
-      <i class="fa fa-comments"></i>
-      <span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:150px;">${chatName}</span>
-      <button class="delete-chat-btn" title="Delete chat" data-id="${chat.id}">
-        <i class="fa fa-trash"></i>
-      </button>
-    `;
-    item.onclick = (e) => {
-      if (e.target.closest('.delete-chat-btn')) return;
-      selectChat(chat.id);
-    };
-    list.appendChild(item);
-  });
-  list.querySelectorAll('.delete-chat-btn').forEach(btn => {
-    btn.onclick = (e) => {
-      e.stopPropagation();
-      deleteChat(btn.dataset.id);
-    };
-  });
-}
-
-function renderChat(chat) {
-  const container = document.getElementById('chat-messages-container');
-  const scroll = document.getElementById('chat-messages-scroll');
-  container.innerHTML = '';
-  if (!chat) return;
-  document.getElementById('current-chat-title').textContent = chat.title || 'Chat';
-  chat.messages.forEach(msg => {
-    const div = document.createElement('div');
-    div.className = (msg.type === 'user') ? 'chat-message-user' : 'chat-message-bot';
-    div.textContent = msg.text;
-    container.appendChild(div);
-  });
-  setTimeout(() => { scroll.scrollTop = scroll.scrollHeight; }, 50);
-  function closeAllMobileLayers() {
-  // Overlay de la sidebar
-  document.querySelectorAll('.mobile-sidebar-overlay').forEach(ov => ov.classList.remove('active'));
-  // Overlay de la nav du header
-  const navOverlay = document.getElementById('navOverlay');
-  if (navOverlay) navOverlay.style.display = 'none';
-
-  // Fermer la sidebar si ouverte
-  const sidebar = document.querySelector('.multi-sidebar');
-  if (sidebar) sidebar.classList.remove('open');
-
-  // Fermer le menu header si ouvert
-  const nav = document.querySelector('.all-button');
-  if (nav) nav.classList.remove('menu-open');
-
-  // Nettoyer le body (scroll + state)
-  document.body.style.overflow = '';
-  document.body.classList.remove('drawer-open');
-}
-
-}
-
-
-
-function closeAllMobileLayers() {
-  // Overlay de la sidebar
-  document.querySelectorAll('.mobile-sidebar-overlay').forEach(ov => ov.classList.remove('active'));
-  // Overlay de la nav du header
-  const navOverlay = document.getElementById('navOverlay');
-  if (navOverlay) navOverlay.style.display = 'none';
-
-  // Fermer la sidebar si ouverte
-  const sidebar = document.querySelector('.multi-sidebar');
-  if (sidebar) sidebar.classList.remove('open');
-
-  // Fermer le menu header si ouvert
-  const nav = document.querySelector('.all-button');
-  if (nav) nav.classList.remove('menu-open');
-
-  // Nettoyer le body (scroll + state)
-  document.body.style.overflow = '';
-  document.body.classList.remove('drawer-open');
-}
-
-
-
-async function renderAll() {
-  let chats = getChats();
-  let current = getCurrentChat();
-  if (!chats.length) { addNewChat(); chats = getChats(); current = getCurrentChat(); }
-  renderChatList(current ? current.id : null);
-  renderChat(current);
-
-  const data = await fetchProperties({ type: "all", limit: 30 });
-  renderProperties(data);
-}
-
-function selectChat(id) {
-  localStorage.setItem('multiCurrentChatId', id);
-  closeAllMobileLayers();
-  renderAll();
-}
-
-
-function addNewChat(selectIt = true) {
-  let chats = getChats();
-  const newId = uuid();
-  const chat = {
-    id: newId,
-    title: "New chat",
-    messages: [{ type: 'bot', text: "Hi there! How can I help you today?" }]
-  };
-  chats.push(chat);
-  saveChats(chats);
-  if (selectIt) localStorage.setItem('multiCurrentChatId', newId);
-  closeAllMobileLayers();   // ← indispensable sur mobile
-  renderAll();
-}
-
-
-
-
-
-
-function getCurrentChat() {
-  const chats = getChats();
-  const id = localStorage.getItem('multiCurrentChatId');
-  return chats.find(chat => chat.id === id);
-}
-function addMessageToCurrentChat(type, text) {
-  let chats = getChats();
-  const id = localStorage.getItem('multiCurrentChatId');
-  let chat = chats.find(chat => chat.id === id);
-  if (!chat) return;
-  chat.messages.push({ type, text });
-  if (type === 'user' && chat.messages.filter(m => m.type === 'user').length === 1) {
-    let title = text.trim().split(/\s+/).slice(0, 7).join(' ');
-    if (title.length > 34) title = title.slice(0, 34) + '...';
-    chat.title = title || "New chat";
-  }
-  saveChats(chats);
-  renderChat(chat);
-  renderChatList(chat.id);
-}
-function resetCurrentChat() {
-  let chats = getChats();
-  const id = localStorage.getItem('multiCurrentChatId');
-  let chat = chats.find(chat => chat.id === id);
-  if (!chat) return;
-  chat.messages = [{ type: 'bot', text: "Hi there! How can I help you today?" }];
-  chat.title = "New chat";
-  saveChats(chats);
-  renderChat(chat);
-  renderChatList(chat.id);
-}
-
-
-
-function deleteChat(chatId) {
-  let chats = getChats();
-  const idx = chats.findIndex(c => c.id === chatId);
-  if (idx === -1) return;
-  chats.splice(idx, 1);
-  saveChats(chats);
-  let newId = (chats[idx] && chats[idx].id) || (chats[idx - 1] && chats[idx - 1].id) || (chats[0] && chats[0].id);
-  if (!newId) { addNewChat(true); return; }
-  localStorage.setItem('multiCurrentChatId', newId);
-  renderAll();
-}
-
-
-// ========= FILTRES =========
-function setupFilters() {
-  document.querySelectorAll('.chat-pick-btn-v2').forEach(btn => {
-    btn.addEventListener('click', async function () {
-      document.querySelectorAll('.chat-pick-btn-v2').forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-
-      // normalize dataset values like "Off Plan", "off-plan", "OFFPLAN"
-      const raw = (this.dataset.type || '').trim().toLowerCase();
-      const norm = raw.replace(/[\s_-]+/g, '');  // "off plan" → "offplan"
-
-      const map = {
-        offplan: 'offplan',
-        off: 'offplan',
-        new: 'offplan',
-        buy: 'buy',
-        rent: 'rent',
-        commercial: 'commercial',
-        all: 'all'
-      };
-
-      const type = map[norm] || 'all';
-
-      const data = await fetchProperties({ type });
-      renderProperties(data);
-    });
-  });
-}
-
-
-
-// ========= DOM READY =========
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.sidebar-btn').forEach((btn, i) => {
-    if (i === 0) btn.onclick = () => { window.location.href = "accueil.html"; };
-    btn.addEventListener('click', function () {
-      document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-    });
-  });
-
-  document.getElementById('new-chat-btn').onclick = () => addNewChat(true);
-
-  document.getElementById('chat-form').onsubmit = function (e) {
-    e.preventDefault();
-    const input = document.getElementById('user-input');
-    const msg = input.value.trim();
-    if (!msg) return;
-    addMessageToCurrentChat('user', msg);
-    input.value = '';
-    setTimeout(() => {
-      addMessageToCurrentChat('bot', "Thanks for your message! We will check properties accordingly.");
-    }, 700);
-  };
-
-  document.getElementById('reset-chat-btn').onclick = () => resetCurrentChat();
-
-  setupFilters();
-  renderAll();
-});
-
-// ========= DROPDOWN =========
-document.addEventListener('DOMContentLoaded', function () {
-  const buyDropdown = document.getElementById('buyDropdown');
-  const mainBuyBtn = document.getElementById('mainBuyBtn');
-  mainBuyBtn.addEventListener('click', function (e) {
-    e.preventDefault();
-    buyDropdown.classList.toggle('open');
-  });
-  document.addEventListener('click', function (e) {
-    if (!buyDropdown.contains(e.target)) {
-      buyDropdown.classList.remove('open');
+    90% {
+      opacity: 1;
+      transform: scale(1.04) translateY(-7px);
     }
-  });
-});
-
-
-/* ====== BURGER MOBILE (header) — AreaForYou ====== */
-(function () {
-  const burger = document.getElementById('burgerMenu');
-  const nav = document.querySelector('.all-button');
-  if (!burger || !nav) return;
-
-  const isMobile = () => window.matchMedia('(max-width: 900px)').matches;
-  let overlay;
-
-  function ensureOverlay() {
-    if (overlay) return overlay;
-    overlay = document.createElement('div');
-    overlay.id = 'navOverlay';
-    Object.assign(overlay.style, {
-      position: 'fixed',
-      inset: '0',
-      background: 'transparent',
-      zIndex: '20', // sous le menu (menu a z-index 21)
-      display: 'none'
-    });
-    document.body.appendChild(overlay);
-    return overlay;
-  }
-
-  function openMenu() {
-    nav.classList.add('menu-open');       // correspond au CSS de cette page
-    document.body.style.overflow = 'hidden';
-    ensureOverlay().style.display = 'block';
-    const closeOutside = (e) => {
-      if (!nav.contains(e.target) && !burger.contains(e.target)) closeMenu();
-    };
-    overlay.addEventListener('click', closeOutside, { once: true });
-    overlay.addEventListener('touchstart', closeOutside, { once: true, passive: true });
-  }
-
-  function closeMenu() {
-    nav.classList.remove('menu-open');
-    document.body.style.overflow = '';
-    if (overlay) overlay.style.display = 'none';
-  }
-
-  burger.addEventListener('click', (e) => {
-    if (!isMobile()) return;
-    e.preventDefault();
-    e.stopPropagation();
-    nav.classList.contains('menu-open') ? closeMenu() : openMenu();
-  });
-
-  nav.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
-  window.addEventListener('resize', () => { if (!isMobile()) closeMenu(); });
-})();
-
-
-
-/* ====== MOBILE SPLITTER v2 — 3 états (closed / half / open) + snap + click toggle ====== */
-(function () {
-  const mq = window.matchMedia('(max-width: 800px)');
-  const chat = document.getElementById('chat-col-v2');
-  const props = document.getElementById('properties-col');
-  const bar = document.getElementById('splitterBar');
-  const container = document.getElementById('split-mobile-container');
-  if (!chat || !props || !bar || !container) return;
-
-  // états et ratios (part de hauteur prise par le chat)
-  const STATES = ['half', 'open', 'closed'];       // ordre quand on clique la barre
-  const RATIOS = { closed: 0.00, half: 0.52, open: 0.96 };
-  let state = 'half';
-
-  function enableSmooth() {
-    chat.style.transition = 'height .22s';
-    props.style.transition = 'height .22s';
-  }
-  function disableSmooth() {
-    chat.style.transition = '';
-    props.style.transition = '';
-  }
-
-  // on supprime les min-heights (même ceux avec !important) quand on veut full open/close
-  function overrideMins(zeroForChat, zeroForProps) {
-    if (zeroForChat) chat.style.setProperty('min-height', '0', 'important');
-    else chat.style.removeProperty('min-height');
-
-    if (zeroForProps) props.style.setProperty('min-height', '0', 'important');
-    else props.style.removeProperty('min-height');
-  }
-
-  function applyRatio(r) {
-    const total = container.getBoundingClientRect().height - bar.offsetHeight;
-    const chatH = Math.max(0, Math.min(total, Math.round(total * r)));
-    const propsH = total - chatH;
-    chat.style.height = chatH + 'px';
-    props.style.height = propsH + 'px';
-  }
-
-  function snapTo(newState, animate = true) {
-    state = newState;
-    if (animate) enableSmooth(); else disableSmooth();
-
-    if (state === 'closed') {
-      overrideMins(true, true);           // autorise fermeture totale
-      applyRatio(RATIOS.closed);
-    } else if (state === 'open') {
-      overrideMins(true, true);           // autorise ouverture totale du chat
-      applyRatio(RATIOS.open);
-    } else {
-      overrideMins(false, false);         // remet les min-heights normaux
-      applyRatio(RATIOS.half);
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
     }
-    setTimeout(disableSmooth, 260);
   }
 
-  // init mobile: semi-ouvert
-  function init() {
-    if (!mq.matches) return;
-    snapTo('half', false);
+
+  .popup-close:hover { background: #ffeed9; color: #ff9100; }
+  .popup-main-imgbox {
+    width: 100%;
+    height: 110px; /* plus haut qu'avant, augmente ici si besoin (ex: 130px) */
+    background: #f5f5f7;
+    border-radius: 22px 22px 0 0;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
   }
-  init();
-
-  // resize: nettoyage desktop / re-application mobile
-  window.addEventListener('resize', () => {
-    if (!mq.matches) {
-      disableSmooth();
-      chat.style.height = '';
-      chat.style.removeProperty('min-height');
-      props.style.height = '';
-      props.style.removeProperty('min-height');
-    } else {
-      snapTo(state, false);
-    }
-  });
-
-  // Drag avec snap à la relâche
-  let dragging = false, startY = 0, startChatH = 0, moved = 0;
-
-  bar.addEventListener('mousedown', (e) => {
-    if (!mq.matches) return;
-    dragging = true; moved = 0;
-    startY = e.clientY;
-    startChatH = chat.getBoundingClientRect().height;
-    document.body.style.userSelect = 'none';
-  });
-  window.addEventListener('mousemove', (e) => {
-    if (!dragging) return;
-    const dy = e.clientY - startY;
-    moved = Math.max(moved, Math.abs(dy));
-    overrideMins(true, true);
-    disableSmooth();
-    const total = container.getBoundingClientRect().height - bar.offsetHeight;
-    const h = Math.max(0, Math.min(total, startChatH + dy));
-    chat.style.height = h + 'px';
-    props.style.height = (total - h) + 'px';
-  });
-  window.addEventListener('mouseup', () => {
-    if (!dragging) return;
-    dragging = false;
-    document.body.style.userSelect = '';
-    const total = container.getBoundingClientRect().height - bar.offsetHeight;
-    const ratio = (parseFloat(chat.style.height) || 0) / total;
-
-    // choisir l'état le plus proche
-    let best = 'half', bestDist = Infinity;
-    ['closed', 'half', 'open'].forEach(s => {
-      const d = Math.abs(ratio - RATIOS[s]);
-      if (d < bestDist) { bestDist = d; best = s; }
-    });
-    snapTo(best, true);
-  });
-
-  // Touch
-  bar.addEventListener('touchstart', (e) => {
-    if (!mq.matches) return;
-    const t = e.touches[0];
-    dragging = true; moved = 0;
-    startY = t.clientY;
-    startChatH = chat.getBoundingClientRect().height;
-    document.body.style.userSelect = 'none';
-  }, { passive: true });
-  window.addEventListener('touchmove', (e) => {
-    if (!dragging) return;
-    const t = e.touches[0];
-    const dy = t.clientY - startY;
-    moved = Math.max(moved, Math.abs(dy));
-    overrideMins(true, true);
-    disableSmooth();
-    const total = container.getBoundingClientRect().height - bar.offsetHeight;
-    const h = Math.max(0, Math.min(total, startChatH + dy));
-    chat.style.height = h + 'px';
-    props.style.height = (total - h) + 'px';
-  }, { passive: true });
-  function endTouch() {
-    if (!dragging) return;
-    dragging = false;
-    document.body.style.userSelect = '';
-    const total = container.getBoundingClientRect().height - bar.offsetHeight;
-    const ratio = (parseFloat(chat.style.height) || 0) / total;
-    let best = 'half', bestDist = Infinity;
-    ['closed', 'half', 'open'].forEach(s => {
-      const d = Math.abs(ratio - RATIOS[s]);
-      if (d < bestDist) { bestDist = d; best = s; }
-    });
-    snapTo(best, true);
-  }
-  window.addEventListener('touchend', endTouch);
-  window.addEventListener('touchcancel', endTouch);
-
-  // Clic sur la barre → cycle entre half → open → closed → half…
-  bar.addEventListener('click', () => {
-    if (!mq.matches || moved > 3) return; // ignore si c’était un drag
-    const i = STATES.indexOf(state);
-    const next = STATES[(i + 1) % STATES.length];
-    snapTo(next, true);
-  });
-})();
-
-
-// branche aussi le burger si présent
-const burger = document.getElementById('burgerMenu');
-if (burger) burger.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); toggleSidebar(); });
-
-
-/* ===== MOBILE EDGE TAB → ouvre/ferme la sidebar (mobile only) ===== */
-(function () {
-
-    
-
-  const mq = window.matchMedia('(max-width: 800px)');
-  if (!mq.matches) return;
-
-  const sidebar = document.querySelector('.multi-sidebar');
-  if (!sidebar) return;
-
-  // overlay (réutilise ta classe .mobile-sidebar-overlay)
-  let overlay = document.getElementById('mobileSidebarOverlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'mobileSidebarOverlay';
-    overlay.className = 'mobile-sidebar-overlay';
-    document.body.appendChild(overlay);
+  .popup-main-img {
+    width: 100%;
+    height: 110px; /* même valeur que ci-dessus */
+    object-fit: cover;
+    border-radius: 22px 22px 0 0;
   }
 
-  // onglet collé à gauche
-  let tab = document.getElementById('mobileSidebarTab');
-  if (!tab) {
-    tab = document.createElement('button');
-    tab.id = 'mobileSidebarTab';
-    tab.className = 'mobile-sidebar-tab';
-    tab.setAttribute('aria-label', 'Open menu');
-    tab.innerHTML = '<span class="tab-arrow">❯</span>'; // chevron
-    document.body.appendChild(tab);
+  .popup-logo {
+    position: absolute;
+    left: 17px;
+    top: 17px;
+    width: 54px;
+    height: 54px;
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px rgba(40,30,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .popup-logo img {
+    width: 42px; height: 42px; object-fit: contain;
+    border-radius: 9px;
+  }
+  .popup-body {
+    padding: 17px 22px 0 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .popup-title {
+    font-size: 1.32rem;
+    font-weight: 700;
+    color: #181818;
+    margin-bottom: 1px;
+  }
+  .popup-location {
+    font-size: 1.08rem;
+    color: #888;
+    margin-bottom: 8px;
+  }
+  .popup-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.09rem;
+    margin-bottom: 6px;
+  }
+  .popup-price {
+    font-weight: 600;
+    color: #888;
+  }
+  .popup-status {
+    padding: 6px 15px;
+    border-radius: 13px;
+    font-size: 0.97rem;
+    font-weight: 700;
+    margin-left: 10px;
+    background: #ffeed9;
+    color: #ff9100;
+  }
+  .popup-status.launch { background: #f6efff; color: #8429d3; }
+  .popup-status.handover { background: #ffeed9; color: #ff9100; }
+  .popup-details {
+    display: flex;
+    gap: 11px;
+    font-size: 1.07rem;
+    color: #888;
+    margin-bottom: 6px;
+  }
+  .popup-details > div { white-space: nowrap; }
+  .popup-info-list { margin: 9px 0 19px 0; color: #555; }
+  .popup-detail { font-size: 1.08rem; }
+  .popup-btn-cta {
+    background: #ff9100;
+    color: #fff;
+    border: none;
+    border-radius: 13px;
+    font-size: 1.22rem;
+    font-weight: 700;
+    width: 100%;
+    padding: 14px 0;
+    cursor: pointer;
+    box-shadow: 0 4px 22px rgba(255,161,54,0.11);
+    transition: background 0.13s;
+    margin-bottom: 8px;
+  }
+  .popup-btn-cta:hover { background: #fa8400; }
+  .popup-arrow {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -20px;
+    width: 44px;
+    height: 22px;
+    z-index: 9;
+    pointer-events: none;
+  }
+  .popup-arrow svg { display: block; }
+  .leaflet-airbnb-popup .leaflet-popup-content-wrapper { background: none; box-shadow: none; border: none; }
+  .leaflet-airbnb-popup .leaflet-popup-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 355px;
+    border-radius: 26px;
+    box-shadow: 0 10px 44px rgba(35,28,12,0.17);
+    background: none;
+  }
+  .leaflet-airbnb-popup .leaflet-popup-tip-container { display: none; }
+
+  /* ------------- POPUP PRICE FILTER ------------- */
+  #priceFilterPopup {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    background: rgba(30,30,34,0.09);
+    align-items: center;
+    justify-content: center;
+  }
+  #priceFilterPopup.active { display: flex; }
+  .price-popup-inner {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 8px 34px rgba(240,90,0,0.10), 0 2px 8px #ffd6b440;
+    width: 345px; min-width: 240px; max-width: 96vw;
+    padding: 17px 19px 15px 19px;
+    text-align: center; position: relative;
+    animation: popupAppear .22s cubic-bezier(.61,.01,.74,1.05);
+    border: 1.3px solid #ffe7cb;
+  }
+  @keyframes popupAppear { 0% { transform: scale(0.92); opacity: 0;} 100% { transform: none; opacity: 1;} }
+  .price-popup-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;
+  }
+  .price-popup-header span {
+    font-size: 1.13em; font-weight: 700; color: #ff8300; letter-spacing: 0.18px;
+  }
+  #closePricePopup {
+    background: none; border: none; font-size: 1.6em; color: #ff8300; cursor: pointer;
+    border-radius: 8px; padding: 1px 7px; transition: background 0.16s;
+  }
+  #closePricePopup:hover { background: #fff5e2;}
+  #priceHistogram {
+    width: 100% !important; max-width: 325px; height: 40px;
+    margin: 2px 0 7px 0; border-radius: 8px;
+    display: block;
+  }
+  .price-hist-label {
+    font-size: 0.81em; color: #b7b7b7; margin-bottom: 2px; margin-top: -4px;
+    text-align: left; font-weight: 400; padding-left: 2px;
+  }
+  .price-inputs {
+    display: flex;
+    align-items: center; 
+    justify-content: center; 
+    gap: 10px;
+    margin-bottom: 35px;
+  }
+  .price-inputs input {
+    text-align: center; font-weight: 600;
+    border-radius: 8px; border: 1.3px solid #ffd9b7; padding: 6px 3px;
+    background: #fafafc; outline: none; transition: border 0.13s, box-shadow 0.13s;
+    box-shadow: 0 1px 6px #ffe4d352;
+    color: #232323;
+  }
+  .price-inputs input:focus { border-color: #ff8300; background: #fff; box-shadow: 0 1px 10px #ffe2c9c7;}
+  .selected-price-label {
+    margin: 10px 0 6px 0;
+    font-size: 1.09em;
+    font-weight: 700;
+    color: #f17100;
+    letter-spacing: 0.05px;
+    text-align: center;
+    text-shadow: 0 2px 12px #ffe2c940;
+  }
+  .slider-main { margin-bottom: 6px; margin-top: 0; }
+  .slider-labels {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.93em; color: #c7c7c7;
+    margin: 0 1px 2px 1px; font-weight: 500; letter-spacing: 0.11px;
   }
 
-  // style injecté (mobile only)
-  const style = document.createElement('style');
-  style.textContent = `
-    @media (max-width:800px){
-      .mobile-sidebar-tab{
-        position: fixed;
-        left: 0;
-        top: 42vh;                   /* ajuste si tu veux plus haut/bas */
-        transform: translateX(-4px);
-        width: 28px; height: 56px;
-        border-radius: 0 14px 14px 0;
-        border: none; background: #ff9100; color:#fff;
-        box-shadow: 0 4px 16px rgba(0,0,0,.18);
-        z-index: 2050; cursor: pointer;
-        display: inline-flex; align-items: center; justify-content: center;
-      }
-      .mobile-sidebar-tab .tab-arrow{ font-size:20px; line-height:1; transform: translateX(1px); }
-      .mobile-sidebar-tab.hidden{ display:none !important; }
-    }`;
-  document.head.appendChild(style);
-
-  function openSidebar(){
-    sidebar.classList.add('open');
-    overlay.classList.add('active');
-    tab.classList.add('hidden');
-    document.body.style.overflow = 'hidden';
+  /* ------ noUiSlider (prix) custom ------ */
+  #priceSlider .noUi-base {
+    background: #ffe8d6;
+    height: 5px;
+    border-radius: 4px;
+    margin-top: 1px;
   }
-  function closeSidebar(){
-    sidebar.classList.remove('open');
-    overlay.classList.remove('active');
-    tab.classList.remove('hidden');
-    document.body.style.overflow = '';
+  #priceSlider .noUi-connect {
+    background: linear-gradient(90deg,#ffd399 0%,#ff9100 100%);
+    height: 5px;
+    border-radius: 4px;
   }
-  function toggleSidebar(){
-    sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+  #priceSlider .noUi-handle {
+    background: #fff2e6;
+    border: 2px solid #ff9100;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    top: -7px;
+    box-shadow: 0 1px 8px #ffd7b150;
+    cursor: pointer;
+    transition: border 0.15s;
   }
+  #priceSlider .noUi-handle:focus {
+    border: 2.5px solid #f17100;
+    outline: none;
+  }
+  #priceSlider .noUi-tooltip {
+    margin-bottom: 12px;
+    background: #ffad55;
+    color: #fff;
+    font-size: 0.91em;
+    border-radius: 7px;
+    border: none;
+    font-weight: 600;
+    padding: 3px 10px;
+    box-shadow: 0 1px 8px #ffd7b175;
+  }
+  #priceSlider .noUi-horizontal .noUi-handle { top: -7px; }
+  .validate-price-btn {
+    margin-top: 10px;
+    background: linear-gradient(93deg,#ffb473 0%,#f17100 90%);
+    color: #fff;
+    border: none; border-radius: 21px;
+    padding: 11px 40px;
+    font-size: 17px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 2px 13px #ffd6b49e;
+    transition: background 0.16s, box-shadow 0.13s;
+    letter-spacing: 0.4px;
+  }
+  .validate-price-btn:hover { background: #f18101;}
+  body.price-popup-open { overflow: hidden; }
 
-  // actions
-  tab.addEventListener('click', toggleSidebar);
-  overlay.addEventListener('click', closeSidebar);
-
-  
-
-  // fermer après clic dans le menu
-  sidebar.querySelectorAll('a, button').forEach(el => el.addEventListener('click', closeSidebar));
-
-  // si on repasse desktop, on nettoie
-  window.addEventListener('resize', () => {
-    if (!mq.matches) {
-      closeSidebar();
-      tab && tab.remove();
-      overlay && overlay.classList.remove('active');
-    }
-  });
-})();
 
 
 
 
-/* === Mobile: “chat list” opener left to the title (no side tab) === */
-(function mobileChatDrawer(){
-  const mq = window.matchMedia('(max-width: 800px)');
-  if (!mq.matches) return;
 
-  // Nettoyage: enlève toute ancienne poignée/flèche latérale si présente
-  document.querySelectorAll('#mobileSidebarTab, .mobile-sidebar-tab, .chat-prompt-tab, .side-tab, .drawer-handle, .chat-side-handle')
-    .forEach(el => el.remove());
-
-  const header  = document.querySelector('.multi-header');
-  const title   = document.getElementById('current-chat-title');
-  const sidebar = document.querySelector('.multi-sidebar');
-  if (!header || !title || !sidebar) return;
-
-  // Overlay (créé si absent)
-  let overlay = document.querySelector('.mobile-sidebar-overlay');
-  if (!overlay){
-    overlay = document.createElement('div');
-    overlay.className = 'mobile-sidebar-overlay';
-    document.body.appendChild(overlay);
+@media (max-width: 700px) {
+  html, body, #root, .app, .offplan-map-page, .main-container, .container {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    background: #faf8f6 !important;
   }
 
-  // Bouton d’ouverture (icône chat), à gauche du titre
-  let trigger = header.querySelector('.chat-toggle-btn-mobile');
-  if (!trigger){
-    trigger = document.createElement('button');
-    trigger.type = 'button';
-    trigger.className = 'chat-toggle-btn-mobile';
-    trigger.setAttribute('aria-label','Open chat list');
-    trigger.innerHTML = '<i class="fa fa-comments"></i>'; // icône chat (≠ burger)
-    header.insertBefore(trigger, title);
+  .header2 {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 54px; z-index: 1100;
+    background: #fff;
+    width: 100vw !important;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  const openDrawer = ()=>{
-    sidebar.classList.add('open');
-    overlay.classList.add('active');
-    document.body.classList.add('drawer-open');  // cache le bouton via CSS
-    document.body.style.overflow = 'hidden';
-  };
-  const closeDrawer = ()=>{
-    sidebar.classList.remove('open');
-    overlay.classList.remove('active');
-    document.body.classList.remove('drawer-open');
-    document.body.style.overflow = '';
-  };
-  const toggleDrawer = ()=> (sidebar.classList.contains('open') ? closeDrawer() : openDrawer());
 
-  trigger.addEventListener('click', (e)=>{ e.preventDefault(); toggleDrawer(); });
-  overlay.addEventListener('click', closeDrawer);
-  window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeDrawer(); });
+  .top-tabs-filters {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin: 68px 0 0 0 !important;
+    padding: 0 !important;
+  }
 
-  // Si on repasse desktop, on ferme proprement
-  window.addEventListener('resize', ()=>{ if(!window.matchMedia('(max-width:800px)').matches) closeDrawer(); });
-})();
+  .tabs { gap: 2px; }
+  .tab { padding: 8px 9vw; font-size: 1rem; }
+
+  .filter-bar {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px;
+    padding: 7px 0 !important;
+    margin: 0 !important;
+    justify-content: flex-start !important;
+    align-items: center;
+    scroll-behavior: smooth;
+    background: #fff;
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+
+  .filter-btn, .filter-bar select {
+    font-size: 1em;
+    padding: 9px 17px;
+    border-radius: 11px;
+    min-width: max-content;
+    white-space: nowrap;
+    margin: 0 !important;
+  }
+
+  .filter-bar > *:first-child {
+    margin-left: 0 !important;
+  }
+
+  #map {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    height: calc(100vh - 210px); /* ajuste selon tes autres éléments */
+    border-radius: 0 !important;
+    margin: 10px 0 0 0 !important;
+    padding: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
+  }
+
+  .project-popup-airbnb {
+    max-width: 99vw !important;
+    width: 99vw !important;
+    left: 1vw !important;
+  }
+
+  .all-button { z-index: 1200 !important; display: none !important; }
+
+  .offplan-map-page .header2 .all-button.mobile-open {
+    display: flex !important;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* RESET de base */
+.header2, .all-button, .profil-block {
+  box-sizing: border-box;
+}
+
+.header2 {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 60px;
+  background: #fff;
+  border-bottom: 1.5px solid #ececec;
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  padding: 0 28px;
+}
+
+/* Logo & Burger */
+.logo {
+  height: 38px;
+  display: block;
+}
+
+.burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  margin-right: 16px;
+  cursor: pointer;
+}
+.burger span {
+  display: block;
+  width: 27px;
+  height: 3px;
+  background: #ff6600;
+  border-radius: 2px;
+  transition: 0.25s;
+}
+
+/* Nav */
+.all-button {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex: 1 1 auto;
+  justify-content: center;
+  min-width: 0;
+}
+
+.header-btn {
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-weight: 600;
+  font-size: 1.08rem;
+  color: #474747;
+  background: none;
+  border: none;
+  padding: 10px 19px;
+  border-radius: 7px;
+  margin: 0;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s, box-shadow 0.2s;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.header-btn:hover,
+.header-btn.active {
+  background: #faf7f3;
+  color: #ff6600;
+  box-shadow: 0 1px 4px 0 rgba(255, 102, 0, 0.09);
+}
+
+/* Dropdown - Desktop Only */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.buy-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+.arrow {
+  font-size: 0.8em;
+  transition: transform 0.2s;
+}
+.dropdown.open .arrow {
+  transform: rotate(180deg);
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 112%;
+  min-width: 170px;
+  background: #fff;
+  box-shadow: 0 8px 32px 0 rgba(31,31,35,0.10);
+  border-radius: 10px;
+  z-index: 12;
+  padding: 7px 0;
+  animation: fadeIn 0.17s;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+.dropdown.open .dropdown-content {
+  display: block;
+}
+.dropdown-option {
+  padding: 13px 20px 13px 24px;
+  display: block;
+  font-weight: 600;
+  color: #ff6600;
+  background: none;
+  border: none;
+  font-size: 1.03rem;
+  text-align: left;
+  border-radius: 6px;
+  transition: background 0.12s, color 0.12s;
+  cursor: pointer;
+  text-decoration: none;
+}
+.dropdown-option:hover {
+  background: #ff6600;
+  color: #fff;
+}
+
+/* Profil */
+.profil-block {
+  margin-left: 16px;
+}
+
+
+
+/* Responsive : MOBILE (<900px) */
+@media (max-width: 900px) {
+  .header2 {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    padding: 0 12px;
+    min-height: 52px;
+  }
+  .logo {
+    margin: 0 auto;
+    height: 30px;
+  }
+  .burger {
+    display: flex;
+  }
+  .profil-block {
+    margin-left: auto;
+    margin-right: 0;
+  }
+  /* Nav menu mobile */
+  .all-button {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 0;
+    background: #fff;
+    width: 100%;
+    box-shadow: none;
+    padding: 18px 0 0 0;
+    position: absolute;
+    left: 0;
+    top: 55px;
+    z-index: 21;
+    border-radius: 0 0 15px 15px;
+    border-top: 1.5px solid #ececec;
+    display: none; /* sera activé par JS burger */
+  }
+  .all-button.menu-open {
+    display: flex;
+  }
+  .header-btn,
+  .all-button > a {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 14px 0 14px 24px;
+    margin: 0;
+    font-size: 1.13rem;
+    border-radius: 0;
+    background: none;
+    color: #454545;
+    font-weight: 600;
+    box-shadow: none;
+    border-bottom: 1px solid #f5f5f5;
+    transition: background 0.13s, color 0.13s;
+  }
+  .header-btn:hover,
+  .all-button > a:hover {
+    background: #fff3e6;
+    color: #ff6600;
+  }
+  /* Plus de dropdown sur mobile */
+  .dropdown, .dropdown-content {
+    display: none !important;
+  }
+  /* Montrer les 3 liens Buy/Rent/Commercial sur mobile */
+  .mobile-buy-menu {
+    display: flex !important;
+    flex-direction: column;
+    width: 100%;
+    padding: 0;
+    margin: 0 0 0 0;
+    gap: 0;
+  }
+  .mobile-buy-menu a {
+    color: #454545;
+    font-weight: 600;
+    background: none;
+    border: none;
+    padding: 14px 0 14px 24px;
+    text-align: left;
+    width: 100%;
+    font-size: 1.13rem;
+    margin: 0;
+    border-radius: 0;
+    text-decoration: none;
+    border-bottom: 1px solid #f5f5f5;
+    box-sizing: border-box;
+    transition: color 0.15s, background 0.15s;
+  }
+  .mobile-buy-menu a:hover {
+    color: #ff6600;
+    background: #fff3e6;
+  }
+  /* One-line for chat property AI */
+  .chat-button {
+    white-space: nowrap;  
+    max-width: 97vw;
+  }
+}
+
+/* Désactive le menu mobile sur desktop */
+@media (min-width: 901px) {
+  .mobile-buy-menu {
+    display: none !important;
+  }
+}
+
+
+
+/* place le “card marker” au-dessus du point lat/lng */
+.gm-card-pin{
+  position: relative;
+  transform: translate(-50%, calc(-100% - 8px)); /* ancre en bas-centre */
+  pointer-events: auto;
+}
+
+/* style général de la carte (déjà proche de ce que tu as) */
+.promoteur-marker{
+  position: relative;
+  background: #fff;
+  padding: 8px 10px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.18);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.promoteur-marker-logo{ width:34px; height:34px; object-fit:cover; border-radius:8px; border:1px solid #eee; }
+.promoteur-marker-title.small{ font-weight:700; font-size:12px; max-width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.marker-badge{ font-size:11px; font-weight:700; border-radius:9px; padding:2px 8px; }
+.marker-badge.launch{ background:#f6efff; color:#8429d3; }
+.marker-badge.handover{ background:#fff6e0; color:#ff9100; }
+
+/* le pointeur minimal : un petit point centré */
+.promoteur-marker-pin{
+  position:absolute;
+  left:50%;
+  bottom:-8px;
+  transform:translateX(-50%);
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:
+    0 0 0 2px #fff,           /* liseré blanc pour détacher sur la carte */
+    0 2px 6px rgba(0,0,0,.25);/* petite ombre pour la profondeur */
+  pointer-events:none;         /* le clic passe à la carte */
+}
+
+
+
+/* Supprime les marges internes de l'InfoWindow Google */
+.gm-style-iw, .gm-style-iw-d { padding: 0 !important; }
+.gm-style-iw-d { overflow: hidden !important; }
+
+
+
+/* (Optionnel) cacher le "X" par défaut de Google pour garder seulement le tien */
+.gm-ui-hover-effect { display: none !important; }
+
+/* Carte interne de ton popup */
+.offplan-iw{
+  width: 300px;                 /* ajuste si besoin */
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;             /* pour que l'image colle aux bords arrondis */
+  box-shadow: 0 4px 18px rgba(32,32,32,.14);
+  position: relative;
+}
+
+/* Bandeau image full-bleed (augmente la hauteur ici) */
+.offplan-iw-hero{
+  height: 190px;                /* <<< plus haut qu’avant (mets 180/200 si tu veux) */
+  line-height: 0;               /* supprime l'espace fantôme autour de l'image */
+}
+.offplan-iw-hero img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;            /* recadre sans bandes */
+  display: block;               /* retire l'espace inline */
+}
+
+/* Corps du contenu sous l'image */
+.offplan-iw-body{ padding: 10px 14px 12px; }
+
+/* Bouton close maison (coin haut droit) */
+
+
+
+/* Supprime la croix native et les paddings internes de l'InfoWindow (source du "blanc" en haut) */
+.gm-style-iw button.gm-ui-hover-effect { display:none !important; }
+.gm-style .gm-style-iw-c,
+.gm-style .gm-style-iw-d {
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+/* Pointe/tip Google (si tu n’en veux pas) */
+.gm-style .gm-style-iw-tc { display:none !important; }
+
+/* Carte du popup + image héro en haut qui couvre 100% */
+.offplan-iw-card { 
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 8px 26px rgba(0,0,0,.18);
+}
+.offplan-iw-hero{
+  height: 130px;      /* ajuste ici la hauteur de l’image */
+  line-height: 0;     /* évite tout espace fantôme au-dessus */
+}
+.offplan-iw-hero img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;      /* supprime le petit blanc inline */
+}
+
+.offplan-iw-card{ position:relative; }
+
+.offplan-iw-close{
+ display: none;
+}
+
+
+
+@media (max-width: 768px) {
+  /* Cache complètement la sidebar */
+  .multi-sidebar {
+    display: none !important;
+  }
+
+  /* Le conteneur prend toute la largeur */
+  .main-content-v2,
+  .content-card-wrap,
+  .properties-col-v2 {
+    width: 100% !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden
+  }
+
+  /* Les cartes occupent toute la largeur */
+  #property-cards-container,
+  .property-card-ui-v2 {
+    width: 100% !important;
+    max-width: 100vw !important;
+    margin: 0 -7px auto !important;
+    overflow-x: hidden;
+  }
+
+.property-actions-ui-v2 button:first-child {
+  margin-left: 30px; /* ajuste la valeur selon ton besoin */
+}
+
+
+}
+
