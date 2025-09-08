@@ -1,3 +1,62 @@
+// ========= Helpers Bucket (communs) =========
+const STORAGE_BUCKET = window.STORAGE_BUCKET || "photos_biens";
+
+function normKey(s){
+  if (!s) return "";
+  let k = String(s).trim().replace(/^["']+|["']+$/g, "");
+  // si URL publique Supabase -> ne garder que la clé objet
+  k = k.replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/[^/]+\//i, "");
+  k = k.replace(/^\/+/, "");                         // enlève / de tête
+  const re = new RegExp(`^(?:${STORAGE_BUCKET}\\/)+`, "i");
+  k = k.replace(re, "");                              // enlève préfixes bucket répétés
+  return k;
+}
+function sbPublicUrl(key){
+  if (!key) return null;
+  const { data } = window.supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
+  return data?.publicUrl || null;
+}
+function parseCandidates(val){
+  if (val == null) return [];
+  if (Array.isArray(val)) return val;
+  let s = String(val).replace(/\u200B|\u200C|\u200D|\uFEFF/g, "").trim();
+  if (!s) return [];
+  if (s[0]==="{" && s[s.length-1]==="}") return s.slice(1,-1).split(","); // postgres text[]
+  if (s[0]==="[" && s[s.length-1]==="]") {
+    try { return JSON.parse(s); } catch { return [s]; }
+  }
+  return s.split(/[\n,;|]+/);
+}
+function resolveAllPhotosFromBucket(raw){
+  const out = [];
+  for (const c of parseCandidates(raw)){
+    if (c == null) continue;
+    const t = String(c).trim().replace(/^["']+|["']+$/g, "");
+    if (!t) continue;
+    // http externe (WordPress, etc.) -> garder tel quel
+    if (/^https?:\/\//i.test(t) && !/\/storage\/v1\/object\/public\//i.test(t)){
+      if (!out.includes(t)) out.push(t);
+      continue;
+    }
+    const key = normKey(t);
+    const url = key ? sbPublicUrl(key) : null;
+    if (url && !out.includes(url)) out.push(url);
+  }
+  return out;
+}
+function resolveOneFromBucket(raw){
+  const arr = resolveAllPhotosFromBucket(raw);
+  return arr[0] || null;
+}
+function resolveLogoAny(rawLogo){
+  const fromBucket = resolveOneFromBucket(rawLogo);
+  if (fromBucket) return fromBucket;
+  const s = String(rawLogo || "").trim();
+  return /^https?:\/\//i.test(s) ? s : null;
+}
+
+
+
 // javascript/agence.js — Page AGENCE 100% branchée sur Supabase
 
 /* ========= Utils ========= */
@@ -88,9 +147,9 @@ async function detectPropertyCols(table){
 
 /* ========= Chargements depuis l’URL ========= */
 async function loadAgencyFromURL(){
-  const params = new URLSearchParams(location.search);
-  const idParam = clean(params.get("id"));
-  const nameParam = clean(params.get("name"));
+  const params   = new URLSearchParams(location.search);
+  const idParam  = (params.get("id")||"").trim();
+  const nameParam= (params.get("name")||"").trim();
 
   const AC = await detectAgencyCols();
 
@@ -109,18 +168,21 @@ async function loadAgencyFromURL(){
   }
   if (!agencyRow) throw new Error("No agency");
 
+  const logoResolved = resolveLogoAny(agencyRow[AC.logo_url]);
+
   const agency = {
-    id:   agencyRow[AC.id],
-    name: clean(agencyRow[AC.name]),
-    logo: clean(agencyRow[AC.logo_url]) || FALLBACK_LOGO,
-    about: clean(agencyRow[AC.about]),
-    address: clean(agencyRow[AC.address]),
-    orn: clean(agencyRow[AC.orn]) || "—",
-    email: clean(agencyRow[AC.email]),
-    phone: clean(agencyRow[AC.phone]),
+    id:     agencyRow[AC.id],
+    name:   (agencyRow[AC.name]||"").trim(),
+    logo:   logoResolved || FALLBACK_LOGO,   // ✅ Bucket d’abord
+    about:  (agencyRow[AC.about]||"").trim(),
+    address:(agencyRow[AC.address]||"").trim(),
+    orn:    (agencyRow[AC.orn]||"—").toString().trim() || "—",
+    email:  (agencyRow[AC.email]||"").trim(),
+    phone:  (agencyRow[AC.phone]||"").trim(),
   };
   return { agency, AC };
 }
+
 
 async function loadAgentsForAgency(agencyId){
   const AG = await detectAgentCols();
@@ -153,31 +215,45 @@ async function fetchAgencyProperties(agentIds){
       const PC = await detectPropertyCols(t.name);
       if (!PC.agent_id) continue;
 
-      const { data } = await window.supabase.from(t.name).select("*").in(PC.agent_id, agentIds).limit(1000);
+      const { data } = await window.supabase
+        .from(t.name)
+        .select("*")
+        .in(PC.agent_id, agentIds)
+        .limit(1000);
+
       (data||[]).forEach(r=>{
-        let bucket = t.bucket;
-        if (t.name === "commercial") bucket = clean(r[PC.rental_period]) ? "commercial-rent" : "commercial-buy";
+        // Déduire le "type d’annonce" (rent/buy) pour commercial
+        let group = t.bucket;
+        if (t.name === "commercial") group = ((r[PC.rental_period]||"").toString().trim()) ? "commercial-rent" : "commercial-buy";
+
+        // ✅ Images depuis le Bucket (accepte 1..n)
+        const imgs = resolveAllPhotosFromBucket(r[PC.photo]);
+        const firstImg = imgs[0] || FALLBACK_IMG;
 
         all.push({
           table: t.name,
-          bucket,
+          bucket: group,              // (catégorie d’affichage, pas le Storage)
           id: r[PC.id],
-          title: clean(r[PC.title]) || "—",
-          type: clean(r[PC.type]),
-          location: clean(r[PC.location]),
+          title: (r[PC.title]||"—").trim(),
+          type:  (r[PC.type] ||"").trim(),
+          location: (r[PC.location]||"").trim(),
           price: r[PC.price],
           bedrooms: toNum(r[PC.bedrooms], null),
           bathrooms: toNum(r[PC.bathrooms], null),
           sqft: toNum(r[PC.sqft], null),
-          img: clean(r[PC.photo]) || FALLBACK_IMG,
-          rental_period: clean(r[PC.rental_period] || ""),
+          img: firstImg,              // ✅ première photo
+          images: imgs,               // (optionnel) toutes les photos
+          rental_period: (r[PC.rental_period]||"").toString().trim(),
           agent_id: r[PC.agent_id],
         });
       });
-    }catch(e){ console.warn(`Fail fetching ${t.name}:`, e?.message||e); }
+    }catch(e){
+      console.warn(`Fail fetching ${t.name}:`, e?.message||e);
+    }
   }
   return all;
 }
+
 
 /* ========= Rendus ========= */
 function fillHeader(agency, agents, totalListings){
@@ -297,6 +373,7 @@ window.showTab = function(tab){
   if (tab === "properties"){ $("#tab-properties").classList.add("active"); $("#properties-tab-content").style.display=""; }
   else { $("#tab-agents").classList.add("active"); $("#agents-tab-content").style.display=""; }
 };
+
 
 /* ========= Boot ========= */
 document.addEventListener("DOMContentLoaded", async () => {
