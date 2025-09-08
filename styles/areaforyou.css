@@ -2144,5 +2144,36 @@ html, body {
 }
 
 
+/* Pousse l'entrée + les boutons tout en bas du panneau chat */
+.chat-col-v2 {
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* important pour que le scroll fonctionne en flex */
 }
+
+#chat-messages-scroll {
+  flex: 1 1 auto;   /* occupe l’espace restant */
+  min-height: 0;    /* évite de forcer une hauteur minimale */
+  overflow-y: auto; /* scroll des messages uniquement */
+}
+
+/* Le premier élément du bloc bas pousse tout le reste vers le bas */
+.chat-input-form-v2 {
+  margin-top: auto; /* colle le formulaire + ce qui suit (les 3 boutons) au bas du panneau */
+}
+
+/* s’assurer que les boutons ne sont PAS en position fixed */
+.chat-input-btns-row {
+  position: static; /* au cas où tu avais mis fixed avant */
+  margin-top: 8px;  /* petit espace au-dessus, optionnel */
+}
+
+/* si tu avais ajouté du padding-bottom global, on l’annule ici */
+@media (max-width: 768px) {
+  body, .chat-col-v2 { padding-bottom: 0 !important; }
+}
+
+
+}
+
 
