@@ -11,11 +11,11 @@
   background-color: white;
   padding: 0 20px;
   z-index: 10;
-  border-bottom: 1px solid #ddd;
   gap: 20px;
 }
 .logo {
   width: 130px;
+
   height: auto;
   margin: 0;
   display: block;
@@ -777,5 +777,3 @@
   }
   .mobile-hero-bottom:first-of-type{ display:none !important; }
 }
-
-
