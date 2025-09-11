@@ -761,7 +761,7 @@
   justify-content: space-between;
   min-height: 60px;
   background: #fff;
-  border-bottom: 1.5px solid #ececec;
+
   position: sticky;
   top: 0;
   z-index: 99;
@@ -1124,4 +1124,3 @@
   color: #ffffff !important;
   border-color: #ff5c5c !important; /* si un border est appliqué ailleurs */
 }
-
