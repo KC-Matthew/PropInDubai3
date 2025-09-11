@@ -20,7 +20,7 @@ html, body {
   background-color: white;
   padding: 0 20px;
   z-index: 10;
-  border-bottom: 1px solid #ddd;
+  
   gap: 20px;
 }
 .logo {
@@ -224,7 +224,7 @@ html, body {
   max-width: 1600px;
   margin: auto;
   background: #fff;
-  border-radius: 26px;
+  border-top: 1px solid rgb(222, 222, 222);
   box-shadow: 0 8px 32px rgba(170,120,40,0.08);
   display: flex;
   min-width: 800px;
@@ -803,7 +803,7 @@ html, body {
   justify-content: space-between;
   min-height: 60px;
   background: #fff;
-  border-bottom: 1.5px solid #ececec;
+
   position: sticky;
   top: 0;
   z-index: 99;
@@ -1652,7 +1652,6 @@ html, body {
     height: 54px; z-index: 1100;
     background: #fff;
     width: 100vw !important;
-    border-bottom: 1px solid #eee;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1754,7 +1753,7 @@ html, body {
   justify-content: space-between;
   min-height: 60px;
   background: #fff;
-  border-bottom: 1.5px solid #ececec;
+
   position: sticky;
   top: 0;
   z-index: 99;
