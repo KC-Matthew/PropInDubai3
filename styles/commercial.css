@@ -2652,3 +2652,27 @@ html, body{
   overflow: visible !important;
   z-index: 100 !important;      /* bien en dessous du dropdown */
 }
+
+
+/* --- Remettre le dropdown du header AU-DESSUS des filtres --- */
+/* Les modales/suggestions restent au top (≈11060 dans ton CSS) */
+.filter-bar{
+  z-index: 11000 !important;         /* sous le header */
+  overflow: visible !important;
+}
+
+.header2{
+  z-index: 11040 !important;          /* au-dessus de la filter-bar */
+  overflow: visible !important;
+}
+
+.all-button,
+.dropdown{
+  position: relative !important;
+  z-index: 11045 !important;          /* pile au-dessus */
+  overflow: visible !important;
+}
+
+.dropdown-content{
+  z-index: 11050 !important;          /* < 11060 des popups/suggestions */
+}
