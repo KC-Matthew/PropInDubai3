@@ -108,8 +108,3 @@
   // 7) Filet de sécurité global : ne jamais rester caché
   setTimeout(reveal, 4000);
 })();
-
-
-
-
-
