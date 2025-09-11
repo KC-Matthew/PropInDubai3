@@ -7,6 +7,9 @@
   <link rel="stylesheet" href="styles/commercial.css" />
   <link rel="stylesheet" href="styles/accueil.css" />
   <!-- Leaflet -->
+
+
+  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
@@ -14,6 +17,7 @@
 <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.js"></script>
 
 </head>
+
 
 <body>
 
@@ -73,8 +77,9 @@
       <div id="searchSuggestions" class="autocomplete-suggestions"></div>
     </div>
 
-    <!-- Chips -->
+    <!-- Filtres (mêmes IDs que buy.html) -->
     <div class="filter-row-scroll">
+      <!-- (spécifique commercial, ok de l’ajouter) -->
       <select id="commercialType">
         <option>Commercial Rent</option>
         <option>Commercial Buy</option>
@@ -90,34 +95,28 @@
         <option>Villa</option>
       </select>
 
-      <select id="licenseType">
-        <option>Licence</option>
-        <option>DED</option>
-        <option>DMCC</option>
-        <option>Tourism</option>
-      </select>
+    
 
-      <select id="bedrooms">
-        <option>Bedrooms</option><option>1+</option><option>2+</option>
-        <option>3+</option><option>4+</option><option>5+</option><option>6+</option>
-      </select>
+  
 
       <select id="bathrooms">
-        <option>Bathrooms</option><option>1+</option><option>2+</option>
-        <option>3+</option><option>4+</option><option>5+</option><option>6+</option>
+        <option>Bathrooms</option>
+        <option>1+</option><option>2+</option><option>3+</option>
+        <option>4+</option><option>5+</option><option>6+</option>
       </select>
 
       <button id="openPriceFilter" type="button">Price</button>
       <button id="openMoreFilter" type="button">More Filters</button>
-      <button id="searchBtn">Search</button>
-      <button id="clearBtn">Clear</button>
+      <button id="searchBtn" type="button">Search</button>
+      <button id="clearBtn" type="button">Clear</button>
     </div>
   </div>
 
-  <!-- hidden inputs -->
+  <!-- mêmes IDs cachés -->
   <input type="hidden" id="priceMin" />
   <input type="hidden" id="priceMax" />
 </div>
+
 
 
 
