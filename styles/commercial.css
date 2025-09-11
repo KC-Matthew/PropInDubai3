@@ -1,13 +1,6 @@
 
-:root {
-  --filter-bg: #f0f4fa; /* bleu pâle extrait du premier screenshot */
-  --filter-active-bg: #e0ebff; /* optionnel : bleu plus marqué pour bouton actif */
-  --filter-text: #232b38; /* couleur texte principale */
-  --filter-border: transparent; /* pas de bordure */
-  --filter-radius: 1.6rem; /* coins très arrondis */
-  --filter-padding: 0.35em 1.1em; /* padding compact et élégant */
-  --filter-font: 'Inter', 'Segoe UI', Arial, sans-serif; /* police très minimaliste */
-}
+
+
 
 
 /* ========== HEADER2 (GLOBAL) ========== */
@@ -140,48 +133,7 @@
   }
 }
 
-.filter-bar {
-  background: #fff;
-  margin-top: 29px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-  border-bottom: 1px solid #e6e6e6;
-  position: sticky;
-  z-index: 9;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 12px;      /* Petit espace entre searchbar et filtres */
-  justify-content: flex;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  white-space: nowrap;
-  width: 100vw;
-  min-width: 100vw;
-  height: 68px;   /* Barre fine */
-}
 
-/* ...ET TOUT LE RESTE DE TON CSS ICI, INCHANGÉ... */
-/* (Tu n’as qu’à coller la suite comme dans ton fichier d’origine, tout est OK) */
-
-.filter-bar {
-  position: sticky;
-  top: 60px; /* ou 0 selon ton header */
-  z-index: 1;
-  width: 100%;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  gap: 0; /* important, pas de gap ici sinon le scroll horizontal bouge toute la barre */
-  overflow: auto; /* clé : cache le débordement */
-  min-width: 0;
-  box-sizing: border-box;
-  height: 93px;
-  z-index: 4  ;
-  
-
-}
 
 /* Search bar à GAUCHE, largeur fixe/mobile-friendly */
 .search-autocomplete-wrapper {
@@ -198,22 +150,7 @@
 }
 
 /* Ligne des filtres : scrollable si ça déborde */
-.filter-row-scroll {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  white-space: nowrap;
-  flex: 1 1 0;
-  min-width: 0;
-  height: 48px;
-  box-sizing: border-box;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-.filter-row-scroll::-webkit-scrollbar { display: none; }
+
 
 /* Optionnel : petits ajustements mobiles */
 @media (max-width: 700px) {
@@ -238,19 +175,7 @@
   }
 
 
-  .filter-row-scroll {
-    gap: 7px;
-    height: 42px;
-    min-width: 0;
-    font-size: 0.99em;
-  }
-  .filter-row-scroll select,
-  .filter-row-scroll button {
-    min-width: 80px;
-    height: 38px;
-    font-size: 0.98em;
-    padding: 5px 9px;
-  }
+
 }
 
 /* BONUS : empêcher le scroll horizontal du body */
@@ -268,42 +193,7 @@ html, body {
   display: flex;
 }
 
-/* ---------- CORRECTION Z-INDEX SUGGESTIONS -------------- */
-.search-autocomplete-wrapper {
-  position: relative;
-  width: 360px;
-  min-width: 240px;
-  max-width: 420px;
-  margin-right: 2px;
-  display: flex;
-  align-items: center;
-  height: 48px;
-  z-index: 1101 !important; /* Correction : wrapper très haut */
-  margin-left: 68px;
-}
 
-#searchSuggestions,
-.autocomplete-suggestions {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  z-index: 1105 !important; /* Correction : suggestions au top */
-  background: #fff;
-  border: 1px solid #ececec;
-  box-shadow: 0 5px 20px rgba(60,40,20,0.13);
-  min-width: 100%;
-  max-width: 440px;
-  margin-top: 2px;
-  border-radius: 16px;
-  overflow: hidden;
-  display: none;
-}
-
-#searchSuggestions.visible,
-.autocomplete-suggestions.visible {
-  display: block;
-}
 
 .autocomplete-suggestions .suggestion,
 #searchSuggestions .suggestion {
@@ -370,93 +260,11 @@ body, html, .filter-bar {
 
 /* ------------------------------------------------------- */
 
-.filter-row-scroll {
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-  overflow-x: auto;
-  white-space: nowrap;
-  align-items: center;
-  height: 48px;
-}
-
-.filter-bar select,
-.filter-row-scroll select {
-  appearance: none;
-  background: #fff;
-  color: #e84242;
-  border: 1.5px solid #e84242;
-  border-radius: 25px;
-  padding: 0 26px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 2px 12px rgba(232,66,66,0.10);
-  transition: background 0.15s, color 0.14s, border 0.14s;
-  min-width: 120px;
-  max-width: 210px;
-  height: 48px;
-  box-sizing: border-box;
-  background-image: url("data:image/svg+xml;utf8,<svg fill='red' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 16px center;
-  background-size: 18px 18px;
-  padding-right: 40px;
-}
-
-.filter-bar input[type="number"] {
-  height: 48px;
-}
-
-.filter-bar button,
-.filter-row-scroll button {
-  background: #e84242;
-  color: #fff;
-  border: none;
-  border-radius: 25px;
-  padding: 0 26px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  height: 48px;
-  min-width: 90px;
-  margin: 0 4px;
-  box-sizing: border-box;
-  transition: background 0.15s, box-shadow 0.16s;
-  align-items: center;
-  display: flex;
-  justify-content: center;
-}
-
-.filter-bar #clearBtn,
-.filter-row-scroll #clearBtn {
-  background: #e84242;
-  color: #fff;
-  border: 1.5px solid #e84242;
-  margin-left: 6px;
-}
-.filter-bar #clearBtn:hover,
-.filter-bar #searchBtn:hover,
-.filter-bar button:hover,
-.filter-row-scroll #clearBtn:hover,
-.filter-row-scroll #searchBtn:hover,
-.filter-row-scroll button:hover {
-  background: #ff5c5c;
-}
 
 
 
 
-.filter-bar-inner {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-  max-width: 1200px;   /* Ou la largeur centrale désirée */
-  margin: 0 auto;
-  justify-content: center;   /* Ou flex-start si tu veux à gauche */
-  align-items: center;
-  z-index: 3;
-}
+
 
 
 
@@ -998,12 +806,6 @@ body.price-popup-open { overflow: hidden; }
 
 
 /* Suggestions dropdown */
-.search-autocomplete-wrapper {
-  min-width: 460px;
-  max-width: 540px;
-  width: 420px;        /* Tu peux encore augmenter si tu veux plus large */
-  flex-shrink: 0;
-}
 
 #search {
   font-size: 1.18em;
@@ -1567,11 +1369,6 @@ body.price-popup-open { overflow: hidden; }
     box-sizing: border-box;
   }
 
-  /* Quand menu burger ouvert : la filter-bar descend aussi (en JS avec .menu-open sur body) */
-  body.menu-open .filter-bar {
-    top: calc(112px + 42vh); /* Ajuste selon la taille du menu */
-  }
-
   /* ROW scrollable des filtres */
   .filter-row-scroll {
     overflow-x: auto !important;
@@ -1842,36 +1639,11 @@ body.price-popup-open { overflow: hidden; }
   flex-grow: 0 !important;
 }
 
-/* La row de filtres prend toute la largeur, scrolle si besoin */
-.filter-row-scroll {
-  width: auto !important;
-  overflow-x: auto !important;
-  overflow-y: hidden !important;
-  white-space: nowrap !important;
-  flex-wrap: nowrap !important;
-  gap: 12px !important;
-  align-items: center;
-}
 
-.filter-bar,
-.filter-bar-inner {
-  
-  max-width: 100vw !important;
-  margin: 0 !important;
-  border-radius: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  box-shadow: none !important;     /* Optionnel */
-  background: #fff !important;     /* Assure que le fond est bien blanc partout */
-    
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
+
 
 /* Supprime tout gap entre searchbar et boutons */
-.all-button, .filter-bar, .filter-row-scroll {
-  gap: 0 !important;
-}
+
 
 .search-autocomplete-wrapper {
   margin-right: 0 !important;
@@ -1888,19 +1660,7 @@ body.price-popup-open { overflow: hidden; }
 }
 
 /* Premier bouton : arrondi à droite, border-left none, chevauche la searchbar */
-.filter-row-scroll > *:first-child {
-  border-radius: 32px 32px 32px 32px !important;
-  border-left: none !important;
-  margin-left: -2px !important;
-  height: 48px !important;
-  border: 2px solid #e84242 !important;
-  background: #fff !important;
-  color: #e84242 !important;
-  font-weight: bold;
-  font-size: 1.14em;
-  position: relative;
-  z-index: 2;
-}
+
 
 /* Pour que tout soit aligné */
 .filter-row-scroll > * {
@@ -1953,40 +1713,7 @@ body.price-popup-open { overflow: hidden; }
     margin: 0;
   }
 
-  .filter-bar {
-    height: 54px !important;
-    min-height: 54px !important;
-    max-height: 54px !important;
-    padding: 0 8px !important;
-    align-items: center !important;
-    gap: 7px !important;
-    border-bottom: 1.5px solid #f6f6f6 !important;
-  }
 
-  .filter-row-scroll {
-    height: 38px !important;
-    min-height: 38px !important;
-    max-height: 38px !important;
-    align-items: center !important;
-    gap: 7px !important;
-    overflow-x: auto !important;
-  }
-
-  .filter-row-scroll select,
-  .filter-row-scroll button,
-  .filter-bar select,
-  .filter-bar button {
-    height: 38px !important;
-    min-height: 38px !important;
-    max-height: 38px !important;
-    padding: 0 18px !important;
-    font-size: 1.01em !important;
-    border-radius: 22px !important;
-    line-height: 1.1 !important;
-    display: flex !important;
-    align-items: center !important;
-    box-sizing: border-box !important;
-  }
 }
 
 
@@ -2004,35 +1731,6 @@ body.price-popup-open { overflow: hidden; }
 }
 .filter-row-scroll > *:first-child {
   margin-left: 14px !important; /* Espace du bouton à droite de la searchbar */
-}
-/* Corrige toutes les bordures de boutons filtres */
-.filter-bar button,
-.filter-bar select,
-.filter-bar .header-btn,
-.filter-bar .active,
-#openMoreFilter,
-#openPriceFilter {
-    border-width: 1.7px !important;
-    border-color: #e84242 !important;
-    box-sizing: border-box;
-}
-
-.filter-bar .btn.active {
-  border-width: 1.7px !important;
-  border-color: #e84242 !important;
-    font-weight: 580 !important;
-}
-
-.filter-bar select,
-.filter-bar button {
-  border-width: 1.7px !important;
-  border-style: solid !important;
-  border-color: #e84242 !important;
-  border-radius: 42px !important;
-  font-weight: 600!important;
-  min-width: 160px;
-  display: flex;
-  align-items: center;
 }
 
 
@@ -2318,48 +2016,11 @@ body.price-popup-open { overflow: hidden; }
 
 
 
-/* ====== Aligner barre de filtres sur la largeur des biens ====== */
-:root { --container: 1100px; } /* = .property-listing max-width */
 
-/* La barre prend toute la largeur, mais on lui met des padding
-   calculés pour que son contenu tombe pile comme les cartes */
-.filter-bar{
-  padding-left: max(12px, calc((95vw - var(--container)) / 2)) !important;
-  padding-right: max(12px, calc((94vw - var(--container)) / 2)) !important;
-  justify-content: flex-start !important;
-  height: 70px;
-}
 
 /* Supprime tout décalage résiduel de la searchbar */
 .search-autocomplete-wrapper{
   margin-left: 0 !important;
-}
-
-/* La rangée de filtres reste collée à gauche, comme les cartes */
-.filter-row-scroll{
-  flex: 1 1 auto !important;
-  justify-content: flex-start !important;
-  height: 48px;
-}
-
-/* (optionnel) mêmes hauteurs pour un alignement propre */
-.search-autocomplete-wrapper{ height: 40px !important; }
-#search{ height: 40px !important; line-height: 40px !important; border-radius: 20px !important; }
-.filter-row-scroll > *,
-.filter-bar select,
-.filter-bar button{ height: 40px !important; border-radius: 20px !important; }
-
-/* Mobile: on garde ta logique, juste même alignement visuel */
-@media (max-width: 899.98px){
-  .filter-bar{
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-  }
-  .search-autocomplete-wrapper{ height: 38px !important; }
-  #search{ height: 38px !important; line-height: 38px !important; border-radius: 22px !important; }
-  .filter-row-scroll > *,
-  .filter-bar select,
-  .filter-bar button{ height: 38px !important; border-radius: 22px !important; }
 }
 
 
@@ -2431,3 +2092,563 @@ body.price-popup-open { overflow: hidden; }
 /* garder les suggestions par-dessus le bouton */
 #searchSuggestions,
 .autocomplete-suggestions{ z-index: 1105 !important; }
+
+
+
+
+
+/* La search peut rétrécir en premier, les chips restent sur une ligne */
+.search-autocomplete-wrapper{ flex:1 1 clamp(220px,26vw,320px); min-width:180px; }
+.filter-row-scroll{ flex:0 0 auto; overflow-x:auto; }
+.filter-row-scroll > *{ flex:0 0 auto; }
+
+
+
+/* === Filtres : thème & variables === */
+:root{
+  --accent:#e84242;          /* rouge des chips */
+  --chip-bg:#fff;
+  --chip-text:#e84242;
+  --chip-radius:25px;
+  --chip-h:48px;
+}
+
+/* ===== Barre de filtres (sous le header) ===== */
+
+
+
+/* ===== Search ===== */
+.search-autocomplete-wrapper{
+  position:relative;
+  display:flex;
+  align-items:center;
+  height:var(--chip-h);
+  /* la search s’adapte : rétrécit si manque de place */
+  flex:1 1 clamp(220px,26vw,320px);
+  min-width:180px;
+  max-width:420px;
+}
+#search{
+  width:100%;
+  height:var(--chip-h);
+  border:1.5px solid #e6e6e6;
+  border-radius:25px;
+  padding:0 18px;
+  font-size:1.07rem;
+  background:#fff;
+  transition:border .14s;
+  box-sizing:border-box;
+}
+#search:focus{ border-color:#ff902b; }
+
+/* suggestions au-dessus de tout */
+#searchSuggestions,
+.autocomplete-suggestions{
+  position:absolute; left:0; right:0; top:100%;
+  z-index:1105 !important;
+  background:#fff; border:1px solid #ececec; border-radius:16px;
+  box-shadow:0 5px 20px rgba(60,40,20,.13);
+  margin-top:2px; overflow:hidden; display:none;
+}
+#searchSuggestions.visible,
+.autocomplete-suggestions.visible{ display:block; }
+.autocomplete-suggestions .suggestion,
+#searchSuggestions .suggestion{
+  padding:12px 18px; font-size:1.04em; cursor:pointer; color:#222;
+  border-bottom:1px solid #f2f2f2; transition:background .13s;
+}
+.autocomplete-suggestions .suggestion:last-child,
+#searchSuggestions .suggestion:last-child{ border-bottom:none; }
+.autocomplete-suggestions .suggestion:hover,
+#searchSuggestions .suggestion:hover{ background:#f4f6f8; color:#e77e23; }
+
+/* ===== Rangée de filtres ===== */
+.filter-row-scroll{
+  display:flex; align-items:center;
+  gap:12px;
+  height:var(--chip-h);
+  white-space:nowrap;
+  /* si ça dépasse, on scrolle (sur mobile/écrans étroits) */
+  overflow-x:auto; overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+  flex:0 0 auto;
+}
+.filter-row-scroll > *{ flex:0 0 auto; height:var(--chip-h); }
+
+
+
+/* ===== Boutons ===== */
+/* outline (Price, More Filters) */
+#openPriceFilter, #openMoreFilter{
+  background:#fff; color:var(--chip-text);
+  border:1.7px solid var(--accent);
+  border-radius:var(--chip-radius);
+  padding:0 26px; font-size:16px; font-weight:700; cursor:pointer;
+  box-shadow:0 1px 7px rgba(232,66,66,.07);
+  transition:background .14s, color .14s, border .14s;
+}
+#openPriceFilter:hover, #openMoreFilter:hover{
+  background:#ffeaea; color:#b83838; border-color:#ff5c5c;
+}
+
+/* pleins (Search, Clear) */
+#searchBtn, #clearBtn{
+  background:var(--accent); color:#fff;
+  border:1.7px solid var(--accent);
+  border-radius:var(--chip-radius);
+  padding:0 26px; font-size:16px; font-weight:700; cursor:pointer;
+  min-width:90px; transition:background .15s, box-shadow .16s;
+}
+#searchBtn:hover, #clearBtn:hover{ background:#ff5c5c; }
+
+/* ===== Popups (Price / More Filters) ===== */
+#priceFilterPopup, #moreFilterPopup{
+  display:none; position:fixed; inset:0; z-index:6000 !important;
+  background:rgba(30,30,34,.09);
+  align-items:center; justify-content:center;
+}
+#priceFilterPopup.active, #moreFilterPopup.active{ display:flex; }
+
+.price-popup-inner, .more-filter-inner{
+  background:#fff; border-radius:22px;
+  border:1.3px solid #ffe7cb;
+  box-shadow:0 8px 34px rgba(240,90,0,.10), 0 2px 8px #ffd6b440;
+  width:min(96vw, 540px); min-width:320px; max-width:96vw;
+  padding:17px 19px 15px; box-sizing:border-box; position:relative;
+}
+.price-popup-header, .more-filter-header{
+  display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;
+}
+.price-popup-header span, .more-filter-header span{
+  font-size:1.13em; font-weight:700; color:#ff8300;
+}
+#closePricePopup, #closeMoreFilter{
+  background:none; border:none; font-size:1.6em; color:#ff8300;
+  cursor:pointer; border-radius:8px; padding:1px 7px;
+}
+
+/* Slider noUi (si utilisé) — look discret */
+#priceSlider .noUi-base{ background:#ffe8d6; height:5px; border-radius:4px; }
+#priceSlider .noUi-connect{ background:linear-gradient(90deg,#ffd399 0%,#ff9100 100%); }
+#priceSlider .noUi-handle{
+  background:#fff2e6; border:2px solid #ff9100; width:18px; height:18px; border-radius:50%;
+  top:-7px; box-shadow:0 1px 8px #ffd7b150;
+}
+
+/* Champs prix */
+.price-inputs{ display:flex; align-items:center; justify-content:center; gap:10px; margin:12px 0 22px; }
+.price-inputs input{
+  width:200px; text-align:center; font-weight:600;
+  border-radius:8px; border:1.3px solid #ffd9b7; padding:6px 8px;
+  background:#fafafc; outline:none; transition:border .13s, box-shadow .13s;
+  box-shadow:0 1px 6px #ffe4d352; color:#232323;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px){
+  .filter-bar{ height:60px; }
+  .filter-bar-inner{ justify-content:center; }
+  .search-autocomplete-wrapper{
+    flex:1 1 60vw; min-width:150px; max-width:100vw;
+  }
+  .filter-row-scroll{
+    gap:8px; height:38px;
+  }
+  .filter-row-scroll select,
+  .filter-row-scroll button,
+  .filter-bar select,
+  .filter-bar button{
+    height:38px; border-radius:22px; font-size:1.01em; padding:0 18px;
+  }
+  #search{ height:38px; border-radius:22px; }
+  .price-inputs input{ width:90px; }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* ============ PIXEL-LOCK OVERRIDE — FILTER BAR & BOUTONS (exact comme la référence) ============ */
+
+/* Conteneur (mêmes métriques que ta ref) */
+.filter-bar{
+  background:#fff !important;
+  padding:12px 14px !important;
+  margin-top:0 !important;
+  box-shadow:0 2px 8px rgba(0,0,0,0.03) !important;
+  border-bottom:1px solid #e6e6e6 !important;
+  position: sticky !important;
+  top:60px !important;
+  z-index:9 !important;
+  display:flex !important;
+  flex-direction:row !important;
+  flex-wrap:nowrap !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:12px !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  white-space:nowrap !important;
+  width:100vw !important;
+  min-width:100vw !important;
+  height:68px !important;
+}
+
+/* Ligne scrollable */
+.filter-row-scroll{
+  display:flex !important;
+  flex-direction:row !important;
+  gap:10px !important;
+  overflow-x:auto !important;
+  white-space:nowrap !important;
+  align-items:center !important;
+  height:48px !important;
+}
+
+
+/* ===== Selects (contour rouge) ===== */
+.filter-bar select,
+.filter-row-scroll select{
+  appearance:none !important;
+  background:#fff !important;
+  color:#e84242 !important;
+  border:1.5px solid #e84242 !important;
+  border-radius:25px !important;
+  padding:0 26px !important;
+  font-size:16px !important;
+  font-weight:bold !important;
+  cursor:pointer !important;
+  box-shadow:0 2px 12px rgba(232,66,66,0.10) !important;
+  transition:background .15s, color .14s, border .14s !important;
+  min-width:120px !important; max-width:210px !important;
+  height:48px !important; box-sizing:border-box !important;
+  background-image:url("data:image/svg+xml;utf8,<svg fill='red' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") !important;
+  background-repeat:no-repeat !important;
+  background-position:right 16px center !important;
+  background-size:18px 18px !important;
+  padding-right:40px !important;
+}
+
+/* ===== Boutons (plein vs contour) ===== */
+
+/* Pleins: Search + Clear */
+.filter-bar #searchBtn,
+.filter-bar #clearBtn,
+.filter-row-scroll #searchBtn,
+.filter-row-scroll #clearBtn,
+.filter-bar button[data-variant="primary"],
+.filter-row-scroll button[data-variant="primary"]{
+  background:#e84242 !important;
+  color:#fff !important;
+  border:1.5px solid #e84242 !important;
+  border-radius:25px !important;
+  padding:0 26px !important;
+  font-size:16px !important; font-weight:bold !important;
+  cursor:pointer !important;
+  height:48px !important; min-width:90px !important; margin:0 4px !important;
+  box-sizing:border-box !important;
+  transition:background .15s, box-shadow .16s !important;
+  display:flex !important; align-items:center !important; justify-content:center !important;
+}
+.filter-bar #searchBtn:hover,
+.filter-bar #clearBtn:hover,
+.filter-row-scroll #searchBtn:hover,
+.filter-row-scroll #clearBtn:hover,
+.filter-bar button[data-variant="primary"]:hover,
+.filter-row-scroll button[data-variant="primary"]:hover{ background:#ff5c5c !important; }
+
+/* Contour: Price + More Filters */
+#openPriceFilter, #openMoreFilter,
+.filter-bar button[data-variant="outline"],
+.filter-row-scroll button[data-variant="outline"]{
+  background:#fff !important;
+  color:#e84242 !important;
+  border:1.5px solid #e84242 !important;
+  border-radius:25px !important;
+  padding:0 26px !important;
+  font-size:16px !important; font-weight:bold !important;
+  cursor:pointer !important;
+  height:48px !important; min-width:120px !important;
+  box-shadow:0 1px 7px rgba(232,66,66,0.07) !important;
+  transition:background .14s, color .14s, border .14s !important;
+}
+#openPriceFilter:hover, #openMoreFilter:hover,
+.filter-bar button[data-variant="outline"]:hover,
+.filter-row-scroll button[data-variant="outline"]:hover{
+  background:#ffeaea !important; color:#b83838 !important; border-color:#ff5c5c !important;
+}
+
+/* Inputs numériques alignés */
+.filter-bar input[type="number"]{ height:48px !important; }
+
+/* Centrage desktop (identique à ta ref) */
+@media (min-width:900px){
+  .filter-bar{ justify-content:center !important; max-width:1200px !important; margin:0 auto !important; }
+}
+
+/* Hauteurs & rayons en mobile (identiques à la ref) */
+@media (max-width:700px){
+  .filter-row-scroll select,
+  .filter-row-scroll button,
+  .filter-bar select,
+  .filter-bar button{
+    height:38px !important; min-height:38px !important; max-height:38px !important;
+    padding:0 18px !important; font-size:1.01em !important; border-radius:22px !important; line-height:1.1 !important;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* === ALIGNER LA SEARCHBAR SUR LA COLONNE DES BIENS (gauche) === */
+:root{ --col:1100px; } /* même largeur que .property-listing/.property-summary-wrapper */
+
+.filter-bar{
+  justify-content:flex-start !important;
+  width:100vw !important; min-width:100vw !important;
+  padding-left:max(1px, calc((100vw - var(--col))/2)) !important; /* aligne à gauche des cartes */
+  padding-right:14px !important;
+  gap:10px !important; height:58px !important;
+}
+
+/* Search en premier, large, rétrécit si besoin et peut déborder à droite */
+.search-autocomplete-wrapper{
+  order:0 !important;
+  flex:0 1 clamp(260px, 34vw, 520px) !important;
+  max-width:520px !important; min-width:220px !important;
+  margin-right:6px !important;
+}
+#search{ width:100% !important; }
+
+/* Les filtres restent à droite et scrollent si ça déborde */
+.filter-row-scroll{
+  order:1 !important; flex:1 1 auto !important;
+  overflow-x:auto !important; -webkit-overflow-scrolling:touch !important;
+}
+
+/* Texte + compact sur les chips/boutons */
+.filter-row-scroll select,
+.filter-row-scroll button,
+#openPriceFilter,#openMoreFilter,#searchBtn,#clearBtn{
+  height:40px !important; border-radius:22px !important;
+  padding:0 14px !important; font-size:.96rem !important;
+}
+
+/* Raccourcir visuellement la punchline */
+.buy-hook{ font-size:1rem !important; line-height:1.25 !important; max-width:var(--col) !important; margin-left:auto !important; margin-right:auto !important; }
+
+/* Mobile: search en 1re ligne, left; filtres dessous en scroll */
+@media (max-width:700px){
+  .filter-bar{ flex-wrap:wrap !important; height:auto !important; padding:10px 12px !important; }
+  .search-autocomplete-wrapper{ flex:1 1 100% !important; max-width:100% !important; min-width:0 !important; margin:0 0 8px 0 !important; }
+  .filter-row-scroll{ width:100% !important; }
+}
+
+
+
+
+/* === UNIFORMISER TAILLE SEARCH & BOUTONS (exactement identiques) === */
+:root{
+  /* ajuste UNE SEULE VALEUR si tu veux plus/moins petit */
+  --chip-h: 40px;          /* hauteur (ex: 40px) */
+  --chip-radius: 20px;     /* arrondi */
+  --chip-font: 0.96rem;    /* taille texte */
+  --chip-pad-x: 14px;      /* padding horizontal */
+}
+
+/* barre = un peu plus haute que les chips pour le souffle */
+.filter-bar{
+  height: calc(var(--chip-h) + 20px) !important;
+}
+
+/* SEARCH (wrapper + input) */
+.search-autocomplete-wrapper{
+  order: 0 !important;
+  flex: 0 1 clamp(240px, 24vw, 300px) !important; /* largeur plus compacte */
+  max-width: 300px !important;
+  min-width: 220px !important;
+  height: var(--chip-h) !important;
+}
+#search{
+  height: var(--chip-h) !important;
+  line-height: calc(var(--chip-h) - 2px) !important;
+  border-radius: var(--chip-radius) !important;
+  font-size: var(--chip-font) !important;
+  padding: 0 var(--chip-pad-x) !important;
+}
+
+/* BOUTONS & SELECTS — mêmes dimensions que la search */
+.filter-row-scroll > *,
+.filter-bar select,
+.filter-bar button{
+  height: var(--chip-h) !important;
+  min-height: var(--chip-h) !important;
+  max-height: var(--chip-h) !important;
+  border-radius: var(--chip-radius) !important;
+  font-size: var(--chip-font) !important;
+  padding: 0 var(--chip-pad-x) !important;
+  box-sizing: border-box !important;
+}
+
+/* icône chevron des <select> alignée avec la nouvelle hauteur */
+.filter-bar select{
+  padding-right: calc(var(--chip-pad-x) + 16px) !important;
+  background-size: 16px 16px !important;
+  background-position: right 10px center !important;
+}
+
+/* MOBILE : même logique, un poil plus petit */
+@media (max-width:700px){
+  :root{
+    --chip-h: 38px;
+    --chip-radius: 19px;
+    --chip-font: 0.97rem;
+    --chip-pad-x: 12px;
+  }
+  .search-autocomplete-wrapper{
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+
+/* Nudge léger à gauche (ajuste la valeur) */
+@media (min-width: 900px){
+  .filter-bar .search-autocomplete-wrapper{
+    margin-left: -28px !important; /* -6px à -12px selon ton goût */
+  }
+}
+
+
+/* ====== 1) Stopper le scroll horizontal global ====== */
+html, body{
+  overflow-x: hidden !important;   /* fallback universel */
+  overflow-x: clip !important;     /* évite même la “réserve” du scroll */
+  width: 100% !important;
+}
+
+/* Evite le débordement dû à 100vw + padding */
+.filter-bar{
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Sécurité anti-débordement sur la ligne de filtres */
+.filter-row-scroll{
+  max-width: 100% !important;
+}
+
+/* (optionnel) si un composant force 100vw, on neutralise */
+@media (min-width: 900px){
+  .search-autocomplete-wrapper,
+  .filter-bar,
+  .header2{
+    max-width: 100% !important;
+  }
+}
+
+/* ====== 2) Bouton Clear bien arrondi (pill) ====== */
+#clearBtn{
+  border-radius: 9999px !important;   /* full pill */
+  padding: 0 26px !important;         /* garde la même hauteur/respiration */
+  line-height: 1 !important;
+}
+
+#clearBtn:hover{
+  background: #ff5c5c !important;
+  border-color: #ff5c5c !important;
+}
+
+
+/* Montre entièrement le bouton Clear (respire à droite) */
+.filter-bar{
+  width: 100vw !important;           /* évite le débordement dû à 100vw */
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden   !important;      /* garde le défilement si ça déborde vraiment */
+}
+
+/* La rangée de chips a aussi un petit padding droit */
+.filter-row-scroll{
+  padding-right: 20px !important;
+  overflow-x: hidden;
+}
+
+/* Si tu as ça quelque part, on l’annule pour ne pas couper le Clear */
+html, body{
+  overflow-x: visible !important;   /* (au lieu de hidden) */
+}
+
+/* === Espace searchbar ↔︎ 1er bouton (Commercial Rent) === */
+.filter-bar{
+  column-gap: 4px !important;   /* avant ~12px ; ajuste 4–8px si besoin */
+}
+
+.search-autocomplete-wrapper{
+  margin-right: 0 !important;   /* pas d’espace ajouté côté search */
+}
+
+.filter-row-scroll{
+  padding-left: 0 !important;   /* pas de padding fantôme */
+}
+.filter-row-scroll > *:first-child{
+  margin-left: 4px !important;  /* mini souffle entre search et le 1er chip */
+}
+/* Garde le scroll au doigt/trackpad mais masque la barre */
+.filter-row-scroll{
+  overflow-x: auto;              /* on conserve le défilement si besoin */
+  -ms-overflow-style: none;      /* IE/Edge */
+  scrollbar-width: none;         /* Firefox */
+}
+.filter-row-scroll::-webkit-scrollbar{ display:none; } /* Chrome/Safari */
+
+/* 1) Le wrapper devient la "pile" la plus haute */
+.search-autocomplete-wrapper{
+  position: relative !important;
+  z-index: 11050 !important; /* > à la filter-bar/le header */
+  overflow: visible !important; /* rien ne coupe le dropdown */
+}
+
+/* 2) Le dropdown passe encore au-dessus du wrapper */
+#searchSuggestions,
+.autocomplete-suggestions{
+  position: absolute !important;
+  left: 0; right: 0; top: 100%;
+  z-index: 11060 !important;   /* plus haut que tout le reste */
+  display: none;                /* .visible -> display:block en JS */
+}
+
+/* 3) S'assurer que la barre de filtres ne clippe pas */
+.filter-bar{
+  overflow: visible !important;
+  z-index: 100 !important;      /* bien en dessous du dropdown */
+}
