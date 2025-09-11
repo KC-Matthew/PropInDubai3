@@ -21,6 +21,7 @@
   box-shadow: 0 4px 18px 0 rgba(32,32,32,0.09);
 }
 
+
 .tab {
   border: none;
   background: none;
@@ -1124,3 +1125,122 @@
   color: #ffffff !important;
   border-color: #ff5c5c !important; /* si un border est appliqué ailleurs */
 }
+/* === OVERRIDES: pills compacts & tailles identiques à la 2e feuille === */
+
+/* barre plus fine */
+.filter-bar{
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  gap: 8px !important;
+  padding: 8px 10px !important;
+  height: 56px !important;
+}
+
+/* rangée et éléments à 40px */
+.filter-row-scroll{
+  gap: 8px !important;
+  height: 40px !important;
+}
+.filter-bar > *,
+.filter-row-scroll > *{
+  height: 40px !important;
+  align-items: center !important;
+}
+
+/* SELECTS compacts */
+.filter-bar select,
+.filter-row-scroll select{
+  min-width: auto !important;
+  width: auto !important;
+  max-width: none !important;
+  font-size: .95rem !important;
+  padding: 0 20px 0 12px !important;
+  border-radius: 18px !important;
+  background-position: right 8px center !important;
+  background-size: 12px 12px !important;
+  /* au cas où un display:flex hérité gêne */
+  align-items: center !important;
+}
+
+/* BOUTONS compacts (Search / Clear / Price / More Filters / etc.) */
+.filter-bar button,
+.filter-row-scroll button{
+  font-size: .95rem !important;
+  padding: 0 14px !important;
+  min-width: auto !important;
+  border-radius: 18px !important;
+  line-height: 1 !important;
+}
+
+/* Search & Clear restent rouges */
+#searchBtn, #clearBtn{
+  background:#e84242 !important;
+  border:1.5px solid #e84242 !important;
+}
+#searchBtn:hover, #clearBtn:hover{ background:#ff5c5c !important; }
+
+/* Price & More Filters en contour rouge */
+#openPriceFilter, #openMoreFilter{
+  background:#fff !important;
+  color:#e84242 !important;
+  border:1.5px solid #e84242 !important;
+}
+#openPriceFilter:hover, #openMoreFilter:hover{ background:#ffeaea !important; }
+
+/* Searchbar compacte (mêmes hauteurs) */
+.search-autocomplete-wrapper{
+  width: 320px !important;
+  max-width: 360px !important;
+  min-width: 240px !important;
+  height: 40px !important;
+}
+#search{
+  height: 40px !important;
+  font-size: .95rem !important;
+  padding: 0 14px !important;
+  border-radius: 20px !important;
+}
+
+/* Fix typo: 1 em -> 1em */
+.filter-btn,
+.filter-bar select,
+#openPriceFilter{
+  font-size: 1em !important;
+}
+
+/* Mobile encore plus compact */
+@media (max-width:700px){
+  .filter-bar{ height: 50px !important; padding: 6px 8px !important; }
+  .filter-row-scroll{ gap: 6px !important; }
+  .filter-row-scroll select,
+  .filter-row-scroll button{
+    height: 36px !important;
+    padding: 0 10px !important;
+    border-radius: 16px !important;
+    font-size: .93rem !important;
+    background-position: right 7px center !important;
+    background-size: 11px 11px !important;
+  }
+  .search-autocomplete-wrapper{ height: 38px !important; width: 100% !important; }
+  #search{ height: 38px !important; }
+}
+
+/* --- Supprimer le carré/halo bleu autour du popup Google Maps --- */
+.gm-style .gm-style-iw-c,
+.gm-style .gm-style-iw-d,
+.gm-style .gm-style-iw-c:focus,
+.gm-style .gm-style-iw-d:focus,
+.offplan-iw-card,
+.offplan-iw-card:focus,
+.project-popup-airbnb,
+.project-popup-airbnb:focus {
+  outline: none !important;
+  border: none !important;        /* au cas où un border est injecté */
+}
+
+/* Empêche un enfant de réactiver l’outline */
+.gm-style .gm-style-iw-c *:focus { outline: none !important; }
+
+/* Optionnel: retirer le flash bleu au tap sur mobile */
+* { -webkit-tap-highlight-color: transparent; }
