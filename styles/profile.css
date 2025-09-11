@@ -1,0 +1,35 @@
+.profile-container {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.1);
+  text-align: center;
+}
+
+.profile-card {
+  margin: 20px 0;
+  padding: 20px;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.profile-card h2 {
+  margin: 10px 0;
+  color: #333;
+}
+
+.logout-btn {
+  background: #ff6600;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.logout-btn:hover {
+  background: #e65c00;
+}
