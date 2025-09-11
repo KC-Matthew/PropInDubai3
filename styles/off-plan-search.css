@@ -1924,23 +1924,6 @@ body.menu-open .all-button {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* RESET de base */
 .header2, .all-button, .profil-block {
   box-sizing: border-box;
@@ -2189,3 +2172,86 @@ body.menu-open .all-button {
   }
 }
 
+
+
+/* === COMPACT PILLS (comme la 2e image) — overrides =================== */
+.filter-bar{
+  /* barre plus fine et centrée */
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  gap: 8px !important;
+  padding: 8px 10px !important;
+  height: 56px !important;
+}
+
+/* rangée des filtres : moins d’espace entre les pills */
+.filter-row-scroll{
+  gap: 8px !important;
+  height: 40px !important;
+}
+
+/* tout ce qui est dans la barre prend 40px de haut */
+.filter-bar > *,
+.filter-row-scroll > *{
+  height: 40px !important;
+  align-items: center !important;
+}
+
+/* SELECTS plus courts et serrés */
+.filter-bar select,
+.filter-row-scroll select{
+  min-width: auto !important;
+  width: auto !important;
+  max-width: none !important;
+  font-size: .95rem !important;
+  padding: 0 20px 0 12px !important;
+  border-radius: 18px !important;
+  background-position: right 8px center !important;
+  background-size: 12px 12px !important;
+}
+
+/* BOUTONS plus courts et serrés (Search / Clear / Price / More Filters) */
+.filter-bar button,
+.filter-row-scroll button{
+  font-size: .95rem !important;
+  padding: 0 14px !important;
+  min-width: auto !important;
+  border-radius: 18px !important;
+  line-height: 1 !important;
+}
+
+/* Search & Clear restent rouges ; hover identique */
+#searchBtn, #clearBtn{ background:#e84242 !important; border:1.5px solid #e84242 !important; }
+#searchBtn:hover, #clearBtn:hover{ background:#ff5c5c !important; }
+
+/* Price & More Filters contour rouge (inchangé) */
+#openPriceFilter, #openMoreFilter{
+  background:#fff !important; color:#e84242 !important; border:1.5px solid #e84242 !important;
+}
+#openPriceFilter:hover, #openMoreFilter:hover{ background:#ffeaea !important; }
+
+/* Barre de recherche plus compacte */
+.search-autocomplete-wrapper{
+  width: 320px !important; max-width: 360px !important; min-width: 240px !important;
+  height: 40px !important;
+}
+#search{
+  height: 40px !important;
+  font-size: .95rem !important;
+  padding: 0 14px !important;
+  border-radius: 20px !important;
+}
+
+/* Mobile : encore un peu plus compact */
+@media (max-width:700px){
+  .filter-bar{ height: 50px !important; padding: 6px 8px !important; }
+  .filter-row-scroll{ gap: 6px !important; }
+  .filter-row-scroll select, .filter-row-scroll button{
+    height: 36px !important; padding: 0 10px !important; border-radius: 16px !important;
+    font-size: .93rem !important;
+    background-position: right 7px center !important; background-size: 11px 11px !important;
+  }
+  .search-autocomplete-wrapper{ height: 38px !important; width: 100% !important; }
+  #search{ height: 38px !important; }
+}
