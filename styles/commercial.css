@@ -23,7 +23,7 @@
   background-color: white;
   padding: 0 20px;
   z-index: 10;
-  border-bottom: 1px solid #ddd;
+
   gap: 20px;
 }
 .logo {
@@ -142,7 +142,7 @@
 
 .filter-bar {
   background: #fff;
-  margin-top: 30px;
+  margin-top: 29px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.03);
   border-bottom: 1px solid #e6e6e6;
   position: sticky;
@@ -167,7 +167,7 @@
 
 .filter-bar {
   position: sticky;
-  top: 60.5px; /* ou 0 selon ton header */
+  top: 60px; /* ou 0 selon ton header */
   z-index: 1;
   width: 100%;
   background: #fff;
@@ -1395,7 +1395,7 @@ body.price-popup-open { overflow: hidden; }
     background-color: white;
     padding: 0 8px;
     z-index: 10;
-    border-bottom: 1px solid #ddd;
+
   }
   .burger {
     flex: none;
@@ -1535,7 +1535,7 @@ body.price-popup-open { overflow: hidden; }
   }
   .filter-bar {
     position: fixed !important;
-    top: 98px !important; /* 54(header) + 54(search) */
+    top: 97px !important; /* 54(header) + 54(search) */
     left: 0; right: 0;
     width: 100vw !important;
     min-width: 0 !important;
@@ -2051,7 +2051,6 @@ body.price-popup-open { overflow: hidden; }
   justify-content: space-between;
   min-height: 60px;
   background: #fff;
-  border-bottom: 1.5px solid #ececec;
   position: sticky;
   top: 0;
   z-index: 99;
