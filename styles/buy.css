@@ -11,7 +11,7 @@
   background-color: white;
   padding: 0 20px;
   z-index: 10;
-  border-bottom: 1px solid #ddd;
+
   gap: 20px;
 }
 
@@ -1316,7 +1316,7 @@ body.price-popup-open { overflow: hidden; }
     background-color: white;
     padding: 0 8px;
     z-index: 10;
-    border-bottom: 1px solid #ddd;
+
   }
   .burger {
     flex: none;
@@ -1760,7 +1760,7 @@ body.price-popup-open { overflow: hidden; }
   justify-content: space-between;
   min-height: 60px;
   background: #fff;
-  border-bottom: 1.5px solid #ececec;
+
   position: sticky;
   top: 0;
   z-index: 99;
@@ -2073,10 +2073,6 @@ body.price-popup-open { overflow: hidden; }
     background-position: right 10px center !important;
   }
 }
-
-
-
-
 
 
 
