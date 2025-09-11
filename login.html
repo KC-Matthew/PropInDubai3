@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login – PropInDubai</title>
+
+  <!-- Tes styles globaux en premier (header, footer, etc.) -->
+  <link rel="stylesheet" href="styles/header-acceuil.css">
+  <link rel="stylesheet" href="styles/accueil.css">
+
+  <!-- NOTRE CSS LOGIN EN DERNIER pour prendre le dessus -->
+  <link rel="stylesheet" href="styles/login.css">
+</head>
+<body>
+
+  <!-- Header existant (ta barre du haut) -->
+  <div class="header2">
+    <div class="burger" id="burgerMenu">
+      <span></span><span></span><span></span>
+    </div>
+    <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
+
+    <div class="all-button">
+      <a href="areaforyou.html" class="chat-button header-btn">Chat Property AI</a>
+      <div class="dropdown header-btn" id="buyDropdown">
+        <a href="buy.html" class="buy-button header-btn" id="mainBuyBtn" tabindex="0">Buy <span class="arrow">&#9660;</span></a>
+        <div class="dropdown-content" id="dropdownContent">
+          <a href="buy.html" data-link="buy.html" class="dropdown-option">Buy</a>
+          <a href="rent.html" data-link="rent.html" class="dropdown-option">Rent</a>
+          <a href="commercial.html" data-link="commercial.html" class="dropdown-option">Commercial</a>
+        </div>
+      </div>
+      <a href="off-plan-map.html" class="project-button header-btn">Off Plan</a>
+      <a href="maps.html" class="map-button header-btn">Map</a>
+      <a href="findagent.html" class="agent-button header-btn">Find agents</a>
+    </div>
+
+    <div class="profil-block">
+      <a id="headerLoginBtn" href="login.html" class="login-button header-btn">Login</a>
+    </div>
+  </div>
+
+  <!-- CONTENU LOGIN -->
+  <main class="login-page">
+    <section class="login-card">
+
+      <div class="login-logo">
+        <img src="styles/photo/logo2.png" alt="PropInDubai">
+      </div>
+
+      <h1 class="login-title">Login</h1>
+      <p class="login-subtitle">Connecte-toi pour accéder à ton espace.</p>
+
+      <!-- zone d’alerte -->
+      <div id="loginAlert" class="login-alert"></div>
+
+      <!-- Onglets -->
+      <div class="login-links" style="justify-content:center; gap:16px; margin-bottom:8px;">
+        <a href="#" id="tabLogin" style="font-weight:700;">Login</a>
+        <span style="color:#ccc;">|</span>
+        <a href="#" id="tabSignup">Create account</a>
+      </div>
+
+      <!-- FORM LOGIN -->
+      <form id="formLogin" class="login-form">
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" type="email" class="input" placeholder="you@email.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" type="password" class="input" placeholder="Your password" required>
+        </div>
+
+        <div class="login-links">
+          <label style="display:flex; align-items:center; gap:8px; color:#333;">
+            <input type="checkbox" id="rememberMe"> Remember me
+          </label>
+          <a href="#" id="openReset">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="btnLogin">Login</button>
+      </form>
+
+      <div class="divider">or</div>
+
+      <button class="btn btn-ghost" id="btnGoogle">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="">
+        Continue with Google
+      </button>
+
+      <!-- FORM SIGNUP -->
+      <form id="formSignup" class="login-form is-hidden" style="margin-top:14px;">
+        <div class="form-group">
+          <label for="signupName">Full name (optional)</label>
+          <input id="signupName" type="text" class="input" placeholder="John Doe">
+        </div>
+        <div class="form-group">
+          <label for="signupEmail">Email</label>
+          <input id="signupEmail" type="email" class="input" placeholder="you@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="signupPassword">Password</label>
+          <input id="signupPassword" type="password" class="input" placeholder="Minimum 6 characters" required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="btnSignup">Create account</button>
+      </form>
+
+      <!-- FORM RESET -->
+      <form id="formReset" class="login-form is-hidden" style="margin-top:14px;">
+        <div class="form-group">
+          <label for="resetEmail">Reset your password</label>
+          <input id="resetEmail" type="email" class="input" placeholder="you@email.com" required>
+        </div>
+        <button type="submit" class="btn btn-ghost" id="btnReset">Send reset link</button>
+        <p class="login-footer" style="margin-top:8px;">We’ll email you a secure link to set a new password.</p>
+      </form>
+
+      <p class="login-footer">
+        No account yet?
+        <a href="#" id="linkToSignup">Create one</a>
+      </p>
+    </section>
+  </main>
+
+  <!-- Footer existant -->
+  <footer class="site-footer">
+    <!-- … ton footer habituel … -->
+  </footer>
+
+  <!-- Supabase client (module ESM) -->
+  <script type="module" src="javascript/supabaseClient.js"></script>
+  <!-- Script Login (module) -->
+  <script type="module">
+    // Petit routeur d’onglets
+    const tabLogin   = document.getElementById('tabLogin');
+    const tabSignup  = document.getElementById('tabSignup');
+    const openReset  = document.getElementById('openReset');
+
+    const formLogin  = document.getElementById('formLogin');
+    const formSignup = document.getElementById('formSignup');
+    const formReset  = document.getElementById('formReset');
+
+    function show(which){
+      formLogin.classList.toggle('is-hidden', which !== 'login');
+      formSignup.classList.toggle('is-hidden', which !== 'signup');
+      formReset.classList.toggle('is-hidden', which !== 'reset');
+      // style onglets
+      tabLogin.style.fontWeight  = (which==='login') ? '700' : '400';
+      tabSignup.style.fontWeight = (which==='signup')? '700' : '400';
+    }
+    tabLogin?.addEventListener('click', e=>{ e.preventDefault(); show('login'); });
+    tabSignup?.addEventListener('click', e=>{ e.preventDefault(); show('signup'); });
+    openReset?.addEventListener('click', e=>{ e.preventDefault(); show('reset'); });
+    document.getElementById('linkToSignup')?.addEventListener('click', e=>{ e.preventDefault(); show('signup'); });
+
+    // === Auth ===
+    const alertBox = document.getElementById('loginAlert');
+    function flash(msg, ok=false){
+      if(!alertBox) return;
+      alertBox.textContent = msg;
+      alertBox.style.borderColor = ok ? '#d6f2dd' : '#ffd9b8';
+      alertBox.style.background  = ok ? '#ecfff0' : '#fff7f0';
+      alertBox.style.color       = ok ? '#146c2e' : '#7a3c00';
+      alertBox.classList.add('show');
+      setTimeout(()=> alertBox.classList.remove('show'), 4000);
+    }
+
+    // login
+    formLogin?.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      try{
+        const { data, error } = await window.supabase.auth.signInWithPassword({ email, password });
+        if(error) return flash(error.message);
+        flash('Connected! Redirecting…', true);
+        setTimeout(()=> location.href = 'accueil.html', 600);
+      }catch(err){ flash('Unexpected error.'); }
+    });
+
+    // signup
+    formSignup?.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const email = document.getElementById('signupEmail').value.trim();
+      const password = document.getElementById('signupPassword').value;
+      const full_name = document.getElementById('signupName').value.trim();
+      try{
+        const { data, error } = await window.supabase.auth.signUp({
+          email, password,
+          options: {
+            data: { full_name },
+            emailRedirectTo: location.origin + '/reset-password.html'
+          }
+        });
+        if(error) return flash(error.message);
+        // Crée la ligne profiles (si tu as créé la table)
+        if(data.user){
+          await window.supabase.from('profiles').insert({ id: data.user.id, full_name }).select();
+        }
+        flash('Check your email to confirm your account.', true);
+        show('login');
+      }catch(err){ flash('Unexpected error.'); }
+    });
+
+    // reset
+    formReset?.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const email = document.getElementById('resetEmail').value.trim();
+      try{
+        const { error } = await window.supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: location.origin + '/reset-password.html'
+        });
+        if(error) return flash(error.message);
+        flash('Reset link sent. Check your email.', true);
+        show('login');
+      }catch(err){ flash('Unexpected error.'); }
+    });
+
+    // Bouton Google
+    document.getElementById('btnGoogle')?.addEventListener('click', async ()=>{
+      const { error } = await window.supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: location.origin + '/accueil.html' }
+      });
+      if(error) flash(error.message);
+    });
+
+    // Bouton du header (login/logout)
+    window.addEventListener('supabase:ready', async ()=>{
+      const btn = document.getElementById('headerLoginBtn');
+      if(!btn) return;
+      const { data } = await window.supabase.auth.getSession();
+      if(data.session){
+        btn.textContent = "Logout";
+        btn.href = "#";
+        btn.onclick = async (e)=>{ e.preventDefault(); await window.supabase.auth.signOut(); location.reload(); };
+      }else{
+        btn.textContent = "Login";
+        btn.href = "login.html";
+      }
+      window.supabase.auth.onAuthStateChange((_evt, session)=>{
+        if(session){ btn.textContent="Logout"; btn.href="#"; }
+        else{ btn.textContent="Login"; btn.href="login.html"; }
+      });
+    });
+  </script>
+  <script>
+  // Gestion burger menu mobile
+  document.addEventListener('DOMContentLoaded', () => {
+    const burger = document.getElementById('burgerMenu');
+    const nav = document.querySelector('.all-button');
+
+    if (burger && nav) {
+      burger.addEventListener('click', () => {
+        nav.classList.toggle('mobile-open');
+        if (nav.classList.contains('mobile-open')) {
+          document.body.style.overflow = 'hidden';
+          setTimeout(() => {
+            document.addEventListener('click', function closeOnce(e) {
+              if (!nav.contains(e.target) && !burger.contains(e.target)) {
+                nav.classList.remove('mobile-open');
+                document.body.style.overflow = '';
+              }
+            }, { once: true });
+          }, 0);
+        } else {
+          document.body.style.overflow = '';
+        }
+      });
+    }
+  });
+</script>
+
+</body>
+</html>
