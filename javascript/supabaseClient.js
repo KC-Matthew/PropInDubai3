@@ -11,3 +11,23 @@ window.db = (table) => window.supabase.from(table);
 // ✅ signale que Supabase est prêt (le module peut charger plus lentement que le script classique)
 window.dispatchEvent(new Event("supabase:ready"));
 console.log("Supabase ready:", !!window.supabase);
+
+document.addEventListener("DOMContentLoaded", async () => {
+  // Vérifie l'état de connexion Supabase
+  const { data: { user } } = await window.supabase.auth.getUser();
+  const profilBlock = document.getElementById("profilBlock");
+
+  if (user) {
+    // Utilisateur connecté → on remplace par "Profil"
+    profilBlock.innerHTML = `
+      <a href="profile.html" class="profile-button header-btn">
+        <i class="fa fa-user"></i> Profil
+      </a>
+    `;
+  } else {
+    // Pas connecté → garder Login
+    profilBlock.innerHTML = `
+      <a href="login.html" class="login-button header-btn">Login</a>
+    `;
+  }
+});
