@@ -581,6 +581,161 @@
 
 
 
+/* =======================================================================
+   OFF-PLAN MAP – Filter pills (adaptation BUY)  |  N'altère pas .tabs/.tab
+   ======================================================================= */
+
+/* Palette */
+:root{
+  --pill-red:#e84242;
+  --pill-red-hover:#ff5c5c;
+  --pill-shadow:0 2px 12px rgba(232,66,66,.10);
+}
+
+/* Barre + rail horizontal */
+.filter-bar{
+  background:#fff;
+  border-bottom:1px solid #e6e6e6;
+  box-shadow:0 2px 8px rgba(0,0,0,.03);
+  height:68px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  padding:12px 0;
+  z-index:7;
+}
+
+.filter-row-scroll{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding-inline:10px;            /* évite que le 1er pill soit coupé */
+  -webkit-overflow-scrolling:touch;
+  scroll-behavior:smooth;
+}
+.filter-row-scroll::-webkit-scrollbar{ display:none; }
+
+/* Tous les éléments restent compacts et n’étirent pas */
+.filter-bar > *,
+.filter-row-scroll > *{
+  flex:0 0 auto;
+  height:48px;
+  display:inline-flex;
+  align-items:center;
+}
+
+/* ===================== SELECT pills ===================== */
+.filter-bar select,
+.filter-row-scroll select{
+  display:inline-block !important;
+  appearance:none; -webkit-appearance:none; -moz-appearance:none;
+  font-family:'Montserrat',Arial,sans-serif;
+  font-weight:600; line-height:1.1;
+  color:var(--pill-red);
+  background:#fff;
+  border:1.5px solid var(--pill-red);
+  border-radius:25px;
+  padding:0 26px 0 14px;          /* compact */
+  min-width:0 !important;          /* supprime les 120px forcés */
+  width:auto !important;           /* largeur = contenu */
+  max-width:none !important;
+  white-space:nowrap !important;
+  box-shadow:var(--pill-shadow);
+  transition:background .15s,color .15s,border-color .15s,box-shadow .15s;
+  background-image:url("data:image/svg+xml;utf8,<svg fill='red' width='16' height='16' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5'/></svg>");
+  background-repeat:no-repeat;
+  background-position:right 8px center; /* caret rapprochée */
+  background-size:12px 12px;
+}
+.filter-bar select:focus,
+.filter-row-scroll select:focus{
+  outline:none;
+  border-color:#ff7a7a;
+  box-shadow:0 0 0 3px rgba(232,66,66,.15);
+}
+
+/* ===================== BUTTON pills ===================== */
+/* Par défaut = bouton rouge plein */
+.filter-bar button,
+.filter-row-scroll button{
+  display:inline-flex; align-items:center; justify-content:center;
+  font-family:'Montserrat',Arial,sans-serif;
+  font-weight:700; line-height:1;
+  height:48px;
+  padding:0 18px;                  /* compact */
+  border-radius:25px;
+  border:1.5px solid var(--pill-red);
+  background:var(--pill-red);
+  color:#fff;
+  cursor:pointer;
+  transition:background .15s, box-shadow .15s, border-color .15s, color .15s;
+}
+.filter-bar button:hover,
+.filter-row-scroll button:hover{ background:var(--pill-red-hover); }
+
+/* Variantes contour (Price & More Filters) */
+#openPriceFilter,
+#openMoreFilter{
+  background:#fff;
+  color:var(--pill-red);
+  box-shadow:0 1px 7px rgba(232,66,66,.07);
+}
+#openPriceFilter:hover,
+#openMoreFilter:hover{
+  background:#ffeaea; color:#b83838;
+}
+
+/* Search / Reset restent en plein */
+#searchBtn, #clearBtn{
+  background:var(--pill-red);
+  color:#fff;
+  border:1.5px solid var(--pill-red);
+}
+
+/* Focus accessible */
+#openPriceFilter:focus,
+#openMoreFilter:focus,
+#searchBtn:focus,
+#clearBtn:focus{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(232,66,66,.15);
+}
+
+/* ===================== Correctifs importants ===================== */
+/* (1) Sélecteur cassé + typo dans ta base */
+.filter-btn,
+.filter-bar select,
+#openPriceFilter{
+  font-size:1em;                   /* corrige "1 em" */
+}
+/* (2) Empêche un display:flex hérité de déformer les <select> */
+.filter-bar select,
+.filter-row-scroll select{ align-items:center; }
+
+/* ===================== Mobile ===================== */
+@media (max-width:700px){
+  .filter-bar{
+    height:60px;
+    padding:7px 0;
+    justify-content:flex-start;    /* scroll horizontal naturel */
+  }
+  .filter-row-scroll{ gap:8px; padding-inline:8px; }
+  .filter-row-scroll select,
+  .filter-row-scroll button{
+    height:38px;
+    padding:0 14px;
+    border-radius:16px;
+    background-position:right 7px center !important;
+    background-size:12px 12px !important;
+  }
+}
+
+/* === (Optionnel) si tu veux la barre sticky, décommente :
+.filter-bar{ position:sticky; top:120px; }
+*/
 
 
 
@@ -963,4 +1118,9 @@
  display: none;
 }
 
-
+/* Hover rouge clair pour le bouton Reset (écrase le style inline) */
+#resetFilters:hover {
+  background: #ff5c5c !important;
+  color: #ffffff !important;
+  border-color: #ff5c5c !important; /* si un border est appliqué ailleurs */
+}
