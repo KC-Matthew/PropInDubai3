@@ -21,12 +21,18 @@
     <h1>My Account</h1>
 
     <!-- Onglets -->
-    <nav class="profile-tabs">
-      <button class="tab-btn active" data-tab="info">Personal Information</button>
-      <button class="tab-btn" data-tab="saved">Saved Properties (0)</button>
-      <button class="tab-btn" data-tab="alerts">Search Alerts (0)</button>
-      <button class="tab-btn" data-tab="contacted">Contacted Properties (0)</button>
-    </nav>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="tab-info">Personal Information</button>
+      <button class="tab-btn" data-tab="tab-saved">Saved properties</button>
+      <button class="tab-btn" data-tab="tab-subscription">Subscription</button>
+      <button class="tab-btn" data-tab="tab-contacted">Contacted properties</button>
+    </div>
+
+    <div id="tab-subscription" class="tab-content" style="display:none;">
+      <h2>Subscription</h2>
+      <div id="subscription-container"></div>
+    </div>
+
 
     <!-- Contenu -->
     <section id="tab-info" class="tab-content active">
