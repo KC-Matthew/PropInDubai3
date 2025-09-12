@@ -78,3 +78,25 @@ form input {
   cursor: pointer;
 }
 .logout-btn:hover { background: #222; }
+
+.btn-orange {
+  background: #ff8300;
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.btn-orange:hover { background: #e67200; }
+
+.btn-red {
+  background: #d9534f;
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.btn-red:hover { background: #c9302c; }
