@@ -7,6 +7,7 @@ function formatAED(v){
 }
 
 
+
 /* ===== Helper prix — EN uniquement pour CETTE page ===== */
 function formatAED_EN(value){
   // si value est numérique (ou string numérique) -> "250,000 AED"
@@ -685,29 +686,28 @@ document.addEventListener('DOMContentLoaded', function () {
       position: 'fixed',
       inset: '0',
       background: 'transparent',
-      zIndex: '20', // sous le menu (menu a z-index 21)
+      zIndex: '2000',   // <<< au-dessus du header + du menu
       display: 'none'
     });
     document.body.appendChild(overlay);
     return overlay;
   }
 
-  function openMenu() {
-    nav.classList.add('menu-open');       // correspond au CSS de cette page
-    document.body.style.overflow = 'hidden';
-    ensureOverlay().style.display = 'block';
-    const closeOutside = (e) => {
-      if (!nav.contains(e.target) && !burger.contains(e.target)) closeMenu();
-    };
-    overlay.addEventListener('click', closeOutside, { once: true });
-    overlay.addEventListener('touchstart', closeOutside, { once: true, passive: true });
-  }
 
-  function closeMenu() {
-    nav.classList.remove('menu-open');
-    document.body.style.overflow = '';
-    if (overlay) overlay.style.display = 'none';
-  }
+function openMenu() {
+  nav.classList.add('menu-open');
+  nav.classList.add('mobile-open');   // <<< pour compat rétro si CSS attend "mobile-open"
+  document.body.style.overflow = 'hidden';
+  ensureOverlay().style.display = 'block';
+}
+
+function closeMenu() {
+  nav.classList.remove('menu-open');
+  nav.classList.remove('mobile-open'); // <<<
+  document.body.style.overflow = '';
+  if (overlay) overlay.style.display = 'none';
+}
+
 
   burger.addEventListener('click', (e) => {
     if (!isMobile()) return;
@@ -720,6 +720,44 @@ document.addEventListener('DOMContentLoaded', function () {
   window.addEventListener('resize', () => { if (!isMobile()) closeMenu(); });
 })();
 
+// --- Fermer le menu si clic en dehors ou touche Échap
+(function () {
+  const burger = document.getElementById('burgerMenu');
+  const nav = document.querySelector('.all-button');
+  if (!burger || !nav) return;
+
+  const isMobile = () => window.matchMedia('(max-width: 900px)').matches;
+
+  function fallbackClose() {
+    nav.classList.remove('menu-open', 'mobile-open');
+    document.body.style.overflow = '';
+    const overlay = document.getElementById('navOverlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  function handleOutside(target) {
+    return !nav.contains(target) && !burger.contains(target);
+  }
+
+  // Clic / tap n'importe où → fermer si ouvert et clic hors menu
+  const closeOnDoc = (e) => {
+    if (!isMobile()) return;
+    if (nav.classList.contains('menu-open') && handleOutside(e.target)) {
+      // si closeMenu n'est pas accessible (scopé dans l'IIFE), on fait le fallback
+      if (typeof closeMenu === 'function') closeMenu(); else fallbackClose();
+    }
+  };
+  document.addEventListener('click', closeOnDoc, true);
+  document.addEventListener('touchstart', closeOnDoc, { passive: true, capture: true });
+
+  // Échap → fermer
+  window.addEventListener('keydown', (e) => {
+    if (!isMobile()) return;
+    if (e.key === 'Escape' && nav.classList.contains('menu-open')) {
+      if (typeof closeMenu === 'function') closeMenu(); else fallbackClose();
+    }
+  });
+})();
 
 
 /* ====== MOBILE SPLITTER v2 — 3 états (closed / half / open) + snap + click toggle ====== */
@@ -881,11 +919,6 @@ document.addEventListener('DOMContentLoaded', function () {
     snapTo(next, true);
   });
 })();
-
-
-// branche aussi le burger si présent
-const burger = document.getElementById('burgerMenu');
-if (burger) burger.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); toggleSidebar(); });
 
 
 /* ===== MOBILE EDGE TAB → ouvre/ferme la sidebar (mobile only) ===== */
