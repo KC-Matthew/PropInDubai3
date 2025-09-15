@@ -7,6 +7,7 @@ html, body {
   overflow: hidden;
 }
 
+
 /* ========== HEADER ========== */
 .header2 {
   height: 60px;
@@ -1068,9 +1069,10 @@ html, body {
 
 
 /* Center title, location, features and price inside the cards (this page only) */
-#property-cards-container .property-card-ui-v2 { 
-  margin-left: 30px;
+#property-cards-container .property-card-ui-v2 {
+  margin: 0 auto;                 /* centre la carte */
 }
+
 
 /* rows that are flex: center them horizontally */
 #property-cards-container .property-loc-ui-v2,
@@ -1717,7 +1719,7 @@ html, body {
     left: 1vw !important;
   }
 
-  .all-button { z-index: 1200 !important; display: none !important; }
+
 
   .offplan-map-page .header2 .all-button.mobile-open {
     display: flex !important;
@@ -2114,9 +2116,7 @@ html, body {
 
 @media (max-width: 768px) {
   /* Cache complètement la sidebar */
-  .multi-sidebar {
-    display: none !important;
-  }
+
 
   /* Le conteneur prend toute la largeur */
   .main-content-v2,
