@@ -2885,7 +2885,7 @@ html, body{
   /* LOGO centré au pixel près et taille inchangée */
   .logo{
     position: absolute !important;
-    left: -85%!important;
+    left: -95%!important;
     top: 50% !important;
     transform: translate(-50%, -50%) !important;
     max-width: none !important;
@@ -2894,6 +2894,7 @@ html, body{
   }
 
 }
+
 
 
 
