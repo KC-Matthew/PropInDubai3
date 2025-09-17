@@ -2381,4 +2381,18 @@ body.menu-open .all-button {
   .top-tabs-filters .tabs{
     margin-top: 8px !important;
   }
+
+
+  /* Search comme Clear (tous contextes) */
+.filter-bar #searchBtn,
+.filter-row-scroll #searchBtn{
+  background: #e84242 !important;
+  color: #fff !important;
+  border: 1.5px solid #e84242 !important;
+}
+.filter-bar #searchBtn:hover,
+.filter-row-scroll #searchBtn:hover{
+  background: #ff5c5c !important;
+}
+
 }
