@@ -2171,6 +2171,7 @@ body.menu-open .all-button {
   .mobile-buy-menu {
     display: none !important;
   }
+
 }
 
 
@@ -2362,3 +2363,22 @@ body.menu-open .all-button {
   }
 }
 
+
+@media (max-width:700px){
+  .tabs{ align-items: flex-start; } /* clé pour que le margin-top agisse visuellement */
+  .tabs .tab--down{ margin-top: 50px; } /* ajuste 2–10px selon le rendu voulu */
+}
+
+
+
+
+/* === Tabs un peu plus bas en mobile (CSS only) === */
+@media (max-width:700px){
+  /* on ajoute 8px aux tabs et on décale aussi la search via la variable */
+  :root{ --tabs: calc(66px + 8px); } /* si tu avais déjà --tabs:66px */
+
+  /* override le margin:0 !important existant */
+  .top-tabs-filters .tabs{
+    margin-top: 8px !important;
+  }
+}
