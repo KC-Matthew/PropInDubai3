@@ -269,13 +269,28 @@ function fillMain(row, COL, extras){
   // ========= Helpers (bucket -> URL publique) =========
   const STORAGE_BUCKET = window.STORAGE_BUCKET || "photos_biens";
 
+
+function drawIndicators(){
+  if (!indWrap) return;
+  indWrap.innerHTML = "";
+  images.forEach((_, i) => {
+    const dot = document.createElement("div");
+    // IMPORTANT : classe "dot" pour matcher le CSS existant (.carousel-indicators .dot)
+    dot.className = "dot" + (i === idx ? " active" : "");
+    dot.onclick = (e)=>{ e.stopPropagation(); idx = i; updateImage(); };
+    indWrap.appendChild(dot);
+  });
+}
+
+
+
+
   function normKey(s){
     if (!s) return "";
     let k = String(s).trim().replace(/^["']+|["']+$/g, "");
-    // si URL publique Supabase -> ne garder que la clé objet
     k = k.replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/[^/]+\//i, "");
-    k = k.replace(/^\/+/, ""); // slashes tête
-    k = k.replace(new RegExp(`^(?:${STORAGE_BUCKET}\\/)+`, "i"), ""); // préfixe bucket répété
+    k = k.replace(/^\/+/, "");
+    k = k.replace(new RegExp(`^(?:${STORAGE_BUCKET}\\/)+`, "i"), "");
     return k;
   }
   function sbPublicUrl(key){
@@ -288,13 +303,10 @@ function fillMain(row, COL, extras){
     if (Array.isArray(val)) return val;
     let s = String(val).replace(/\u200B|\u200C|\u200D|\uFEFF/g, "").trim();
     if (!s) return [];
-    // Postgres text[] "{a,b}"
     if (s[0]==="{" && s[s.length-1]==="}") return s.slice(1,-1).split(",").map(x=>x.trim());
-    // JSON array '["a","b"]'
     if (s[0]==="[" && s[s.length-1]==="]") {
       try { return JSON.parse(s); } catch { return [s]; }
     }
-    // CSV / multi-lignes
     return s.split(/[\n,;|]+/).map(x=>x.trim());
   }
   function resolveAllPhotosFromBucket(raw){
@@ -304,14 +316,10 @@ function fillMain(row, COL, extras){
       if (c == null) continue;
       let t = String(c).trim().replace(/^["']+|["']+$/g, "");
       if (!t) continue;
-
-      // URL http externe (non-supabase) => garder tel quel
       if (/^https?:\/\//i.test(t) && !/\/storage\/v1\/object\/public\//i.test(t)) {
         if (!seen.has(t)) { out.push(t); seen.add(t); }
         continue;
       }
-
-      // clé supabase (ou URL publique supabase)
       const key = normKey(t);
       const url = key ? sbPublicUrl(key) : null;
       if (url && !seen.has(url)) { out.push(url); seen.add(url); }
@@ -344,7 +352,7 @@ function fillMain(row, COL, extras){
   const pay      = row[COL.payment]   || "";
   const desc     = row[COL.desc]      || extras?.description || "";
 
-  // Brochure: accepte URL ou clé bucket
+  // Brochure
   let brochure = row[COL.brochure] || "";
   if (brochure && !/^https?:\/\//i.test(brochure)) {
     const k = normKey(brochure);
@@ -352,21 +360,13 @@ function fillMain(row, COL, extras){
     brochure = u || "";
   }
 
-  // ========= Médias (photos + extras via bucket) =========
+  // ========= Médias =========
   const photosMain = resolveAllPhotosFromBucket(row[COL.imageUrl]);
-
-  // Champs "extras" où tu peux avoir des photos additionnelles
-  const extraFields = ["photos", "images", "gallery", "galerie", "image_urls", "photos_urls"];
+  const extraFields = ["photos","images","gallery","galerie","image_urls","photos_urls"];
   const photosExtra = [];
-  extraFields.forEach(f => {
-    if (extras?.[f]) {
-      photosExtra.push(...resolveAllPhotosFromBucket(extras[f]));
-    }
-  });
-
+  extraFields.forEach(f => { if (extras?.[f]) photosExtra.push(...resolveAllPhotosFromBucket(extras[f])); });
   const logo = resolveLogoAny(row[COL.logoUrl]);
 
-  // Ordre carrousel: toutes les photos (main + extras), puis logo en dernier, sinon fallback
   const all = [...photosMain, ...photosExtra];
   const seenAll = new Set();
   let images = all.filter(u => !!u && !seenAll.has(u) && seenAll.add(u));
@@ -403,6 +403,8 @@ function fillMain(row, COL, extras){
   const count    = document.getElementById("photoCount");
   const indWrap  = document.getElementById("carousel-indicators");
   const mainWrap = document.getElementById("mainImage");
+  const prevBtn  = document.getElementById("prevImage");
+  const nextBtn  = document.getElementById("nextImage");
   let idx = 0;
 
   function drawIndicators(){
@@ -423,28 +425,38 @@ function fillMain(row, COL, extras){
     if (count) count.textContent = String(images.length);
     drawIndicators();
   }
+  function showPrev(){
+    idx = (idx - 1 + images.length) % images.length;
+    updateImage();
+  }
+  function showNext(){
+    idx = (idx + 1) % images.length;
+    updateImage();
+  }
   updateImage();
 
-  // Swipe (mobile) sur l'image principale
+  if (prevBtn) prevBtn.addEventListener("click", (e)=>{ e.stopPropagation(); showPrev(); });
+  if (nextBtn) nextBtn.addEventListener("click", (e)=>{ e.stopPropagation(); showNext(); });
+
+  // Swipe (mobile)
   if (mainWrap){
     let tsX=0, teX=0;
     mainWrap.addEventListener("touchstart", e=>{ if (e.touches.length===1) tsX = e.touches[0].clientX; }, { passive:true });
     mainWrap.addEventListener("touchmove",  e=>{ if (e.touches.length===1) teX = e.touches[0].clientX; }, { passive:true });
     mainWrap.addEventListener("touchend",   ()=>{
       const d = teX - tsX;
-      if (d > 50)  idx = (idx - 1 + images.length) % images.length;
-      if (d < -50) idx = (idx + 1) % images.length;
-      updateImage(); tsX=teX=0;
+      if (d > 50)  showPrev();
+      if (d < -50) showNext();
+      tsX=teX=0;
     }, { passive:true });
   }
 
-  // ========= Lightbox (clic hors image + Esc) =========
+  // ========= Lightbox =========
   const lb        = document.getElementById("lightbox");
   const lbImg     = document.getElementById("lightbox-img");
   const lbPrev    = document.getElementById("lightbox-prev");
   const lbNext    = document.getElementById("lightbox-next");
-  const lbOverlay = document.getElementById("lightboxOverlay"); // si présent
-  // on tente de cibler le conteneur du contenu (pour fermer si clic EN DEHORS)
+  const lbOverlay = document.getElementById("lightboxOverlay");
   const lbContent = document.getElementById("lightboxContent")
                   || (lbImg ? lbImg.closest(".lightbox-content, .lightbox-inner, .content") : null)
                   || (lbImg ? lbImg.parentElement : null);
@@ -457,58 +469,22 @@ function fillMain(row, COL, extras){
   function closeLightbox(){
     if (lb) lb.style.display = "none";
   }
-  function showPrev(){
-    idx = (idx - 1 + images.length) % images.length;
-    if (lbImg) lbImg.src = images[idx];
-    updateImage();
-  }
-  function showNext(){
-    idx = (idx + 1) % images.length;
-    if (lbImg) lbImg.src = images[idx];
-    updateImage();
-  }
 
   if (mainImg && lb && lbImg){
     mainImg.onclick = openLightbox;
-
-    lbPrev?.addEventListener("click", (e)=>{ e.stopPropagation(); showPrev(); });
-    lbNext?.addEventListener("click", (e)=>{ e.stopPropagation(); showNext(); });
-
-    // Empêche la fermeture quand on clique dans le contenu
-    [lbImg, lbPrev, lbNext, lbContent].forEach(el => {
-      el && el.addEventListener("click", (e)=> e.stopPropagation());
-    });
-
-    // 1) clic sur l'overlay dédié
+    lbPrev?.addEventListener("click", (e)=>{ e.stopPropagation(); showPrev(); if (lbImg) lbImg.src = images[idx]; });
+    lbNext?.addEventListener("click", (e)=>{ e.stopPropagation(); showNext(); if (lbImg) lbImg.src = images[idx]; });
+    [lbImg, lbPrev, lbNext, lbContent].forEach(el => { el && el.addEventListener("click", (e)=> e.stopPropagation()); });
     lbOverlay && lbOverlay.addEventListener("click", closeLightbox);
-
-    // 2) clic n'importe où sur la lightbox **en dehors** du contenu => ferme
-    lb.addEventListener("click", (e) => {
-      // si on a un conteneur de contenu, on teste contains(); sinon on exige un clic direct sur lb
-      if (lbContent) {
-        if (!lbContent.contains(e.target)) closeLightbox();
-      } else if (e.target === lb) {
-        closeLightbox();
-      }
-    });
-
-    // Esc pour fermer
-    const onEsc = (e)=>{ if (e.key === "Escape" && lb.style.display !== "none") closeLightbox(); };
-    document.addEventListener("keydown", onEsc, { passive:true });
-
-    // Swipe dans la lightbox
+    lb.addEventListener("click", (e) => { if (lbContent && !lbContent.contains(e.target)) closeLightbox(); else if (e.target === lb) closeLightbox(); });
+    document.addEventListener("keydown", (e)=>{ if (e.key==="Escape" && lb.style.display!=="none") closeLightbox(); }, { passive:true });
     let lsX=0, leX=0;
     lb.addEventListener("touchstart", e=>{ if (e.touches.length===1) lsX = e.touches[0].clientX; }, { passive:true });
     lb.addEventListener("touchmove",  e=>{ if (e.touches.length===1) leX = e.touches[0].clientX; }, { passive:true });
-    lb.addEventListener("touchend",   ()=>{
-      const d = leX - lsX;
-      if (d > 50)  showPrev();
-      if (d < -50) showNext();
-      lsX=leX=0;
-    }, { passive:true });
+    lb.addEventListener("touchend",   ()=>{ const d = leX - lsX; if (d > 50) showPrev(); if (d < -50) showNext(); lsX=leX=0; }, { passive:true });
   }
 
-  // ========= Payment details (toggle) =========
+  // ========= Payment details =========
   const lines = String(pay).split(/[\n•;,;-]+/).map(s=>s.trim()).filter(Boolean);
   const paymentToggle = document.getElementById("paymentToggle");
   const paymentDetail = document.getElementById("paymentDetail");
@@ -526,7 +502,7 @@ function fillMain(row, COL, extras){
     if (iframe) iframe.src = `https://www.google.com/maps?q=${encodeURIComponent(lat)},${encodeURIComponent(lon)}&z=15&output=embed`;
   }
 
-  // ========= Agent (conservé) =========
+  // ========= Agent =========
   const agentContact = document.getElementById("agentContact");
   if (agentContact){
     agentContact.innerHTML = `
@@ -535,7 +511,7 @@ function fillMain(row, COL, extras){
       <p><i class="fas fa-envelope"></i> <a href="mailto:contact@propindubai.com">contact@propindubai.com</a></p>`;
   }
 
-  // ========= Vision / autres projets (extras) =========
+  // ========= Vision =========
   const setVision = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || ""; };
   setVision("developerVision", extras?.["developer vision"] || "");
   const devList = document.getElementById("developerProjects");
@@ -562,6 +538,9 @@ function fillMain(row, COL, extras){
 
 
 
+
+
+
   /* ============ Boot ============ */
   document.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -579,5 +558,59 @@ function fillMain(row, COL, extras){
       console.error(e);
       alert("Unable to load this project right now.");
     }
+  });
+})();
+
+// ========== Burger mobile : ouverture/fermeture ==========
+(function () {
+  const burger = document.getElementById('burgerMenu');
+  const panel  = document.querySelector('.all-button');
+  if (!burger || !panel) return;
+
+  // accessibilité
+  burger.setAttribute('role', 'button');
+  burger.setAttribute('tabindex', '0');
+  burger.setAttribute('aria-controls', 'main-nav-panel');
+  panel.id = panel.id || 'main-nav-panel';
+
+  const mq = window.matchMedia('(max-width: 900px)');
+
+  function openMenu() {
+    panel.classList.add('menu-open');
+    document.body.style.overflow = 'hidden';      // bloque le scroll derrière
+    burger.setAttribute('aria-expanded', 'true');
+  }
+  function closeMenu() {
+    panel.classList.remove('menu-open');
+    document.body.style.overflow = '';
+    burger.setAttribute('aria-expanded', 'false');
+  }
+  function toggleMenu() {
+    if (!mq.matches) return;                      // ne fait rien en desktop
+    panel.classList.contains('menu-open') ? closeMenu() : openMenu();
+  }
+
+  // clic sur le burger
+  burger.addEventListener('click', toggleMenu);
+  burger.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMenu(); }
+  });
+
+  // clic hors menu → ferme
+  document.addEventListener('click', (e) => {
+    if (!panel.classList.contains('menu-open')) return;
+    const clickInsideMenu   = panel.contains(e.target);
+    const clickOnBurger     = burger.contains(e.target);
+    if (!clickInsideMenu && !clickOnBurger) closeMenu();
+  });
+
+  // Échap → ferme
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && panel.classList.contains('menu-open')) closeMenu();
+  });
+
+  // on repasse en desktop → on nettoie l’état
+  window.addEventListener('resize', () => {
+    if (!mq.matches) closeMenu();
   });
 })();
