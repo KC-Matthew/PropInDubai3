@@ -1,8 +1,5 @@
-/**************************************
- * PropInDubai — Off-Plan (v2 minimal)
- * -> HTML conservé à 100%
- * -> Design tokens, layout propre, fond blanc
- **************************************/
+
+
 
 /* ============ Design tokens ============ */
 :root{
@@ -380,3 +377,170 @@ tbody tr:last-child td{ border-bottom: 0; }
 p{ margin: .4rem 0; }
 
 
+
+
+.project-header {
+  margin-bottom: 5px; /* au lieu de gros padding/margin */
+}
+
+.project-main {
+  margin-top: 5px; /* au lieu de 50px */
+}
+
+.chat-button {
+  white-space: nowrap;
+}
+
+
+
+
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.9);
+  border: none;
+  font-size: 2rem;
+  padding: 6px 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 5;
+  transition: background 0.2s ease;
+}
+
+.carousel-arrow.left { left: 10px; }
+.carousel-arrow.right { right: 10px; }
+
+.carousel-arrow:hover {
+  background: #fff;
+  color: var(--brand);
+}
+
+
+
+/* Améliore le swipe natif (vertical OK, horizontal pour le carrousel) */
+.project-image{
+  touch-action: pan-y; /* laisse le scroll vertical, on gère le swipe horizontal en JS */
+}
+
+/* Mobile : pas de flèches, points un peu plus grands */
+@media (max-width: 900px){
+  .carousel-arrow{ display: none; }
+
+  .carousel-indicators{ bottom: 8px; }
+  .carousel-indicators .dot,
+  .carousel-indicator-dot{ /* au cas où tu as encore l'ancienne classe */
+    width: 10px;
+    height: 10px;
+  }
+}
+
+
+/* ====== Indicateurs du carrousel ====== */
+.carousel-indicators{
+  position:absolute;
+  left:50%;
+  bottom:12px;
+  transform:translateX(-50%);
+  display:flex;
+  gap:10px;
+  align-items:center;
+  z-index:10;
+  pointer-events:auto;
+}
+
+/* base: petit noyau + doubles anneaux pour rester visibles sur photo claire/sombre */
+.carousel-indicators .dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background: transparent;                 /* centre creux au repos */
+  /* anneau blanc + anneau orange léger + halo */
+  box-shadow:
+    0 0 0 3px #fff,                        /* bague blanche épaisse */
+    0 0 0 5px rgba(255,122,0,.65),         /* anneau orange externe */
+    0 2px 6px rgba(0,0,0,.25);             /* halo pour contraste */
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+  cursor:pointer;
+}
+
+/* état actif: noyau orange + bague blanche + anneau orange plus marqué */
+.carousel-indicators .dot.active{
+  background:#ff7a00;                      /* noyau orange plein */
+  box-shadow:
+    0 0 0 4px #fff,                        /* bague blanche un poil plus large */
+    0 0 0 6px rgba(255,122,0,.95),         /* anneau orange bien visible */
+    0 3px 8px rgba(0,0,0,.3);
+  transform: scale(1.08);
+}
+
+/* accès tactile + tailles un peu plus grandes en mobile */
+@media (max-width: 900px){
+  .carousel-indicators{ bottom:10px; gap:12px; }
+  .carousel-indicators .dot{ width:12px; height:12px; }
+  .carousel-indicators .dot.active{
+    box-shadow:
+      0 0 0 5px #fff,
+      0 0 0 7px rgba(255,122,0,1),
+      0 3px 10px rgba(0,0,0,.35);
+  }
+}
+
+/* évite que l'image bloque le scroll vertical pendant le swipe */
+.project-image{ touch-action: pan-y; }
+
+
+
+
+
+
+
+
+
+/* Patch local: menu mobile compact, boutons collés */
+@media (max-width:900px){
+  /* panneau */
+  .header2 .all-button{
+    position:absolute; left:0; right:0; top:56px;
+    z-index:1001;
+    display:none;              /* caché par défaut */
+    flex-direction:column;
+    align-items:stretch;
+    gap:0;                     /* <= plus d'espace entre items */
+    padding:0;                 /* <= enlève tout padding de groupe */
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+    border-radius: 0 0 14px 14px;
+  }
+  .header2 .all-button.menu-open{ display:flex; }
+
+  /* items = plein large, collés, même style */
+  .header2 .header-btn,
+  .header2 .all-button > a,
+  .header2 .mobile-buy-menu a{
+    display:block;
+    width:100%;
+    margin:0;                 /* <= enlève marges parasites */
+    padding:14px 22px;
+    border:0;                 /* reset */
+    border-bottom:1px solid #f5f5f5;  /* fine séparation */
+    border-radius:0;
+    box-shadow:none;
+    text-align:left;
+    background:none;
+    color:#454545;
+    font-weight:600;
+  }
+  /* dernier sans trait */
+  .header2 .all-button > a:last-child,
+  .header2 .mobile-buy-menu a:last-child{ border-bottom:0; }
+
+  /* forcer la version mobile : pas de dropdown desktop */
+  .header2 .dropdown,
+  .header2 .dropdown-content{ display:none !important; }
+  .header2 .mobile-buy-menu{
+    display:flex !important;
+    flex-direction:column;
+    margin:0; padding:0;
+  }
+}
