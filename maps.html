@@ -14,7 +14,6 @@
 
   
   
-
   
 
   <!-- Header -->
@@ -60,52 +59,46 @@
 
 
   
-<div class="profil-block" id="profilBlock">
-  <a href="login.html" class="login-button header-btn" id="loginBtn">Login</a>
-</div>
-
-</div>
-
-
-  <main class="maps-main">
-    <section class="map-side-left">
-      <!-- Search bar with min/max price -->
-<div class="property-search-bar">
-  <input type="text" id="searchInput" placeholder="Search by location, type..." />
-
-  <div class="price-inputs-group">
-    <!-- Prix Min -->
-    <div class="price-input-wrap">
-      <input type="number" id="minPriceInput" placeholder="Min Price" min="0" autocomplete="off" />
-      <div class="price-suggestions" id="minPriceSuggestions"></div>
-    </div>
-    <!-- Prix Max -->
-    <div class="price-input-wrap">
-      <input type="number" id="maxPriceInput" placeholder="Max Price" min="0" autocomplete="off" />
-      <div class="price-suggestions" id="maxPriceSuggestions"></div>
-    </div>
+  <div class="profil-block">
+    <a href="login.html" class="login-button header-btn">Login</a>
   </div>
-  <button id="searchBtn"><i class="fa fa-search"></i></button>
+</div>
 
+<main class="maps-main">
+  <section class="map-side-left">
+    <!-- Search bar with min/max price -->
+    <div class="property-search-bar" id="propertySearchBar">
+      <input type="text" id="searchInput" placeholder="Search by location, type..." />
 
-          <div class="search-autocomplete" id="searchAutocomplete"></div>
-        
-
+      <div class="price-inputs-group">
+        <!-- Prix Min -->
+        <div class="price-input-wrap">
+          <input type="number" id="minPriceInput" placeholder="Min Price" min="0" autocomplete="off" />
+          <div class="price-suggestions" id="minPriceSuggestions"></div>
         </div>
-        <button id="searchBtn"><i class="fa fa-search"></i></button>
+        <!-- Prix Max -->
+        <div class="price-input-wrap">
+          <input type="number" id="maxPriceInput" placeholder="Max Price" min="0" autocomplete="off" />
+          <div class="price-suggestions" id="maxPriceSuggestions"></div>
+        </div>
       </div>
 
+        <button id="searchBtn"><i class="fa fa-search"></i></button>
 
-      
-      <!-- Cards -->
-      <div class="property-list-grid" id="propertyGrid"></div>
-      <!-- Pagination -->
-      <div class="pagination" id="pagination"></div>
-    </section>
-    <section class="map-side-map">
-      <div id="leafletMap"></div>
-    </section>
-  </main>
+      <div class="search-autocomplete" id="searchAutocomplete"></div>
+    </div>
+
+    <!-- Cards -->
+    <div class="property-list-grid" id="propertyGrid"></div>
+    <!-- Pagination -->
+    <div class="pagination" id="pagination"></div>
+  </section>
+
+  <section class="map-side-map">
+    <div id="leafletMap"></div>
+  </section>
+</main>
+
 
 
 <div class="mobile-map-container">
@@ -138,4 +131,3 @@
   
 </body>
 </html>
-
