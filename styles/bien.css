@@ -4,6 +4,7 @@ html, body {
   background: #fff;
 }
 
+
 /* ===== HEADER / MENU ===== */
 .header2 {
   height: 60px;
@@ -519,6 +520,7 @@ html, body {
     padding-right: 0 !important;
     width: 100vw !important;
     min-width: 0 !important;
+    margin-left: 20px;
   }
   .property-container,
   .additional-property-info,
@@ -669,6 +671,8 @@ html, body {
     padding-right: 0 !important;
     width: 100vw !important;
     border-radius: 0 !important;
+    
+    
   }
 }
 
@@ -1101,5 +1105,194 @@ html, body {
     height: 42vh !important;
     max-height: 55vh !important;
     border-radius: 0 !important;
+  }
+}
+
+
+
+
+
+/* ====== FIXES MOBILE (uniquement) ====== */
+@media (max-width:700px) {
+  /* 1) Header fixe + décalage du contenu (photo totalement visible) */
+  :root { --header-h: 56px; } /* ajuste à 52–60px si besoin */
+  .header2{
+    position: fixed !important;
+    top:0;left:0;right:0;
+    height: var(--header-h);
+    z-index: 1200;
+  }
+  .property-container{ margin-top: var(--header-h) !important; }
+
+  /* 2) Héros image sans marge parasite */
+  .image-section, .main-and-thumbs{ margin-top:0 !important; padding-top:0 !important; }
+  .main-image{
+    margin-top:0 !important;
+    width:100vw !important;
+    height:90vw !important;
+    object-fit:cover;
+    border-radius:0 !important;
+  }
+
+  /* 3) Boutons Call / WhatsApp : largeur réduite et centrés */
+  .agent-contact-card{ padding-left:12px !important; padding-right:12px !important; }
+  .contact-buttons{
+    justify-content:center !important;
+    gap:10px !important;
+    width:97%;
+  }
+  .call-btn, .whatsapp-btn{
+  
+    max-width:160px;              /* <-- largeur visuelle réduite */
+    min-width:180px;
+    padding:10px 18px !important;
+    margin-right: 16px;
+  }
+
+  /* 4) Description et blocs infos : hauteur = contenu (pas d’espace vide) */
+  .additional-property-info{ display:block !important; }
+  .description-box, .property-details-box{
+    flex:0 0 auto !important;     /* ne “grandissent” plus inutilement en colonne */
+    margin:0 !important;
+  }
+  .description-text{
+    display:block;
+    margin:0 !important;
+    padding:8px 10px !important;
+    line-height:1.45 !important;
+    /* pas de min-height ni height => s’adapte au texte */
+  }
+
+  /* 5) Ajustes fins pour l’enchaînement du texte */
+  .property-info{ padding-top:14px !important; }
+  .property-info h2{ margin:8px 0 6px !important; }
+  .property-info .details{ margin-top:10px !important; }
+}
+
+
+
+
+/* ===== MOBILE: titre wrap + image plein écran + alignements ===== */
+@media (max-width:700px){
+
+  /* image bord à bord même si le parent a du padding */
+  .image-section,
+  .main-and-thumbs{
+    width:100vw !important;
+    margin-left: calc(50% - 50vw) !important;
+    margin-right: calc(50% - 50vw) !important;
+    padding:0 !important;
+  }
+  .main-image{
+    width:100vw !important;
+    height:90vw !important;
+    object-fit:cover !important;
+    margin:0 !important;
+    border-radius:0 !important;
+  }
+
+  /* conteneur infos compact et bien aligné avec le reste */
+  .property-info{
+    box-sizing:border-box !important;
+    width:100vw !important;
+    padding:12px 12px !important;
+    min-width:0 !important;
+  }
+
+  /* TITRE : aligné à gauche, largeur réduite et WRAP garanti */
+  .property-info h2{
+    text-align:left !important;
+    margin:8px 0 6px !important;
+    padding:0 !important;
+    max-width: calc(100vw - 24px) !important;   /* = écran – padding latéral */
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;         /* force le retour ligne si très long */
+  }
+
+  /* prix + lignes de détails bien alignés sous le titre */
+  .property-info .price,
+  .property-info .details { padding:0 !important; text-align:left !important; }
+
+  /* boutons : centrés mais largeur maîtrisée (on voit les bords) */
+  .contact-buttons{ justify-content:center !important; gap:12px !important; width:100% !important; }
+  .call-btn, .whatsapp-btn{
+    flex:0 0 auto !important;
+    width: clamp(120px, 42vw, 160px) !important;
+    margin:0 !important;
+    padding:10px 14px !important;
+  }
+
+  /* description : pas d’espace vide, hauteur = texte */
+  .description-box, .property-details-box{
+    flex:0 0 auto !important;
+    margin:0 !important;
+    padding:12px 12px !important;
+  }
+
+
+  
+  .description-text{ padding:8px 10px !important; line-height:1.45 !important; }
+}
+
+
+
+
+/* ===== MOBILE: images "Biens similaires" bien visibles ===== */
+@media (max-width:700px){
+  /* hauteur raisonnable de la zone image */
+  .similar-property-carousel-images{
+    height: 170px !important;
+    overflow: hidden !important;
+    border-radius: 10px 10px 0 0 !important;
+  }
+
+  /* chaque slide occupe 100% de la zone, image centrée & couverte */
+  .similar-property-carousel-images img{
+    position: absolute !important;
+    inset: 0 !important;                 /* top:0; right:0; bottom:0; left:0 */
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position:  auto auto ; 
+    opacity: 0;                           /* gérer la pile des slides */
+  }
+  .similar-property-carousel-images img.active{
+    opacity: 1 !important;
+  }
+
+  /* petits ajustements d’enchaînement */
+  .similar-property-card{
+    border-radius: 10px !important;
+  }
+  .similar-property-info{
+    padding: 10px 10px !important;
+  }
+}
+
+
+/* ========== Footer: remise d'un inset à gauche en mobile ========== */
+@media (max-width:700px){
+  footer,
+  .site-footer,
+  .footer-bottom{
+    width: 100% !important;          /* évite 100vw qui colle aux bords */
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding-left: 12px !important;   /* marge interne à gauche */
+    padding-right: 12px !important;  /* symétrie */
+  }
+
+  /* si tu as un wrapper interne type container */
+  .footer-container,
+  .site-footer .container{
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .agent-profile{
+    margin-left: 20px;
   }
 }
