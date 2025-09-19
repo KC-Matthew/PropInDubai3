@@ -24,6 +24,7 @@ function nudgePopupTopMap(targetGap = desiredTopGapMap(), tries = 6){
 
 
 
+
 // early-exit si la page n'a pas les éléments attendus
 if (!document.getElementById("agentsGrid") &&
     !document.querySelector(".agents-container") &&
@@ -1070,3 +1071,82 @@ function showMiniCardOnMap(property, latlng, marker) {
 
 
 
+
+
+// === Place la barre de recherche dans le deck mobile (et la remet en desktop) ===
+(function attachSearchBarRelocator() {
+  const mq = window.matchMedia('(max-width: 900px)');
+  const searchBar = document.getElementById('propertySearchBar') || document.querySelector('.property-search-bar');
+
+  function placeSearchBar() {
+    if (!searchBar) return;
+
+    const deck      = document.querySelector('.mobile-cards-deck');
+    const deckHandle= deck ? deck.querySelector('.deck-handle') : null;
+    const leftCol   = document.querySelector('.map-side-left');
+    const grid      = document.getElementById('propertyGrid');
+
+    if (mq.matches && deck && deckHandle) {
+      // MOBILE ➜ mets la barre juste sous la poignée du deck
+      deckHandle.insertAdjacentElement('afterend', searchBar);
+      searchBar.classList.add('in-deck');
+    } else if (leftCol && grid) {
+      // DESKTOP ➜ remets la barre au-dessus des cards
+      leftCol.insertBefore(searchBar, grid);
+      searchBar.classList.remove('in-deck');
+    }
+  }
+
+  // au chargement + quand la taille change
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', placeSearchBar);
+  } else {
+    placeSearchBar();
+  }
+  if (mq.addEventListener) {
+    mq.addEventListener('change', placeSearchBar);
+  } else {
+    window.addEventListener('resize', placeSearchBar);
+  }
+})();
+
+
+
+
+
+
+
+
+
+
+
+/* ===== SCROLL UNLOCK (maps.js) ===== */
+(function unlockScroll() {
+  const unlock = () => {
+    // enlève tout verrou éventuel
+    document.documentElement.style.overflowY = 'auto';
+    document.documentElement.style.height = 'auto';
+    document.body.style.overflow = 'auto';
+    document.body.style.overflowY = 'auto';
+    document.body.style.height = 'auto';
+  };
+  // au chargement + quand on redimensionne/oriente
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', unlock);
+  } else {
+    unlock();
+  }
+  window.addEventListener('resize', unlock);
+  window.addEventListener('orientationchange', unlock);
+})();
+
+/* ===== DECK: ne pas bloquer le body en "full" par défaut ===== */
+/* Si tu as un script qui met le deck en "full" et fait body.style.overflow='hidden',
+   force plutôt l'état 'half' au départ pour garder le scroll page. */
+document.addEventListener('DOMContentLoaded', () => {
+  const deck = document.querySelector('.mobile-cards-deck');
+  if (deck && deck.classList.contains('collapsed')) {
+    deck.classList.remove('collapsed');
+    deck.classList.add('half'); // au lieu de 'full', garde le scroll du body
+  }
+});
