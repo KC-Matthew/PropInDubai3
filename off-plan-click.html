@@ -1,168 +1,173 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
- <script src="javascript/antiflash.js?v=2025-09-11-1"></script>
-
-  <meta charset="UTF-8">
-  <title>Off-Plan Project - PropInDubai</title>
-
-  <link rel="stylesheet" href="styles/off-plan-click.css">
-  <link rel="stylesheet" href="styles/accueil.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-  
-<div class="header2">
-  <div class="burger" id="burgerMenu">
-    <span></span>
-    <span></span>
-    <span></span>
-  </div>
-  <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
-
-  <div class="all-button">
-    <a href="areaforyou.html" class="chat-button header-btn">Chat Property AI</a>
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <script src="/javascript/antiflash.js"></script>
+    <meta charset="UTF-8">
+    <title>Off-Plan Project - PropInDubai</title>
     
-    <div class="dropdown header-btn" id="buyDropdown">
-      <a href="buy.html" class="buy-button header-btn" id="mainBuyBtn" tabindex="0">Buy <span class="arrow">&#9660;</span></a>
-      <div class="dropdown-content" id="dropdownContent">
-        <a href="rent.html" data-link="rent.html" class="dropdown-option">Buy</a>
-        <a href="rent.html" data-link="rent.html" class="dropdown-option">Rent</a>
-        <a href="commercial.html" data-link="commercial.html" class="dropdown-option">Commercial</a>
-      </div>  
+    <link rel="stylesheet" href="styles/off-plan-click.css">
+    <link rel="stylesheet" href="styles/accueil.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+
+
+  </head>
+  <body>
+    
+  <div class="header2">
+    <div class="burger" id="burgerMenu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <a href="accueil.html"><img class="logo" src="styles/photo/logo2.png" alt="PropInDubai Logo"></a>
+
+    <div class="all-button">
+      <a href="areaforyou.html" class="chat-button header-btn">Chat Property AI</a>
+      
+      <div class="dropdown header-btn" id="buyDropdown">
+        <a href="buy.html" class="buy-button header-btn" id="mainBuyBtn" tabindex="0">Buy <span class="arrow">&#9660;</span></a>
+        <div class="dropdown-content" id="dropdownContent">
+          <a href="rent.html" data-link="rent.html" class="dropdown-option">Buy</a>
+          <a href="rent.html" data-link="rent.html" class="dropdown-option">Rent</a>
+          <a href="commercial.html" data-link="commercial.html" class="dropdown-option">Commercial</a>
+        </div>  
+      </div>
+      
+      <!-- Mobile version, hidden by default, visible only in mobile via CSS -->
+      <div class="mobile-buy-menu" style="display: none;">
+        <a href="buy.html">Buy</a>
+        <a href="rent.html">Rent</a>
+        <a href="commercial.html">Commercial</a>
+      </div>
+
+      <a href="off-plan-map.html" class="project-button header-btn">Off Plan</a>
+
+      <a href="maps.html" class="map-button header-btn">Map</a>
+      <a href="findagent.html" class="agent-button header-btn">Find agents</a>
     </div>
     
-    <!-- Mobile version, hidden by default, visible only in mobile via CSS -->
-    <div class="mobile-buy-menu" style="display: none;">
-      <a href="buy.html">Buy</a>
-      <a href="rent.html">Rent</a>
-      <a href="commercial.html">Commercial</a>
+    <div class="profil-block">
+      <a href="login.html" class="login-button header-btn">Login</a>
     </div>
-
-    <a href="off-plan-map.html" class="project-button header-btn">Off Plan</a>
-
-    <a href="maps.html" class="map-button header-btn">Map</a>
-    <a href="findagent.html" class="agent-button header-btn">Find agents</a>
   </div>
   
-<div class="profil-block" id="profilBlock">
-  <a href="login.html" class="login-button header-btn" id="loginBtn">Login</a>
-</div>
 
-</div>
- 
+  <div class="project-header">
+    <h1 id="projectTitle"></h1>
+    <p><i class="fas fa-map-marker-alt"></i> <span id="projectLocation"></span></p>
+  </div>
 
-<div class="project-header">
-  <h1 id="projectTitle"></h1>
-  <p><i class="fas fa-map-marker-alt"></i> <span id="projectLocation"></span></p>
-</div>
-
-<section class="project-main">
-  <div class="project-left">
-    <!-- CARROUSEL PRINCIPAL AVEC POINTS -->
+  <section class="project-main">
+    <div class="project-left">
+      <!-- CARROUSEL PRINCIPAL AVEC POINTS -->
     <div class="project-image" id="mainImage" style="position:relative;">
-      <img src="" alt="Main Project Image" id="mainProjectImage">
-      <div class="image-count"><i class="fas fa-camera"></i> <span id="photoCount"></span></div>
-      <!-- Ici, le container à points du carrousel -->
-      <div id="carousel-indicators" class="carousel-indicators"></div>
+    <button class="carousel-arrow left" id="prevImage">❮</button>
+    <img src="" alt="Main Project Image" id="mainProjectImage">
+    <button class="carousel-arrow right" id="nextImage">❯</button>
+    
+    <div class="image-count">
+      <i class="fas fa-camera"></i> <span id="photoCount"></span>
     </div>
-    <div class="agent-contact" id="agentContact"></div>
+    <div id="carousel-indicators" class="carousel-indicators"></div>
   </div>
 
-  <div class="project-details">
-    <p><strong>Developer:</strong> <span id="developer"></span></p>
-    <p><strong>Status:</strong> <span id="status"></span></p>
-    <p><strong>Estimated Handover:</strong> <span id="handover"></span></p>
-    <p><strong>Starting Price:</strong> <span id="price"></span></p>
-    <p><strong>Unit Types:</strong> <span id="units"></span></p>
-    <p><strong>Payment Plan:</strong> <span id="paymentPlan"></span>
-      <button id="paymentToggle">View Details</button>
-      <div id="paymentDetail"></div>
-    </p>
-    <p><strong>Description:</strong></p>
-    <p id="description"></p>
-    <div class="download-section">
-      <a id="brochureLink" href="#" target="_blank">Download Brochure</a>
-    </div>
-  </div>
-</section>
 
-<section class="location-units">
-  <div class="location">
-    <h2>Location</h2>
-    <iframe src="https://www.google.com/maps?q=Dubai&output=embed"></iframe>
-  </div>
-  <div class="available-units">
-    <h2>Available Units</h2>
-    <table>
-      <thead>
-        <tr><th>Type</th><th>Size</th><th>Price</th><th>Available</th></tr>
-      </thead>
-      <tbody id="unitsTableBody"></tbody>
-    </table>
-  </div>
-</section>
-
-<section class="developer-vision">
-  <h2>Developer Vision</h2>
-  <p id="developerVision"></p>
-  <h3>Other Projects</h3>
-  <ul id="developerProjects"></ul>
-</section>
-
-<div id="lightbox" class="lightbox">
-  <div class="lightbox-overlay" id="lightboxOverlay"></div>
-  <div class="lightbox-content">
-    <button class="lightbox-arrow" id="lightbox-prev">❮</button>
-    <img id="lightbox-img" src="" alt="Expanded Image">
-    <button class="lightbox-arrow" id="lightbox-next">❯</button>
-  </div>
-</div>
-
-<section class="recommended-projects">
-  <h2>Recommended for you</h2>
-  <div id="recommendedList" class="recommended-list"></div>
-</section>
-
-<footer class="site-footer">
-  <div class="footer-container">
-    <div class="footer-left">
-      <h3 class="footer-logo">PropInDubai</h3>
-      <p>Connecting you with the best properties in Dubai.</p>
+      <div class="agent-contact" id="agentContact"></div>
     </div>
 
-    <div class="footer-links">
-      <a href="about-us.html">About Us</a>
-      <a href="contact-us.html">Contact us</a>
-      <a href="privacy-policy.html">Privacy Policy</a>
-      <a href="term-condition.html">Terms & Conditions</a>
-      <a href="cookies-policy.html">Cookies policy</a>
-      <a href="disclaimer.html">Disclaimer</a>
+    <div class="project-details">
+      <p><strong>Developer:</strong> <span id="developer"></span></p>
+      <p><strong>Status:</strong> <span id="status"></span></p>
+      <p><strong>Estimated Handover:</strong> <span id="handover"></span></p>
+      <p><strong>Starting Price:</strong> <span id="price"></span></p>
+      <p><strong>Unit Types:</strong> <span id="units"></span></p>
+      <p><strong>Payment Plan:</strong> <span id="paymentPlan"></span>
+        <button id="paymentToggle">View Details</button>
+        <div id="paymentDetail"></div>
+      </p>
+      <p><strong>Description:</strong></p>
+      <p id="description"></p>
+      <div class="download-section">
+        <a id="brochureLink" href="#" target="_blank">Download Brochure</a>
+      </div>
     </div>
+  </section>
 
-    <div class="footer-socials">
-      <a href="#"><img src="styles/photo/facebook.png" alt="Facebook" /></a>
-      <a href="#"><img src="styles/photo/insta.png" alt="Instagram" /></a>
-      <a href="#"><img src="styles/photo/linkedin.png" alt="LinkedIn" /></a>
+  <section class="location-units">
+    <div class="location">
+      <h2>Location</h2>
+      <iframe src="https://www.google.com/maps?q=Dubai&output=embed"></iframe>
+    </div>
+    <div class="available-units">
+      <h2>Available Units</h2>
+      <table>
+        <thead>
+          <tr><th>Type</th><th>Size</th><th>Price</th><th>Available</th></tr>
+        </thead>
+        <tbody id="unitsTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="developer-vision">
+    <h2>Developer Vision</h2>
+    <p id="developerVision"></p>
+    <h3>Other Projects</h3>
+    <ul id="developerProjects"></ul>
+  </section>
+
+  <div id="lightbox" class="lightbox">
+    <div class="lightbox-overlay" id="lightboxOverlay"></div>
+    <div class="lightbox-content">
+      <button class="lightbox-arrow" id="lightbox-prev">❮</button>
+      <img id="lightbox-img" src="" alt="Expanded Image">
+      <button class="lightbox-arrow" id="lightbox-next">❯</button>
     </div>
   </div>
 
-  <div class="footer-bottom">
-    © 2025 PropInDubai. All rights reserved.
-  </div>
-</footer>
+  <section class="recommended-projects">
+    <h2>Recommended for you</h2>
+    <div id="recommendedList" class="recommended-list"></div>
+  </section>
 
-<!-- Supabase client -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <h3 class="footer-logo">PropInDubai</h3>
+        <p>Connecting you with the best properties in Dubai.</p>
+      </div>
+
+      <div class="footer-links">
+        <a href="about-us.html">About Us</a>
+        <a href="contact-us.html">Contact us</a>
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="term-condition.html">Terms & Conditions</a>
+        <a href="cookies-policy.html">Cookies policy</a>
+        <a href="disclaimer.html">Disclaimer</a>
+      </div>
+
+      <div class="footer-socials">
+        <a href="#"><img src="styles/photo/facebook.png" alt="Facebook" /></a>
+        <a href="#"><img src="styles/photo/insta.png" alt="Instagram" /></a>
+        <a href="#"><img src="styles/photo/linkedin.png" alt="LinkedIn" /></a>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      © 2025 PropInDubai. All rights reserved.
+    </div>
+  </footer>
+
+  <!-- Supabase client -->
 
 
-<script type="module" src="javascript/supabaseClient.js"></script>
-<script src="javascript/off-plan-click.js"></script>
+  <script type="module" src="javascript/supabaseClient.js"></script>
+  <script src="javascript/off-plan-click.js"></script>
 
-</body>
-</html>
-
-
-
-
+  </body>
+  </html>
