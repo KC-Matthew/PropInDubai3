@@ -1,710 +1,278 @@
-body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  background: #fafbfc;
-}
-body {
-  width: 100vw;
-  overflow-x: hidden;
-}
 
-.maps-main {
-  display: flex;
-  flex-direction: row;
-  height: calc(100vh - 85px);
-  margin-left: 0; /* plus de sidebar */
-  margin-top: 60px;
-  background: #fafbfc;
-  width: 100vw; /* S’assure que ça prend toute la largeur */
-  max-width: 100vw;
-}
 
-
-.map-side-left {
-  flex: 1.1;
-  min-width: 370px;
-  max-width: 780px;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 15px 15px 0 15px;
-  overflow-y: auto;
-  border-right: 2px solid #f2ae54;
-  background: #fafbfc;
-}
-
-.property-search-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-  background: #fff;
-  padding: 10px 15px;
-  border-radius: 18px;
-  border: 1.5px solid #ffb347;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-  position: sticky;
-  top: -15px;
-  z-index: 2;
-  background: #fff;
-  border: 2px solid #ffb347;
-  border-radius: 20px;
-  box-shadow: 0 3px 18px rgba(255, 136, 0, 0.07), 0 1.5px 8px rgba(0,0,0,0.05);
-  margin-bottom: 18px;
-  margin-top: -10px;
-  margin-left: -10px;
-  margin-right: -4px;
-  /* ...garde le reste de tes styles */
-}
-
-
-
-
-.property-search-bar input[type="text"] {
-  flex: 2;
-  border: none;
-  font-size: 1.1rem;
-  outline: none;
-  background: transparent;
-  padding: 10px 8px;
-  border-radius: 8px;
-  min-width: 0;
-}
-
-.price-inputs-group {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  background: #f8f8f8;
-  padding: 4px 10px;
-  border-radius: 12px;
-  border: 1px solid #ffb347;
-  margin: 0 4px;
-}
-
-.price-inputs-group input[type="number"] {
-  width: 78px;
-  font-size: 0.98rem;
-  border: none;
-  background: transparent;
-  outline: none;
-  border-radius: 7px;
-  padding: 6px 7px;
-  color: #555;
-  transition: background 0.15s;
-  text-align: right;
-}
-
-.price-inputs-group input[type="number"]:focus {
-  background: #fffbe9;
-}
-
-.property-search-bar button {
-  border: none;
-  background: orange;
-  color: #fff;
-  border-radius: 8px;
-  padding: 9px 15px;
-  font-size: 1.05rem;
-  cursor: pointer;
-  margin-left: 5px;
-  transition: background 0.15s;
-  box-shadow: 0 2px 7px rgba(255,136,0,0.11);
-  display: flex;
-  align-items: center;
-  height: 40px;
-}
-.property-search-bar button:hover {
-  background: #e8791e;
-}
-
-.property-list-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 28px;
-  border-bottom: 2px solid #f2ae54;
-  padding-bottom: 18px;
-  margin-bottom: 8px;
-}
-@media (max-width: 1100px) {
-  .property-list-grid { grid-template-columns: 1fr; }
-  .map-side-left { max-width: 100vw; min-width: 0; }
-}
-@media (max-width: 700px) {
-  .maps-main { flex-direction: column; }
-  .map-side-map { min-height: 340px !important; height: 340px; }
-}
-
-.property-card {
-  background: #fff;
-  border-radius: 13px;
-  border: 2px solid #ffb347;
-  box-shadow: 0 2px 9px rgba(0,0,0,0.06);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
-  transition: box-shadow 0.15s, border 0.17s;
-  position: relative;
-}
-.property-card.active, .property-card:hover {
-  box-shadow: 0 6px 26px rgba(255, 136, 0, 0.18);
-  border-color: #222;
-}
-.property-card img {
-  width: 100%;
-  height: 170px;
-  object-fit: cover;
-  display: block;
-}
-.property-info {
-  padding: 1.1rem 1rem 1rem 1rem;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.23rem;
-}
-.property-title {
-  font-weight: 600;
-  font-size: 1.17rem;
-  color: #222;
-  margin-bottom: 5px;
-}
-.property-location {
-  font-size: 0.97rem;
-  color: #666;
-}
-.property-price {
-  font-weight: bold;
-  color: #ff8800;
-  margin-top: 10px;
-  font-size: 1.11rem;
-}
-.property-details-row {
-  font-size: 0.97rem;
-  color: #999;
-  margin-top: 4px;
-}
-
-.pagination {
-  margin: 25px 0 10px 0;
-  text-align: center;
-  border-bottom: 2px solid #f2ae54;
-  padding-bottom: 8px;
-}
-
-.pagination button {
-  margin: 0 4px;
-  padding: 7px 14px;
-  border: none;
-  background: #222;
-  color: #fff;
-  border-radius: 9px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.14s;
-}
-.pagination button.active,
-.pagination button:hover {
-  background: orange;
-  color: #fff;
-}
-
-.map-side-map {
-  flex: 1.7;
-  min-width: 380px;
-  height: 100%;
-  display: flex;
-  align-items: stretch;
-  padding: 0 12px 0 0;
-  background: #fafbfc;
-  border-left: 2px solid #f2ae54;
-}
-#leafletMap {
-  width: 100%;
-  height: 100%;
-  border-radius: 20px;
-  min-height: 540px;
-  box-shadow: 0 4px 36px rgba(0,0,0,0.06);
-  border: 2px solid #ffb347;
-}
-@media (max-width: 900px) {
-  .map-side-map { min-width: 0; }
-  #leafletMap { min-height: 320px; }
-}
-@media (max-width: 600px) {
-  .map-side-map { padding: 0; }
-  #leafletMap { min-height: 200px; height: 220px; }
-}
-
-.leaflet-container {
-  background: #f5f6fa;
-}
-
-@media (max-width: 1200px) {
-  .maps-main { flex-direction: column; }
-  .map-side-left, .map-side-map {
-    max-width: 100vw;
-    border-right: none;
-    border-left: none;
-  }
-  .property-list-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 700px) {
-  .maps-main { flex-direction: column; }
-  .map-side-left, .map-side-map { border: none; }
-}
-
-.leaflet-marker-icon.custom-marker.hovered {
-  filter: drop-shadow(0 0 6px #111) brightness(0.3);
-}
-
-.leaflet-popup.custom-leaflet-popup {
-  border-radius: 14px !important;
-  padding: 0 !important;
-  background: none !important;
-  box-shadow: none !important;
-}
-.leaflet-popup-content-wrapper, .leaflet-popup-tip {
-  background: none !important;
-  box-shadow: none !important;
-}
-.map-mini-card {
-  transition: box-shadow 0.18s;
-}
-.map-mini-card:hover {
-  box-shadow: 0 6px 30px rgba(255,136,0,0.17);
-  border-color: #ff8800;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* RESET de base */
-.header2, .all-button, .profil-block {
-  box-sizing: border-box;
-}
-
-.header2 {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 60px;
-  background: #fff;
-
-  position: sticky;
-  top: 0;
-  z-index: 99;
-  padding: 0 28px;
-}
-
-/* Logo & Burger */
-.logo {
-  height: 38px;
-  display: block;
-}
-
-.burger {
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  gap: 5px;
-  margin-right: 16px;
-  cursor: pointer;
-}
-.burger span {
-  display: block;
-  width: 27px;
-  height: 3px;
-  background: #ff6600;
-  border-radius: 2px;
-  transition: 0.25s;
-}
-
-/* Nav */
-.all-button {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  flex: 1 1 auto;
-  justify-content: center;
-  min-width: 0;
-}
-
-.header-btn {
-  font-family: 'Montserrat', Arial, sans-serif;
-  font-weight: 600;
-  font-size: 1.08rem;
-  color: #474747;
-  background: none;
-  border: none;
-  padding: 10px 19px;
-  border-radius: 7px;
-  margin: 0;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background 0.15s, color 0.15s, box-shadow 0.2s;
-  display: inline-block;
-  white-space: nowrap;
-}
-
-.header-btn:hover,
-.header-btn.active {
-  background: #faf7f3;
-  color: #ff6600;
-  box-shadow: 0 1px 4px 0 rgba(255, 102, 0, 0.09);
-}
-
-/* Dropdown - Desktop Only */
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.buy-button {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
-}
-.arrow {
-  font-size: 0.8em;
-  transition: transform 0.2s;
-}
-.dropdown.open .arrow {
-  transform: rotate(180deg);
-}
-.dropdown-content {
-  display: none;
-  position: absolute;
-  left: 0;
-  top: 112%;
-  min-width: 170px;
-  background: #fff;
-  box-shadow: 0 8px 32px 0 rgba(31,31,35,0.10);
-  border-radius: 10px;
-  z-index: 12;
-  padding: 7px 0;
-  animation: fadeIn 0.17s;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px);}
-  to { opacity: 1; transform: translateY(0);}
-}
-.dropdown.open .dropdown-content {
-  display: block;
-}
-.dropdown-option {
-  padding: 13px 20px 13px 24px;
-  display: block;
-  font-weight: 600;
-  color: #ff6600;
-  background: none;
-  border: none;
-  font-size: 1.03rem;
-  text-align: left;
-  border-radius: 6px;
-  transition: background 0.12s, color 0.12s;
-  cursor: pointer;
-  text-decoration: none;
-}
-.dropdown-option:hover {
-  background: #ff6600;
-  color: #fff;
-}
-
-/* Profil */
-.profil-block {
-  margin-left: 16px;
-}
-
-.search-autocomplete {
-  position: absolute;
-  top: 56px;
-  left: 15px;
-  right: 15px;
-  z-index: 40;
-  background: #fff;
-  border: 1px solid #ffb347;
-  border-radius: 11px;
-  box-shadow: 0 7px 24px rgba(255,136,0,0.12);
-  display: none;
-  max-height: 250px;
-  overflow-y: auto;
-}
-
-.search-autocomplete .suggestion {
-  padding: 11px 16px;
-  cursor: pointer;
-  font-size: 1.04rem;
-  color: #444;
-}
-.search-autocomplete .suggestion:hover {
-  background: #fff3e6;
-  color: #ff8800;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* Responsive : MOBILE (<900px) */
-@media (max-width: 900px) {
-  .header2 {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    padding: 0 12px;
-    min-height: 52px;
-    z-index: 1001;
-  }
-  .logo {
-    margin: 0 auto;
-    height: 30px;
-  }
-  .burger {
-    display: flex;
-    z-index: 6;
-
-  }
-  .profil-block {
-    margin-left: auto;
-    margin-right: 0;
-  }
-  /* Nav menu mobile */
-  .all-button {
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    gap: 0;
-    background: #fff;
-    width: 100%;
-    box-shadow: none;
-    padding: 18px 0 0 0;
-    position: absolute;
-    left: 0;
-    top: 55px;
-    z-index: 1002;
-    border-radius: 0 0 15px 15px;
-    border-top: 1.5px solid #ececec;
-    display: none; /* sera activé par JS burger */
-  }
-  .all-button.menu-open {
-    display: flex;
-  }
-  .header-btn,
-  .all-button > a {
-    display: block;
-    width: 100%;
-    text-align: left;
-    padding: 14px 0 14px 24px;
+  body {
     margin: 0;
-    font-size: 1.13rem;
-    border-radius: 0;
-    background: none;
-    color: #454545;
-    font-weight: 600;
-    box-shadow: none;
-    border-bottom: 1px solid #f5f5f5;
-    transition: background 0.13s, color 0.13s;
-  }
-  .header-btn:hover,
-  .all-button > a:hover {
-    background: #fff3e6;
-    color: #ff6600;
-  }
-  /* Plus de dropdown sur mobile */
-
-  /* Montrer les 3 liens Buy/Rent/Commercial sur mobile */
-  .mobile-buy-menu {
-    display: flex !important;
-    flex-direction: column;
-    width: 100%;
     padding: 0;
-    margin: 0 0 0 0;
-    gap: 0;
-  }
-  .mobile-buy-menu a {
-    color: #454545;
-    font-weight: 600;
-    background: none;
-    border: none;
-    padding: 14px 0 14px 24px;
-    text-align: left;
-    width: 100%;
-    font-size: 1.13rem;
-    margin: 0;
-    border-radius: 0;
-    text-decoration: none;
-    border-bottom: 1px solid #f5f5f5;
-    box-sizing: border-box;
-    transition: color 0.15s, background 0.15s;
-  }
-  .mobile-buy-menu a:hover {
-    color: #ff6600;
-    background: #fff3e6;
-  }
-  /* One-line for chat property AI */
-  .chat-button {
-    white-space: nowrap;  
-    max-width: 97vw;
-  }
-
-  .property-search-bar{
-    z-index: 20;
-  }
-}
-
-/* Désactive le menu mobile sur desktop */
-
-
-
-
-.search-autocomplete {
-  background: #fff !important;
-  border: 2px solid red !important;
-  color: #222 !important;
-  z-index: 1000 !important;
-}
-.suggestion {
-  color: #222 !important;
-  background: #fff !important;
-  border-bottom: 1px solid #f2ae54;
-  padding: 12px 20px;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@media (max-width: 700px) {
-  .header2 { z-index: 1; } /* pour que la map soit au-dessus en full */
-  .mobile-map-container {
-    position: fixed;
-    top: -30px; left: 0; right: 0; bottom: 0;
-    width: 100vw;
-    height: 100vh;
+    font-family: Arial, sans-serif;
     background: #fafbfc;
-    z-index: 1; /* map au-dessus du header */
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
   }
-  #leafletMapMobile {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 1;
-    border-radius: 0;
+  body {
+    width: 100vw;
+    overflow-x: hidden;
   }
-  .mobile-cards-deck {
-    position: absolute;
-    left: 0; width: 100vw;
-    background: #fff;
-    z-index: 5;
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
-    box-shadow: 0 -6px 24px rgba(0,0,0,0.10);
-    transition: top 0.32s cubic-bezier(.23,1.15,.8,1.01), height 0.32s cubic-bezier(.23,1.15,.8,1.01);
-    will-change: top, height;
-    display: flex;
-    flex-direction: column;
-  }
-  .mobile-cards-deck .deck-handle {
-    width: 60px; height: 7px; background: #f2ae54;
-    border-radius: 12px;
-    margin: 11px auto 13px auto;
-    cursor: pointer;
-    transition: background 0.13s;
-  }
-  .mobile-deck-list {
-    flex: 10;
-    overflow-y: auto;
-    padding: 6px 0 16px 0;
-  }
-  /* Deck positions */
-  .mobile-cards-deck.collapsed { top: 80vh; height: 30vh; }
-  .mobile-cards-deck.half      { top: 50vh; height: 65vh; }
-  .mobile-cards-deck.full      { top: 18vh;   height: 100vh; border-radius: 0; }
-  /* cache le main desktop */
 
-}
-
-
-@media (max-width: 700px) {
   .maps-main {
-    z-index: 35;
+    display: flex;
+    flex-direction: row;
+    height: calc(100vh - 60px); /* Ajuste avec la vraie hauteur du header */
+    margin-left: 0;
+    margin-top: 60px; /* Garde juste ce qui décale sous le header */
+    background: #fafbfc;
+    width: 100%;
+    max-width: 100%;
   }
 
 
-  
 
-
-
-
-
-
-@media (max-width: 900px) {
-  .header2 {
-    z-index: 30!important;
+  .map-side-left {
+    flex: 1.1;
+    min-width: 370px;
+    max-width: 780px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 15px 15px 0 15px;
+    overflow-y: auto;
+    border-right: 2px solid #f2ae54;
+    background: #fafbfc;
   }
 
   .property-search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    background: #fff;
+    padding: 10px 15px;
+    border-radius: 18px;
+    border: 1.5px solid #ffb347;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     position: sticky;
-    z-index: 29 !important;
+    top: -15px;
+    z-index: 2;
+    background: #fff;
+    border: 2px solid #ffb347;
+    border-radius: 20px;
+    box-shadow: 0 3px 18px rgba(255, 136, 0, 0.07), 0 1.5px 8px rgba(0,0,0,0.05);
+    margin-bottom: 18px;
+    margin-top: -10px;
+    margin-left: -10px;
+    margin-right: -4px;
+    /* ...garde le reste de tes styles */
   }
-}
-}
-@media (max-width: 900px) {
-  .header2 .dropdown { display: none !important; }
-  .header2 .mobile-buy-menu { display: flex !important; }
-}
+
+
+
+
+  .property-search-bar input[type="text"] {
+    flex: 2;
+    border: none;
+    font-size: 1.1rem;
+    outline: none;
+    background: transparent;
+    padding: 10px 8px;
+    border-radius: 8px;
+    min-width: 0;
+  }
+
+  .price-inputs-group {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: #f8f8f8;
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid #ffb347;
+    margin: 0 4px;
+  }
+
+  .price-inputs-group input[type="number"] {
+    width: 78px;
+    font-size: 0.98rem;
+    border: none;
+    background: transparent;
+    outline: none;
+    border-radius: 7px;
+    padding: 6px 7px;
+    color: #555;
+    transition: background 0.15s;
+    text-align: right;
+  }
+
+  .price-inputs-group input[type="number"]:focus {
+    background: #fffbe9;
+  }
+
+  .property-search-bar button {
+    border: none;
+    background: orange;
+    color: #fff;
+    border-radius: 8px;
+    padding: 9px 15px;
+    font-size: 1.05rem;
+    cursor: pointer;
+    margin-left: 5px;
+    transition: background 0.15s;
+    box-shadow: 0 2px 7px rgba(255,136,0,0.11);
+    display: flex;
+    align-items: center;
+    height: 40px;
+  }
+  .property-search-bar button:hover {
+    background: #e8791e;
+  }
+
+  .property-list-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+
+  }
+  @media (max-width: 1100px) {
+    .map-side-left { max-width: 100vw; min-width: 0; }
+  }
+  @media (max-width: 700px) {
+    .maps-main { flex-direction: column; }
+  
+  }
+
+  .property-card {
+    background: #fff;
+    border-radius: 13px;
+    border: 2px solid #ffb347;
+    box-shadow: 0 2px 9px rgba(0,0,0,0.06);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: box-shadow 0.15s, border 0.17s;
+    position: relative;
+  }
+  .property-card.active, .property-card:hover {
+    box-shadow: 0 6px 26px rgba(255, 136, 0, 0.18);
+    border-color: #222;
+  }
+  .property-card img {
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+    display: block;
+  }
+  .property-info {
+    padding: 1.1rem 1rem 1rem 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.23rem;
+  }
+  .property-title {
+    font-weight: 600;
+    font-size: 1.17rem;
+    color: #222;
+    margin-bottom: 5px;
+  }
+  .property-location {
+    font-size: 0.97rem;
+    color: #666;
+  }
+  .property-price {
+    font-weight: bold;
+    color: #ff8800;
+    margin-top: 10px;
+    font-size: 1.11rem;
+  }
+  .property-details-row {
+    font-size: 0.97rem;
+    color: #999;
+    margin-top: 4px;
+  }
+
+
+
+  .pagination button {
+    margin: 0 4px;
+    padding: 7px 14px;
+    border: none;
+    background: #222;
+    color: #fff;
+    border-radius: 9px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.14s;
+  }
+  .pagination button.active,
+  .pagination button:hover {
+    background: orange;
+    color: #fff;
+  }
+
+  .map-side-map {
+    flex: 1.7;
+    min-width: 380px;
+    height: 100%;
+    display: flex;
+    align-items: stretch;
+    padding: 0 12px 0 0;
+    background: #fafbfc;
+    border-left: 2px solid #f2ae54;
+  }
+  #leafletMap {
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+    min-height: 540px;
+    box-shadow: 0 4px 36px rgba(0,0,0,0.06);
+    border: 2px solid #ffb347;
+  }
+  @media (max-width: 900px) {
+    .map-side-map { min-width: 0; }
+  }
+  @media (max-width: 600px) {
+    .map-side-map { padding: 0; }
+
+  }
+
+  .leaflet-container {
+    background: #f5f6fa;
+  }
+
+  @media (max-width: 1200px) {
+    .maps-main { flex-direction: column; }
+    .map-side-left, .map-side-map {
+      max-width: 100vw;
+      border-right: none;
+      border-left: none;
+    }
+    .property-list-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 700px) {
+    .maps-main { flex-direction: column; }
+    .map-side-left, .map-side-map { border: none; }
+  }
+
+  .leaflet-marker-icon.custom-marker.hovered {
+    filter: drop-shadow(0 0 6px #111) brightness(0.3);
+  }
+
+  .leaflet-popup.custom-leaflet-popup {
+    border-radius: 14px !important;
+    padding: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+  }
+  .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+    background: none !important;
+    box-shadow: none !important;
+  }
+  .map-mini-card {
+    transition: box-shadow 0.18s;
+  }
+  .map-mini-card:hover {
+    box-shadow: 0 6px 30px rgba(255,136,0,0.17);
+    border-color: #ff8800;
+  }
 
 
 
@@ -716,84 +284,523 @@ body {
 
 
 
-.price-suggestions {
-  display: none;
-  position: absolute;
-  background: #fff;
-  border: 1.5px solid #ffb347;
-  border-radius: 13px;
-  margin-top: 3px;
-  z-index: 100;
-  box-shadow: 0 8px 24px rgba(255,136,0,0.11);
-  max-height: 500px;
-  overflow-y: auto;
-  min-width: 150px;
-  width: calc(100% - 6px);
-}
-.price-suggestions .suggestion {
-  padding: 13px 23px;
-  cursor: pointer;
-  font-size: 1.09rem;
-  color: #444;
-  background: #fff;
-}
-.price-suggestions .suggestion:hover {
-  background: #fff3e6;
-  color: #ff8800;
-}
-.price-inputs-group {
-  position: relative; /* Important : pour positionner la dropdown */
-}
-
-#searchBtn{
-  background-color:  #ffd7a8;
-  border-color: white;
-  border-radius: 50px;
-} 
-
-
-/* maps.html — make the InfoWindow content full-bleed */
-#leafletMap .gm-style-iw-c,
-#leafletMap .gm-style-iw-d,
-#leafletMapMobile .gm-style-iw-c,
-#leafletMapMobile .gm-style-iw-d{
-  padding: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  overflow: visible !important;
-}
-/* hide the little white pointer/tip */
-#leafletMap .gm-style-iw-tc,
-#leafletMapMobile .gm-style-iw-tc{ display:none !important; }
-
-/* (optionnel) si tu veux enlever le "X" natif de Google ici aussi */
-/* #leafletMap button.gm-ui-hover-effect,
-   #leafletMapMobile button.gm-ui-hover-effect{ display:none !important; } */
-
-
-
-/* InfoWindow sans padding, pour que la carte touche les bords */
-#leafletMap .gm-style-iw-c,
-#leafletMap .gm-style-iw-d,
-#leafletMapMobile .gm-style-iw-c,
-#leafletMapMobile .gm-style-iw-d{
-  padding:0 !important;
-  background:transparent !important;
-  box-shadow:none !important;
-  overflow:visible !important;
-}
-
-/* la carte gère les coins, l'image ne doit PAS avoir de rayon */
-.gm-style .map-mini-card { border-radius:16px; overflow:hidden; }
-.gm-style .map-mini-card img { border-radius:0 !important; display:block; }
 
 
 
 
-/* Kill the default × button in the Google InfoWindow */
-#leafletMap .gm-ui-hover-effect[aria-label="Close"],
-#leafletMapMobile .gm-ui-hover-effect[aria-label="Close"],
-#leafletMap .gm-ui-hover-effect,
-#leafletMapMobile .gm-ui-hover-effect {
-  display: none !important;
-}
+
+
+
+
+  /* RESET de base */
+  .header2, .all-button, .profil-block {
+    box-sizing: border-box;
+  }
+
+  .header2 {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 60px;
+    background: #fff;
+
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    padding: 0 28px;
+  }
+
+  /* Logo & Burger */
+  .logo {
+    height: 38px;
+    display: block;
+  }
+
+  .burger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    margin-right: 16px;
+    cursor: pointer;
+  }
+  .burger span {
+    display: block;
+    width: 27px;
+    height: 3px;
+    background: #ff6600;
+    border-radius: 2px;
+    transition: 0.25s;
+  }
+
+  /* Nav */
+  .all-button {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex: 1 1 auto;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .header-btn {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-weight: 600;
+    font-size: 1.08rem;
+    color: #474747;
+    background: none;
+    border: none;
+    padding: 10px 19px;
+    border-radius: 7px;
+    margin: 0;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s, box-shadow 0.2s;
+    display: inline-block;
+    white-space: nowrap;
+  }
+
+  .header-btn:hover,
+  .header-btn.active {
+    background: #faf7f3;
+    color: #ff6600;
+    box-shadow: 0 1px 4px 0 rgba(255, 102, 0, 0.09);
+  }
+
+  /* Dropdown - Desktop Only */
+  .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+
+  .buy-button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+  }
+  .arrow {
+    font-size: 0.8em;
+    transition: transform 0.2s;
+  }
+  .dropdown.open .arrow {
+    transform: rotate(180deg);
+  }
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 112%;
+    min-width: 170px;
+    background: #fff;
+    box-shadow: 0 8px 32px 0 rgba(31,31,35,0.10);
+    border-radius: 10px;
+    z-index: 12;
+    padding: 7px 0;
+    animation: fadeIn 0.17s;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px);}
+    to { opacity: 1; transform: translateY(0);}
+  }
+  .dropdown.open .dropdown-content {
+    display: block;
+  }
+  .dropdown-option {
+    padding: 13px 20px 13px 24px;
+    display: block;
+    font-weight: 600;
+    color: #ff6600;
+    background: none;
+    border: none;
+    font-size: 1.03rem;
+    text-align: left;
+    border-radius: 6px;
+    transition: background 0.12s, color 0.12s;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .dropdown-option:hover {
+    background: #ff6600;
+    color: #fff;
+  }
+
+  /* Profil */
+  .profil-block {
+    margin-left: 16px;
+  }
+
+  .search-autocomplete {
+    position: absolute;
+    top: 56px;
+    left: 15px;
+    right: 15px;
+    z-index: 40;
+    background: #fff;
+    border: 1px solid #ffb347;
+    border-radius: 11px;
+    box-shadow: 0 7px 24px rgba(255,136,0,0.12);
+    display: none;
+    max-height: 250px;
+    overflow-y: auto;
+  }
+
+  .search-autocomplete .suggestion {
+    padding: 11px 16px;
+    cursor: pointer;
+    font-size: 1.04rem;
+    color: #444;
+  }
+  .search-autocomplete .suggestion:hover {
+    background: #fff3e6;
+    color: #ff8800;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /* Responsive : MOBILE (<900px) */
+  @media (max-width: 900px) {
+    .header2 {
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      padding: 0 12px;
+      min-height: 52px;
+      z-index: 1001;
+    }
+    .logo {
+      margin: 0 auto;
+      height: 30px;
+    }
+    .burger {
+      display: flex;
+      z-index: 6;
+
+    }
+    .profil-block {
+      margin-left: auto;
+      margin-right: 0;
+    }
+    /* Nav menu mobile */
+    .all-button {
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 0;
+      background: #fff;
+      width: 100%;
+      box-shadow: none;
+      padding: 18px 0 0 0;
+      position: absolute;
+      left: 0;
+      top: 55px;
+      z-index: 1002;
+      border-radius: 0 0 15px 15px;
+      border-top: 1.5px solid #ececec;
+      display: none; /* sera activé par JS burger */
+    }
+    .all-button.menu-open {
+      display: flex;
+    }
+    .header-btn,
+    .all-button > a {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 14px 0 14px 24px;
+      margin: 0;
+      font-size: 1.13rem;
+      border-radius: 0;
+      background: none;
+      color: #454545;
+      font-weight: 600;
+      box-shadow: none;
+      border-bottom: 1px solid #f5f5f5;
+      transition: background 0.13s, color 0.13s;
+    }
+    .header-btn:hover,
+    .all-button > a:hover {
+      background: #fff3e6;
+      color: #ff6600;
+    }
+    /* Plus de dropdown sur mobile */
+
+    /* Montrer les 3 liens Buy/Rent/Commercial sur mobile */
+    .mobile-buy-menu {
+      display: flex !important;
+      flex-direction: column;
+      width: 100%;
+      padding: 0;
+      margin: 0 0 0 0;
+      gap: 0;
+    }
+    .mobile-buy-menu a {
+      color: #454545;
+      font-weight: 600;
+      background: none;
+      border: none;
+      padding: 14px 0 14px 24px;
+      text-align: left;
+      width: 100%;
+      font-size: 1.13rem;
+      margin: 0;
+      border-radius: 0;
+      text-decoration: none;
+      border-bottom: 1px solid #f5f5f5;
+      box-sizing: border-box;
+      transition: color 0.15s, background 0.15s;
+    }
+    .mobile-buy-menu a:hover {
+      color: #ff6600;
+      background: #fff3e6;
+    }
+    /* One-line for chat property AI */
+    .chat-button {
+      white-space: nowrap;  
+      max-width: 97vw;
+    }
+
+    .property-search-bar{
+      z-index: 20;
+    }
+  }
+
+  /* Désactive le menu mobile sur desktop */
+
+
+
+
+  .search-autocomplete {
+    background: #fff !important;
+    border: 2px solid red !important;
+    color: #222 !important;
+    z-index: 1000 !important;
+  }
+  .suggestion {
+    color: #222 !important;
+    background: #fff !important;
+    border-bottom: 1px solid #f2ae54;
+    padding: 12px 20px;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  @media (max-width: 700px) {
+    .header2 { z-index: 1; } /* pour que la map soit au-dessus en full */
+    .mobile-map-container {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #fafbfc;
+      z-index: 1; /* map au-dessus du header */
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    #leafletMapMobile {
+      position: absolute;
+      top: 0; bottom: 0; left: 0; width: 100%; height: 100%;
+      z-index: 1;
+      border-radius: 0;
+    }
+    .mobile-cards-deck {
+      position: absolute;
+      left: 0; width: 100vw;
+      background: #fff;
+      z-index: 5;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      box-shadow: 0 -6px 24px rgba(0,0,0,0.10);
+      transition: top 0.32s cubic-bezier(.23,1.15,.8,1.01), height 0.32s cubic-bezier(.23,1.15,.8,1.01);
+      will-change: top, height;
+      display: flex;
+      flex-direction: column;
+    }
+    .mobile-cards-deck .deck-handle {
+      width: 60px; height: 7px; background: #f2ae54;
+      border-radius: 12px;
+      margin: 11px auto 13px auto;
+      cursor: pointer;
+      transition: background 0.13s;
+    }
+    .mobile-deck-list {
+      flex: 10;
+      overflow-y: auto;
+      padding: 6px 0 16px 0;
+    }
+    /* Deck positions */
+  .mobile-cards-deck.collapsed { top: 90vh; height: 30vh; }
+  .mobile-cards-deck.half      { top: 40vh; height: 60vh; }
+  .mobile-cards-deck.full      { top: 8vh;     height: 100vh; border-radius: 0; }
+
+  }
+
+
+  @media (max-width: 700px) {
+    .maps-main {
+      z-index: 35;
+    }
+
+
+  @media (max-width: 900px) {
+    .header2 {
+      z-index: 30!important;
+    }
+
+    .property-search-bar {
+      position: sticky;
+      z-index: 29 !important;
+    }
+  }
+  }
+  @media (max-width: 900px) {
+    .header2 .dropdown { display: none !important; }
+    .header2 .mobile-buy-menu { display: flex !important; }
+  }
+
+
+
+
+
+
+
+
+
+
+
+  .price-suggestions {
+    display: none;
+    position: absolute;
+    background: #fff;
+    border: 1.5px solid #ffb347;
+    border-radius: 13px;
+    margin-top: 3px;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(255,136,0,0.11);
+    max-height: 500px;
+    overflow-y: auto;
+    min-width: 150px;
+    width: calc(100% - 6px);
+  }
+  .price-suggestions .suggestion {
+    padding: 13px 23px;
+    cursor: pointer;
+    font-size: 1.09rem;
+    color: #444;
+    background: #fff;
+  }
+  .price-suggestions .suggestion:hover {
+    background: #fff3e6;
+    color: #ff8800;
+  }
+  .price-inputs-group {
+    position: relative; /* Important : pour positionner la dropdown */
+  }
+
+  #searchBtn{
+    background-color:  #ffd7a8;
+    border-color: white;
+    border-radius: 50px;
+  } 
+
+
+  /* maps.html — make the InfoWindow content full-bleed */
+  #leafletMap .gm-style-iw-c,
+  #leafletMap .gm-style-iw-d,
+  #leafletMapMobile .gm-style-iw-c,
+  #leafletMapMobile .gm-style-iw-d{
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+  /* hide the little white pointer/tip */
+  #leafletMap .gm-style-iw-tc,
+  #leafletMapMobile .gm-style-iw-tc{ display:none !important; }
+
+  /* (optionnel) si tu veux enlever le "X" natif de Google ici aussi */
+  /* #leafletMap button.gm-ui-hover-effect,
+    #leafletMapMobile button.gm-ui-hover-effect{ display:none !important; } */
+
+
+
+  /* InfoWindow sans padding, pour que la carte touche les bords */
+  #leafletMap .gm-style-iw-c,
+  #leafletMap .gm-style-iw-d,
+  #leafletMapMobile .gm-style-iw-c,
+  #leafletMapMobile .gm-style-iw-d{
+    padding:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    overflow:visible !important;
+  }
+
+  /* la carte gère les coins, l'image ne doit PAS avoir de rayon */
+  .gm-style .map-mini-card { border-radius:16px; overflow:hidden; }
+  .gm-style .map-mini-card img { border-radius:0 !important; display:block; }
+
+
+
+
+  /* Kill the default × button in the Google InfoWindow */
+  #leafletMap .gm-ui-hover-effect[aria-label="Close"],
+  #leafletMapMobile .gm-ui-hover-effect[aria-label="Close"],
+  #leafletMap .gm-ui-hover-effect,
+  #leafletMapMobile .gm-ui-hover-effect {
+    display: none !important;
+  }
+
+
+  @media (max-width: 900px) {
+    .mobile-cards-deck .property-search-bar {
+      position: sticky;
+      top: 0;
+      margin: 6px 12px 10px;
+      z-index: 1002;
+      border-radius: 16px;
+    }
+    .mobile-cards-deck .search-autocomplete,
+    .mobile-cards-deck .price-suggestions {
+      z-index: 1003;
+    }
+  }
+
+
+
+
+
+  
