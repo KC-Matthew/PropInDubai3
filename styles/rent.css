@@ -29,6 +29,7 @@
   
 
 
+
 .profil-block {
   display: flex;
   align-items: center;
@@ -2162,6 +2163,88 @@ body.price-popup-open { overflow: hidden; }
 #searchSuggestions .suggestion:hover {
   background: #fff4e8;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+/* --- Carrousel images --- */
+.carousel {
+  position: relative;
+}
+.carousel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+.carousel img.active { display: block; }
+
+/* --- Flèches (desktop) --- */
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(60,60,90,0.24);
+  color: #fff;
+  font-size: 22px;
+  border: none;
+  border-radius: 50%;
+  padding: 7px 13px;
+  cursor: pointer;
+  transition: background 0.12s;
+  z-index: 2;
+}
+.carousel-btn:hover { background: #cfc6fa; color: #542d8a; }
+.carousel-btn.prev { left: 14px; }
+.carousel-btn.next { right: 14px; }
+
+/* --- Dots (mobile only) — même style que Buy --- */
+@media (max-width: 900px) {
+  /* cacher les flèches */
+  .carousel-btn { display: none !important; }
+
+  /* container des points */
+  .carousel-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 13px;
+    z-index: 12;
+    pointer-events: none; /* pour ne pas bloquer les swipes */
+  }
+
+  /* points */
+  .carousel-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #fff;
+    opacity: 0.85;
+    border: 1.5px solid #eee;
+    transition: 0.22s;
+    pointer-events: auto; /* si tu veux rendre cliquable */
+  }
+  .carousel-dot.active {
+    background: #fff;
+    opacity: 1;
+    border-color: #6b42a0;
+    box-shadow: 0 0 0 2px #6b42a033;
+  }
+}
+
+
+
 
 
 
