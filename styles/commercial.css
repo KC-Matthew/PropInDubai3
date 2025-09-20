@@ -446,7 +446,7 @@ html, body {
   z-index: 1;
 }
 .carousel-btn:hover {
-  background: #cfc6fa;
+
   color: #542d8a;
 }
 .carousel-btn.prev { left: 14px; }
@@ -2897,9 +2897,97 @@ html, body{
 
 
 
+@media (max-width:700px){
+  .property-card .carousel{ 
+    position: relative;
+    width: 100vw; max-width: 420px; margin: 0 auto;
+    height: 220px; overflow: hidden; 
+  }
+  .property-card .carousel-track{
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .property-card .carousel-track::-webkit-scrollbar{ display:none; }
+  .property-card .carousel-track img{
+    flex: 0 0 100%;
+    width: 100%; height: 220px;
+    object-fit: cover;
+    scroll-snap-align: center;
+    display: block;
+  }
+  /* cache les flèches en mobile */
+  .property-card .carousel .carousel-btn{ display:none !important; }
+
+  /* points bien centrés */
+  .property-card .carousel .carousel-dots{
+    position:absolute; left:50%; bottom:12px; transform:translateX(-50%);
+    display:flex; gap:8px; z-index:3; pointer-events:none;
+  }
+  .property-card .carousel .carousel-dot{
+    width:8px; height:8px; border-radius:50%;
+    background:#fff; opacity:.85; border:1.5px solid #eee;
+    pointer-events:auto;
+  }
+  .property-card .carousel .carousel-dot.active{
+    opacity:1; border-color:#6b42a0; box-shadow:0 0 0 2px #6b42a033;
+  }
+}
 
 
 
 
+/* === FIX OVERLAP: header & dropdown au-dessus de la barre de filtres === */
+.header2{
+  position: fixed !important;
+  top: 0; left: 0; right: 0;
+  z-index: 11040 !important;          /* header au-dessus */
+  overflow: visible !important;
+}
+
+.filter-bar{
+  z-index: 11020 !important;           /* filtres en-dessous du header */
+  overflow: visible !important;
+}
+
+.dropdown{ position: relative !important; }
+.dropdown-content{
+  position: absolute !important;
+  z-index: 11050 !important;           /* menu déroulant au-dessus des filtres */
+}
 
 
+
+
+/* commun */
+
+.property-card .carousel img{ width:100%; height:100%; object-fit:cover; }
+
+/* Desktop : 1 image visible, recadrée */
+@media (min-width:701px){
+  .property-card .carousel{ position:relative; overflow:hidden; }
+  .property-card .carousel img{ position:absolute; inset:0; display:none; }
+  .property-card .carousel img.active{ display:block; }
+}
+
+/* Mobile : galerie scrollable (pas d'absolu, pas de display:none) */
+@media (max-width:700px){
+  .property-card .carousel-track{
+    display:flex; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
+  }
+  .property-card .carousel-track img{
+    position:static; flex:0 0 100%; display:block; /* chaque image prend 100% de la largeur */
+  }
+}
+
+@media (max-width:900px){
+  .all-button, .burger-menu{
+    position: fixed !important;         /* s’affiche sous le header */
+    top: 54px !important; left: 0; right: 0;
+    z-index: 9999 !important;           /* AU-DESSUS de tout */
+  }
+  .search-autocomplete-wrapper, .filter-bar{
+    z-index: 9990 !important;           /* en-dessous du menu */
+  }
+}
