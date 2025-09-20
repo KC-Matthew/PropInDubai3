@@ -2178,12 +2178,59 @@ html, body {
 
 
 
-/* Empêche le décalage quand le scroll apparaît */
-.properties-col-v2,
-#chat-messages-scroll,
-#property-cards-container {
-  overflow-y: auto;              /* déjà présent pour certains, on unifie */
-  scrollbar-gutter: stable both-edges;
+/* Base iOS: on s’aligne sur la visual viewport */
+:root {
+  --vh: 1vh; /* fallback */
 }
-/* Fallback universel (aucun décalage car le scroll est toujours “réservé”) */
 
+/* Empêche l’ancrage qui “saute” quand la hauteur change */
+html { overflow-anchor: none; }
+
+/* Utilise la variable partout où tu as 100vh / 100dvh */
+html, body {
+  height: calc(var(--vh, 1vh) * 100);
+  min-height: calc(var(--vh, 1vh) * 100);
+  background: #fef7ef;
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", Arial, sans-serif;
+  overflow: hidden;
+}
+
+/* --- zone layout principale --- */
+.main-layout {
+  height: calc(var(--vh) * 100 - 60px); /* 60px = header */
+}
+
+/* En mobile tu as mis 100dvh : remplace par var(--vh) */
+@media (max-width: 800px) {
+  .content-card-wrap,
+  .main-content-v2 {
+    height: calc(var(--vh) * 100) !important;
+  }
+  #split-mobile-container {
+    height: calc(var(--vh) * 100 - 54px) !important; /* header mobile 54px */
+  }
+  .chat-col-v2 {
+    /* garde tes pourcentages si tu veux, la hauteur parente est stabilisée */
+    height: 58vh; /* ou fixe : calc((var(--vh)*100 - 54px) * 0.58) */
+    min-height: 70px;
+  }
+  .properties-col-v2 {
+    height: 38vh !important; /* ou calc(...) comme ci-dessus */
+  }
+
+  /* marge basse qui tient compte du safe area */
+  .chat-input-form-v2,
+  .chat-input-btns-row {
+    padding-bottom: max(10px, env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* Fallback WebKit ancien : */
+@supports (-webkit-touch-callout: none) {
+  html, body {
+    height: -webkit-fill-available;
+    min-height: -webkit-fill-available;
+  }
+}
