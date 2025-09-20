@@ -375,6 +375,8 @@ function responsiveHeaderBurger() {
 }
 window.addEventListener('resize', responsiveHeaderBurger);
 
+
+
 // ---------------- DOM READY ----------------
 document.addEventListener('DOMContentLoaded', async function () {
   // 1) Charger les données
@@ -569,7 +571,6 @@ function displayProperties(propsArray, page) {
   const start = (page - 1) * cardsPerPage;
   const end = start + cardsPerPage;
   const slice = propsArray.slice(start, end);
-  
 
   container.innerHTML = "";
   propertyCountDiv.textContent = `${fmt(propsArray.length)} properties found`;
@@ -577,6 +578,7 @@ function displayProperties(propsArray, page) {
   slice.forEach(property => {
     const card = document.createElement("div");
     card.className = "property-card";
+
     const imageElements = (property.images || []).map((src, index) =>
       `<img src="${src}" class="${index === 0 ? 'active' : ''}" alt="Property Photo">`
     ).join('');
@@ -607,10 +609,9 @@ function displayProperties(propsArray, page) {
       </div>
     `;
 
-
     container.appendChild(card);
 
-    // ►►► Redirection vers bien.html au clic sur la carte (sauf boutons/flèches du carrousel)
+    // ► Redirection vers bien.html au clic sur la carte (sauf boutons/flèches du carrousel)
     card.addEventListener("click", (e) => {
       if (e.target.closest('.carousel-btn')) return; // ne pas déclencher depuis les flèches
       const detail = { id: property._id, type: property._table || 'buy' };
@@ -618,25 +619,83 @@ function displayProperties(propsArray, page) {
       window.location.href = `bien.html?id=${encodeURIComponent(detail.id)}&type=${encodeURIComponent(detail.type)}`;
     });
 
-    // === CAROUSEL LOGIC ===
+    // === CAROUSEL LOGIC (flèches + dots + swipe) ===
     const images = card.querySelectorAll(".carousel img");
     let currentIndex = 0;
 
-    card.querySelector(".prev").addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (images.length === 0) return;
-      images[currentIndex]?.classList.remove("active");
-      currentIndex = (currentIndex - 1 + images.length) % images.length;
-      images[currentIndex]?.classList.add("active");
-    });
+    // Fonction commune d'affichage
+    function showImage(index) {
+      images.forEach(img => img.classList.remove("active"));
+      images[index].classList.add("active");
 
-    card.querySelector(".next").addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (images.length === 0) return;
-      images[currentIndex]?.classList.remove("active");
-      currentIndex = (currentIndex + 1) % images.length;
-      images[currentIndex]?.classList.add("active");
-    });
+      // mettre à jour les dots si présents
+      const dots = card.querySelectorAll(".carousel-dot");
+      dots.forEach(dot => dot.classList.remove("active"));
+      if (dots[index]) dots[index].classList.add("active");
+
+      currentIndex = index;
+    }
+
+    // Flèches (desktop)
+    const prevBtn = card.querySelector(".prev");
+    const nextBtn = card.querySelector(".next");
+
+    if (prevBtn) {
+      prevBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (images.length === 0) return;
+        let prevIndex = (currentIndex - 1 + images.length) % images.length;
+        showImage(prevIndex);
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (images.length === 0) return;
+        let nextIndex = (currentIndex + 1) % images.length;
+        showImage(nextIndex);
+      });
+    }
+
+    // Dots + Swipe (mobile uniquement)
+    if (window.innerWidth < 768) {
+      const carouselEl = card.querySelector(".carousel");
+
+      // Crée les dots
+      const dotsContainer = document.createElement("div");
+      dotsContainer.classList.add("carousel-dots");
+
+      images.forEach((_, index) => {
+        const dot = document.createElement("span");
+        dot.classList.add("carousel-dot");
+        if (index === 0) dot.classList.add("active");
+        dot.addEventListener("click", (e) => {
+          e.stopPropagation();
+          showImage(index);
+        });
+        dotsContainer.appendChild(dot);
+      });
+
+      carouselEl.appendChild(dotsContainer);
+
+      // Swipe mobile
+      let startX = 0;
+      carouselEl.addEventListener("touchstart", e => {
+        startX = e.touches[0].clientX;
+      });
+      carouselEl.addEventListener("touchend", e => {
+        const endX = e.changedTouches[0].clientX;
+        if (endX < startX - 50) {
+          let nextIndex = (currentIndex + 1) % images.length;
+          showImage(nextIndex);
+        }
+        if (endX > startX + 50) {
+          let prevIndex = (currentIndex - 1 + images.length) % images.length;
+          showImage(prevIndex);
+        }
+      });
+    }
 
     // === ACTIONS (liées BDD) ===
     const callBtn = card.querySelector('.btn-call');
@@ -668,6 +727,7 @@ function displayProperties(propsArray, page) {
   displayPropertyTypesSummary(propsArray, propertyTypeSelect.value);
   updatePagination(pages, page, propsArray);
 }
+
 
 function updatePagination(pages, page, propsArray) {
   const paginationDiv = document.getElementById("pagination");
@@ -924,5 +984,16 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
 });
+
+
+
+
+
+
+
+
+
+
+
 
 
