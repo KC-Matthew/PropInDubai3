@@ -760,6 +760,7 @@ function closeMenu() {
 })();
 
 
+
 /* ====== MOBILE SPLITTER v2 — 3 états (closed / half / open) + snap + click toggle ====== */
 (function () {
   const mq = window.matchMedia('(max-width: 800px)');
