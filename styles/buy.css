@@ -2076,3 +2076,19 @@ body.price-popup-open { overflow: hidden; }
 
 
 
+
+/* Cacher les flèches du carrousel en MOBILE uniquement */
+@media (max-width: 768px) {
+  .carousel-btn {
+    display: none !important;
+  }
+  /* Images du carrousel : une seule visible */
+.carousel img {
+  display: none;
+}
+
+
+
+}
+
+
