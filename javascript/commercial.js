@@ -10,6 +10,8 @@ function normKey(s){
   k = k.replace(re, "");
   return k;
 }
+
+
 function sbPublicUrl(key){
   if (!key) return null;
   const { data } = window.supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
@@ -216,13 +218,13 @@ async function loadCommercialFromDB() {
   const sb = window.supabase;
   if (!sb) { console.error('Supabase client non trouvé.'); return []; }
 
-  // Agents (+ photo bucket)
+  // Agents
   const { data: agentRows, error: e1 } = await sb
     .from('agent')
     .select('id,name,photo_agent_url,phone,email,whatsapp,agency_id,rating');
   if (e1) console.error(e1);
 
-  // Agencies (+ logo bucket)
+  // Agencies
   const { data: agencyRows, error: e2 } = await sb
     .from('agency')
     .select('id,logo_url,address');
@@ -245,7 +247,7 @@ async function loadCommercialFromDB() {
     return ag ? agenciesById[ag.agency_id] : undefined;
   };
 
-  // ✅ Alias corrects (colonnes avec espaces)
+  // ✅ alias colonnes avec espaces
   const { data: rows, error } = await sb
     .from('commercial')
     .select(`
@@ -262,10 +264,10 @@ async function loadCommercialFromDB() {
     const ag     = agentsById[r.agent_id] || {};
     const agency = getAgencyForAgent(r.agent_id) || {};
 
-    // Images du bien (0..n) + logo agence en dernier
+    // 🔹 Photos (pas de logo dans le carrousel)
     const allPhotos = resolveAllPhotosFromBucket(r.photo_url);
     const logo      = agency?.logo_url_resolved || "";
-    const images    = [...new Set([ ...(allPhotos.length ? allPhotos : []), ...(logo ? [logo] : []) ])];
+    const images    = (allPhotos || []).filter(u => u && u !== logo);
     if (!images.length) images.push('styles/photo/dubai-map.jpg');
 
     const avatar = ag.photo_agent_url_resolved || resolveOneFromBucket(ag.photo_agent_url) || "";
@@ -283,9 +285,9 @@ async function loadCommercialFromDB() {
       location: r.localisation_accueil || agency?.address || '',
       images,
       commercialType,
-      licenseType: '',            // (pas dans le schéma actuel)
-      furnished: false,           // idem
-      amenities: [],              // idem
+      licenseType: '',
+      furnished: false,
+      amenities: [],
       agent: {
         name: ag.name || '',
         avatar,
@@ -299,6 +301,7 @@ async function loadCommercialFromDB() {
     };
   });
 }
+
 
 
 
@@ -336,68 +339,166 @@ async function loadCommercialFromDB() {
     });
   }
 
-  function displayProperties(arr,page){
-    const {slice,pages}=paginate(arr,page);
-    const container=byId('propertyResults'); const countDiv=byId('propertyCount'); const typeSel=byId('propertyType');
-    if(countDiv) countDiv.textContent=`${fmt(arr.length)} properties found`;
-    if(container) container.innerHTML='';
+function displayProperties(arr, page) {
+  const { slice, pages } = paginate(arr, page);
+  const container = byId('propertyResults');
+  const countDiv  = byId('propertyCount');
+  const typeSel   = byId('propertyType');
 
-    slice.forEach(p=>{
-      const card=document.createElement('div'); card.className='property-card';
-      const imgs=(p.images||[]).map((src,i)=>`<img src="${src}" class="${i===0?'active':''}" alt="Property Photo">`).join('');
-      card.innerHTML=`
-        <div class="carousel">
-          ${imgs}
-          <div class="carousel-btn prev">❮</div>
-          <div class="carousel-btn next">❯</div>
-          <div class="image-count"><i class="fas fa-camera"></i> ${fmt((p.images||[]).length)}</div>
+  if (countDiv) countDiv.textContent = `${fmt(arr.length)} properties found`;
+  if (container) container.innerHTML = '';
+
+  slice.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'property-card';
+
+    const imgs = (p.images || [])
+      .map((src, i) => `<img src="${src}" class="${i === 0 ? 'active' : ''}" alt="Property Photo">`)
+      .join('');
+
+    // HTML d’origine conservé
+    card.innerHTML = `
+      <div class="carousel">
+        ${imgs}
+        <div class="carousel-btn prev">❮</div>
+        <div class="carousel-btn next">❯</div>
+        <div class="image-count"><i class="fas fa-camera"></i> ${fmt((p.images || []).length)}</div>
+      </div>
+      <div class="property-info">
+        <h3>${p.listingTitle || p.title}</h3>
+        ${p.location ? `<p><i class="fas fa-map-marker-alt"></i> ${p.location}</p>` : ''}
+        <p>
+          <i class="fas fa-briefcase"></i> ${p.commercialType}
+          ${p.licenseType ? `&nbsp; <i class="fas fa-id-card"></i> ${p.licenseType}` : ''}
+        </p>
+        <p>
+          <i class="fas fa-bed"></i> ${fmt(p.bedrooms)}
+          <i class="fas fa-bath"></i> ${fmt(p.bathrooms)}
+          <i class="fas fa-ruler-combined"></i> ${fmt(p.size)} sqft
+        </p>
+        <strong>${fmt(p.price)} AED</strong>
+        <div class="agent-info">
+          ${p.agent?.avatar ? `<img src="${p.agent.avatar}" alt="Agent">` : `<div class="agent-avatar-fallback"></div>`}
+          <span>${p.agent?.name || ''}</span>
         </div>
-        <div class="property-info">
-          <h3>${p.listingTitle || p.title}</h3>
-          ${p.location ? `<p><i class="fas fa-map-marker-alt"></i> ${p.location}</p>` : ''}
-          <p>
-            <i class="fas fa-briefcase"></i> ${p.commercialType}
-            ${p.licenseType ? `&nbsp; <i class="fas fa-id-card"></i> ${p.licenseType}` : ''}
-          </p>
-          <p>
-            <i class="fas fa-bed"></i> ${fmt(p.bedrooms)}
-            <i class="fas fa-bath"></i> ${fmt(p.bathrooms)}
-            <i class="fas fa-ruler-combined"></i> ${fmt(p.size)} sqft
-          </p>
-          <strong>${fmt(p.price)} AED</strong>
-          <div class="agent-info">
-            ${p.agent?.avatar ? `<img src="${p.agent.avatar}" alt="Agent">` : `<div class="agent-avatar-fallback"></div>`}
-            <span>${p.agent?.name||''}</span>
-          </div>
-          <div class="property-actions">
-            <button class="btn-call"${!p.agent?.phone?' disabled':''}>Call</button>
-            <button class="btn-email"${!p.agent?.email?' disabled':''}>Email</button>
-            <button class="btn-wa"${!p.agent?.whatsapp?' disabled':''}>WhatsApp</button>
-          </div>
-        </div>`;
-      container.appendChild(card);
+        <div class="property-actions">
+          <button class="btn-call"${!p.agent?.phone ? ' disabled' : ''}>Call</button>
+          <button class="btn-email"${!p.agent?.email ? ' disabled' : ''}>Email</button>
+          <button class="btn-wa"${!p.agent?.whatsapp ? ' disabled' : ''}>WhatsApp</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
 
-
-  card.addEventListener('click', () => {
-    const detail = { id: p._id, type: 'commercial' };
-    sessionStorage.setItem('selected_property', JSON.stringify(detail));
-    window.location.href = `bien.html?id=${encodeURIComponent(detail.id)}&type=${encodeURIComponent(detail.type)}`;
-  });
-
-
-
-      const images=card.querySelectorAll('.carousel img'); let idx=0;
-      card.querySelector('.prev').addEventListener('click',e=>{ e.stopPropagation(); if(!images.length) return; images[idx].classList.remove('active'); idx=(idx-1+images.length)%images.length; images[idx].classList.add('active'); });
-      card.querySelector('.next').addEventListener('click',e=>{ e.stopPropagation(); if(!images.length) return; images[idx].classList.remove('active'); idx=(idx+1)%images.length; images[idx].classList.add('active'); });
-
-      card.querySelector('.btn-call') ?.addEventListener('click',e=>{ if(!p.agent?.phone) return; e.stopPropagation(); window.location.href=`tel:${String(p.agent.phone).replace(/\s+/g,'')}`; });
-      card.querySelector('.btn-email')?.addEventListener('click',e=>{ if(!p.agent?.email) return; e.stopPropagation(); window.location.href=`mailto:${p.agent.email}`; });
-      card.querySelector('.btn-wa')   ?.addEventListener('click',e=>{ if(!p.agent?.whatsapp) return; e.stopPropagation(); window.open(`https://wa.me/${String(p.agent.whatsapp).replace(/[^\d+]/g,'')}`,'_blank'); });
+    // Navigation vers la page détail
+    card.addEventListener('click', () => {
+      const detail = { id: p._id, type: 'commercial' };
+      try { sessionStorage.setItem('selected_property', JSON.stringify(detail)); } catch {}
+      window.location.href = `bien.html?id=${encodeURIComponent(detail.id)}&type=${encodeURIComponent(detail.type)}`;
     });
 
-    displayPropertyTypesSummary(arr, typeSel?.value);
-    updatePagination(pages, page, arr);
-  }
+    // ===== Carrousel =====
+    const carousel = card.querySelector('.carousel');
+    const prev = carousel.querySelector('.prev');
+    const next = carousel.querySelector('.next');
+
+    // Piste scrollable (pour le swipe mobile)
+    const track = document.createElement('div');
+    track.className = 'carousel-track';
+    const movedImgs = [...carousel.querySelectorAll('img')];
+    movedImgs.forEach(img => track.appendChild(img));
+    carousel.insertBefore(track, carousel.firstChild);
+
+    const images = [...track.children];
+    let idx = 0;
+
+    const isMobile = () => window.matchMedia('(max-width:700px)').matches;
+
+    function updateDots() {
+      carousel.querySelectorAll('.carousel-dot').forEach((d, i) =>
+        d.classList.toggle('active', i === idx)
+      );
+    }
+    function syncActive() {
+      images.forEach((im, i) => im.classList.toggle('active', i === idx));
+      updateDots();
+    }
+    function show(n, smooth = true) {
+      if (!images.length) return;
+      idx = (n + images.length) % images.length;
+      if (isMobile()) {
+        const w = track.clientWidth || carousel.clientWidth || 1;
+        track.scrollTo({ left: idx * w, behavior: smooth ? 'smooth' : 'auto' });
+      }
+      syncActive();
+    }
+
+    // Flèches (cachées en mobile via CSS)
+    prev?.addEventListener('click', (e) => { e.stopPropagation(); show(idx - 1); });
+    next?.addEventListener('click', (e) => { e.stopPropagation(); show(idx + 1); });
+
+    // Dots
+    (function renderDots(){
+      carousel.querySelector('.carousel-dots')?.remove();
+      if (images.length <= 1) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'carousel-dots';
+      for (let i = 0; i < images.length; i++) {
+        const dot = document.createElement('span');
+        dot.className = 'carousel-dot' + (i === idx ? ' active' : '');
+        dot.addEventListener('click', (e) => { e.stopPropagation(); show(i); });
+        wrap.appendChild(dot);
+      }
+      carousel.appendChild(wrap);
+    })();
+    syncActive();
+
+    // Mobile: synchroniser le dot actif avec le scroll
+    let rafId = null;
+    const onScroll = () => {
+      if (!isMobile()) return;
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const w = track.clientWidth || 1;
+        const i = Math.round(track.scrollLeft / w);
+        if (i !== idx) { idx = Math.max(0, Math.min(images.length - 1, i)); syncActive(); }
+      });
+    };
+    track.addEventListener('scroll', onScroll, { passive: true });
+
+    // Empêcher l’ouverture de la fiche si on a swipé
+    let moved = false;
+    track.addEventListener('pointerdown', () => { moved = false; }, { passive: true });
+    track.addEventListener('pointermove', () => { moved = true; },  { passive: true });
+    track.addEventListener('click', (e) => { if (moved) { e.stopPropagation(); e.preventDefault(); } });
+
+    // Actions agent
+    card.querySelector('.btn-call') ?.addEventListener('click', (e) => {
+      if (!p.agent?.phone) return;
+      e.stopPropagation();
+      window.location.href = `tel:${String(p.agent.phone).replace(/\s+/g, '')}`;
+    });
+    card.querySelector('.btn-email')?.addEventListener('click', (e) => {
+      if (!p.agent?.email) return;
+      e.stopPropagation();
+      window.location.href = `mailto:${p.agent.email}`;
+    });
+    card.querySelector('.btn-wa')   ?.addEventListener('click', (e) => {
+      if (!p.agent?.whatsapp) return;
+      e.stopPropagation();
+      window.open(`https://wa.me/${String(p.agent.whatsapp).replace(/[^\d+]/g, '')}`, '_blank');
+    });
+  });
+
+  displayPropertyTypesSummary(arr, typeSel?.value);
+  updatePagination(pages, page, arr);
+}
+
+
+
+
+
 
   /* ---------- SLIDER + HISTO ---------- */
   function getAllPrices(arr){ return arr.map(p=>Number(p.price)||0).filter(v=>isFinite(v)); }
@@ -559,6 +660,7 @@ async function loadCommercialFromDB() {
       cb.checked=false; cb.dispatchEvent(new Event('input',{bubbles:true})); cb.dispatchEvent(new Event('change',{bubbles:true}));
     }); },10);
   }
+
 
   /* ---------- POPUPS / SUGGESTIONS / BURGER ---------- */
 function bindSearchSuggestionsUniversal() {
