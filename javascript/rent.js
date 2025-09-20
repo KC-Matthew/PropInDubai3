@@ -24,6 +24,7 @@ function parseCandidates(val){
   if (s[0]==="[" && s[s.length-1]==="]") { try { return JSON.parse(s); } catch { return [s]; } }
   return s.split(/[\n,;|]+/); // CSV / multi-lignes
 }
+
 function resolveAllPhotosFromBucket(raw){
   const out = [];
   for (const c of parseCandidates(raw)){
@@ -320,74 +321,168 @@ function displayPropertyTypesSummary(arr, filterType){
   });
 }
 
-function displayProperties(arr, page){
-  const {slice, pages}=paginate(arr,page);
-  const container=document.getElementById('propertyResults');
-  const propertyCountDiv=document.getElementById('propertyCount');
-  const propertyTypeSelect=document.getElementById('propertyType');
-  if(propertyCountDiv) propertyCountDiv.textContent = `${fmt(arr.length)} properties found`;
-  if(container) container.innerHTML='';
+function displayProperties(arr, page = 1) {
+  // --- pagination & containers ---
+  const { slice, pages } = paginate(arr, page);
+  const container = document.getElementById('propertyResults');
+  const propertyCountDiv = document.getElementById('propertyCount');
+  const propertyTypeSelect = document.getElementById('propertyType');
 
-  slice.forEach(p=>{
-    const card=document.createElement('div'); card.className='property-card';
-    const imgs=(p.images||[]).map((src,i)=>`<img src="${src}" class="${i===0?'active':''}" alt="Property Photo">`).join('');
-    card.innerHTML=`
+  if (propertyCountDiv) propertyCountDiv.textContent = `${fmt(arr.length)} properties found`;
+  if (container) container.innerHTML = '';
+
+  // --- cartes ---
+  slice.forEach((p) => {
+    const card = document.createElement('div');
+    card.className = 'property-card';
+
+    const imgsHTML = (p.images || [])
+      .map((src, i) => `<img src="${src}" class="${i === 0 ? 'active' : ''}" alt="Property Photo">`)
+      .join('');
+
+    card.innerHTML = `
       <div class="carousel">
-        ${imgs}
-        <div class="carousel-btn prev">❮</div>
-        <div class="carousel-btn next">❯</div>
-        <div class="image-count"><i class="fas fa-camera"></i> ${fmt((p.images||[]).length)}</div>
+        ${imgsHTML}
+        <button class="carousel-btn prev" type="button" aria-label="Previous image">❮</button>
+        <button class="carousel-btn next" type="button" aria-label="Next image">❯</button>
+        <div class="image-count"><i class="fas fa-camera"></i> ${fmt((p.images || []).length)}</div>
       </div>
+
       <div class="property-info">
-        <h3>${p.listingTitle || p.title}</h3>
-        <p><i class="fas fa-map-marker-alt"></i> ${p.location||""}</p>
-        <p><i class="fas fa-bed"></i> ${fmt(p.bedrooms)}
-           <i class="fas fa-bath"></i> ${fmt(p.bathrooms)}
-           <i class="fas fa-ruler-combined"></i> ${fmt(p.size)} sqft</p>
+        <h3>${p.listingTitle || p.title || ''}</h3>
+        <p><i class="fas fa-map-marker-alt"></i> ${p.location || ''}</p>
+        <p>
+          <i class="fas fa-bed"></i> ${fmt(p.bedrooms)}
+          <i class="fas fa-bath"></i> ${fmt(p.bathrooms)}
+          <i class="fas fa-ruler-combined"></i> ${fmt(p.size)} sqft
+        </p>
         <strong>${fmt(p.price)} AED</strong>
+
         <div class="agent-info">
-          ${p.agent?.avatar ? `<img src="${p.agent.avatar}" alt="Agent">` : `<div class="agent-avatar-fallback"></div>`}
-          <span>${p.agent?.name||""}</span>
+          ${
+            p.agent?.avatar
+              ? `<img src="${p.agent.avatar}" alt="Agent">`
+              : `<div class="agent-avatar-fallback"></div>`
+          }
+          <span>${p.agent?.name || ''}</span>
         </div>
+
         <div class="property-actions">
-          <button class="btn-call"${!p.agent?.phone?" disabled":""}>Call</button>
-          <button class="btn-email"${!p.agent?.email?" disabled":""}>Email</button>
-          <button class="btn-wa"${!p.agent?.whatsapp?" disabled":""}>WhatsApp</button>
+          <button class="btn-call"${!p.agent?.phone ? ' disabled' : ''}>Call</button>
+          <button class="btn-email"${!p.agent?.email ? ' disabled' : ''}>Email</button>
+          <button class="btn-wa"${!p.agent?.whatsapp ? ' disabled' : ''}>WhatsApp</button>
         </div>
       </div>
     `;
+
     container.appendChild(card);
-    
 
-    // >>> OUVRIR LA PAGE DÉTAIL AU CLIC SUR LA CARTE
-  card.addEventListener('click', () => {
-  const detail = { id: p._id, type: 'rent' };
-  // on stocke aussi côté session (secours)
-  sessionStorage.setItem('selected_property', JSON.stringify(detail));
-  // on passe id + type à bien.html
-  window.location.href = `bien.html?id=${encodeURIComponent(detail.id)}&type=${encodeURIComponent(detail.type)}`;
-});
-
-
-    const images=card.querySelectorAll(".carousel img"); let idx=0;
-    card.querySelector(".prev").addEventListener("click",e=>{
-      e.stopPropagation(); if(!images.length) return;
-      images[idx].classList.remove("active"); idx=(idx-1+images.length)%images.length; images[idx].classList.add("active");
-    });
-    card.querySelector(".next").addEventListener("click",e=>{
-      e.stopPropagation(); if(!images.length) return;
-      images[idx].classList.remove("active"); idx=(idx+1)%images.length; images[idx].classList.add("active");
+    // --- navigation vers page détail au clic sur la carte ---
+    card.addEventListener('click', () => {
+      const detail = { id: p._id, type: 'rent' };
+      sessionStorage.setItem('selected_property', JSON.stringify(detail));
+      window.location.href = `bien.html?id=${encodeURIComponent(detail.id)}&type=${encodeURIComponent(detail.type)}`;
     });
 
-    card.querySelector('.btn-call')?.addEventListener('click',e=>{ if(!p.agent?.phone) return; e.stopPropagation(); window.location.href=telLink(p.agent.phone); });
-    card.querySelector('.btn-email')?.addEventListener('click',e=>{ if(!p.agent?.email) return; e.stopPropagation(); window.location.href=`mailto:${p.agent.email}`; });
-    card.querySelector('.btn-wa')?.addEventListener('click',e=>{ if(!p.agent?.whatsapp) return; e.stopPropagation(); window.open(waLink(p.agent.whatsapp),'_blank'); });
+    // --- carrousel (flèches desktop + dots/swap mobile) ---
+    const carouselEl = card.querySelector('.carousel');
+    const images = carouselEl.querySelectorAll('img');
+    let idx = 0;
+
+    // flèches (cachées par CSS en mobile)
+    const prevBtn = carouselEl.querySelector('.prev');
+    const nextBtn = carouselEl.querySelector('.next');
+
+    function show(n) {
+      if (!images.length) return;
+      images[idx].classList.remove('active');
+      idx = (n + images.length) % images.length;
+      images[idx].classList.add('active');
+      updateDots();
+    }
+
+    prevBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      show(idx - 1);
+    });
+    nextBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      show(idx + 1);
+    });
+
+    // ---- dots (affichés seulement si >1 image) + clic dot
+    function renderDots() {
+      carouselEl.querySelector('.carousel-dots')?.remove();
+      if (images.length <= 1) return;
+
+      const dotsWrap = document.createElement('div');
+      dotsWrap.className = 'carousel-dots';
+      for (let i = 0; i < images.length; i++) {
+        const dot = document.createElement('span');
+        dot.className = 'carousel-dot' + (i === idx ? ' active' : '');
+        dot.addEventListener('click', (e) => {
+          e.stopPropagation();
+          show(i);
+        });
+        dotsWrap.appendChild(dot);
+      }
+      carouselEl.appendChild(dotsWrap);
+    }
+    function updateDots() {
+      const dots = carouselEl.querySelectorAll('.carousel-dot');
+      dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    }
+    renderDots();
+
+    // ---- swipe mobile
+    let touchStartX = 0;
+    carouselEl.addEventListener(
+      'touchstart',
+      (e) => {
+        touchStartX = e.changedTouches[0].clientX;
+      },
+      { passive: true }
+    );
+    carouselEl.addEventListener(
+      'touchend',
+      (e) => {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) < 30) return; // seuil
+        if (dx < 0) show(idx + 1);
+        else show(idx - 1);
+      },
+      { passive: true }
+    );
+
+    // --- actions agent (sans déclencher le clic carte) ---
+    const telLink = (v) => `tel:${String(v || '').replace(/\s+/g, '')}`;
+    const waLink = (v) => `https://wa.me/${String(v || '').replace(/[^\d+]/g, '')}`;
+
+    card.querySelector('.btn-call')?.addEventListener('click', (e) => {
+      if (!p.agent?.phone) return;
+      e.stopPropagation();
+      window.location.href = telLink(p.agent.phone);
+    });
+    card.querySelector('.btn-email')?.addEventListener('click', (e) => {
+      if (!p.agent?.email) return;
+      e.stopPropagation();
+      window.location.href = `mailto:${p.agent.email}`;
+    });
+    card.querySelector('.btn-wa')?.addEventListener('click', (e) => {
+      if (!p.agent?.whatsapp) return;
+      e.stopPropagation();
+      window.open(waLink(p.agent.whatsapp), '_blank');
+    });
   });
 
+  // --- résumé types + pagination + mini-map ---
   displayPropertyTypesSummary(arr, propertyTypeSelect?.value);
   updatePagination(pages, page, arr);
-  if(typeof updateMiniMap === 'function') updateMiniMap(slice);
+  if (typeof updateMiniMap === 'function') {
+    try { updateMiniMap(slice); } catch (e) { /* ignore */ }
+  }
 }
+
 
 /* =========================
    SLIDER + HISTOGRAMME
@@ -448,6 +543,7 @@ function drawPriceHistogram(propsArray, min, max, [sliderMin, sliderMax]=[min,ma
   });
   ctx.restore();
 }
+
 
 function updatePriceSliderAndHistogram(){
   const sliderElem=document.getElementById('priceSlider'); if(!sliderElem) return;
@@ -834,3 +930,97 @@ if (mainBuyBtn && buyDropdown) {
     if (e.key === 'Escape') buyDropdown.classList.remove('open');
   });
 }
+
+
+function initCarousels() {
+  const carousels = document.querySelectorAll('.carousel');
+
+  carousels.forEach(carousel => {
+    const images = carousel.querySelectorAll('img');
+    const prevBtn = carousel.querySelector('.carousel-btn.prev');
+    const nextBtn = carousel.querySelector('.carousel-btn.next');
+
+    let currentIndex = 0;
+    let startX = 0;
+    let isDragging = false;
+
+    // Création des dots UNIQUEMENT mobile
+    let dotsContainer = carousel.querySelector('.carousel-dots');
+    if (!dotsContainer) {
+      dotsContainer = document.createElement('div');
+      dotsContainer.classList.add('carousel-dots');
+      images.forEach((_, idx) => {
+        const dot = document.createElement('div');
+        dot.classList.add('carousel-dot');
+        if (idx === 0) dot.classList.add('active');
+        dot.addEventListener('click', () => {
+          currentIndex = idx;
+          updateCarousel();
+        });
+        dotsContainer.appendChild(dot);
+      });
+      carousel.appendChild(dotsContainer);
+    }
+
+    const dots = dotsContainer.querySelectorAll('.carousel-dot');
+
+    function updateCarousel() {
+      images.forEach((img, idx) => {
+        img.classList.toggle('active', idx === currentIndex);
+      });
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === currentIndex);
+      });
+    }
+
+    // Boutons (desktop)
+    if (prevBtn && nextBtn) {
+      prevBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex - 1 + images.length) % images.length;
+        updateCarousel();
+      });
+
+      nextBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex + 1) % images.length;
+        updateCarousel();
+      });
+    }
+
+    // Gestes tactiles (mobile)
+    carousel.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      isDragging = true;
+    });
+
+    carousel.addEventListener('touchend', e => {
+      if (!isDragging) return;
+      const endX = e.changedTouches[0].clientX;
+      const deltaX = endX - startX;
+
+      if (deltaX > 50) {
+        // swipe droite
+        currentIndex = (currentIndex - 1 + images.length) % images.length;
+      } else if (deltaX < -50) {
+        // swipe gauche
+        currentIndex = (currentIndex + 1) % images.length;
+      }
+
+      updateCarousel();
+      isDragging = false;
+    });
+
+    // Init affichage
+    updateCarousel();
+  });
+}
+
+// Lancer quand la page est prête
+document.addEventListener('DOMContentLoaded', initCarousels);
+
+
+
+
+
+
+
+
