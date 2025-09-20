@@ -28,13 +28,36 @@
       <button class="tab-btn" data-tab="tab-contacted">Contacted properties</button>
     </div>
 
-    <div id="tab-subscription" class="tab-content" style="display:none;">
-      <h2>Subscription</h2>
-      <div id="subscription-container"></div>
-    </div>
+    <!-- Subscription -->
+    <section id="tab-subscription" class="tab-content" style="display:none;">
+      <h2>Choose your subscription plan</h2>
+      <div class="subscription-plans">
+        <div class="plan-card" data-plan="basic">
+          <h3>Starter</h3>
+          <p>Up to 10 properties</p>
+          <p class="price">100€ / 400 AED</p>
+          <button class="btn-orange subscribe-btn">Choose Starter</button>
+        </div>
 
+        <div class="plan-card" data-plan="pro">
+          <h3>Professional</h3>
+          <p>Up to 50 properties</p>
+          <p class="price">300€ / 1200 AED</p>
+          <button class="btn-orange subscribe-btn">Choose Pro</button>
+        </div>
 
-    <!-- Contenu -->
+        <div class="plan-card" data-plan="unlimited">
+          <h3>Unlimited</h3>
+          <p>Unlimited properties</p>
+          <p class="price">500€ / 2000 AED</p>
+          <button class="btn-orange subscribe-btn">Choose Unlimited</button>
+        </div>
+      </div>
+
+      <div id="current-subscription" class="current-sub-box"></div>
+    </section>
+
+    <!-- Info -->
     <section id="tab-info" class="tab-content active">
       <h2>Information</h2>
       <form id="profileForm">
@@ -55,17 +78,16 @@
       <button id="logoutBtn" class="logout-btn">Logout</button>
     </section>
 
+    <!-- Saved properties -->
     <section id="tab-saved" class="tab-content">
       <p>No properties saved yet.</p>
     </section>
 
-    <section id="tab-alerts" class="tab-content">
-      <p>No search alerts created yet.</p>
-    </section>
-
+    <!-- Contacted properties -->
     <section id="tab-contacted" class="tab-content">
       <p>No properties contacted yet.</p>
     </section>
   </main>
 </body>
 </html>
+ 
