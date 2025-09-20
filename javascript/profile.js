@@ -1,47 +1,19 @@
-document.addEventListener("DOMContentLoaded", async () => {
-  const { data: { user } } = await window.supabase.auth.getUser();
-  const emailField = document.getElementById("email");
-  const firstNameField = document.getElementById("firstName");
-  const lastNameField = document.getElementById("lastName");
+document.addEventListener("DOMContentLoaded", () => {
+  const tabs = document.querySelectorAll(".tab-btn");
+  const contents = document.querySelectorAll(".tab-content");
 
-  if (!user) {
-    document.querySelector(".profile-container").innerHTML = 
-      "<p>You are not logged in. <a href='login.html'>Login</a></p>";
-    return;
-  }
+  tabs.forEach(btn => {
+    btn.addEventListener("click", () => {
+      tabs.forEach(b => b.classList.remove("active"));
+      contents.forEach(c => c.style.display = "none");
 
-  // Pré-remplir email
-  emailField.value = user.email;
-
-  // Si tu stockes prénom/nom dans metadata → les charger
-  if (user.user_metadata) {
-    firstNameField.value = user.user_metadata.firstName || "";
-    lastNameField.value = user.user_metadata.lastName || "";
-  }
-
-  // Sauvegarde
-  document.getElementById("profileForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const first = firstNameField.value.trim();
-    const last = lastNameField.value.trim();
-
-    const { error } = await window.supabase.auth.updateUser({
-      data: { firstName: first, lastName: last }
+      btn.classList.add("active");
+      const tabId = btn.dataset.tab;
+      document.getElementById(tabId).style.display = "block";
     });
-
-    if (error) {
-      alert("Error while saving: " + error.message);
-    } else {
-      alert("Profile updated ✅");
-    }
-  });
-
-  // Déconnexion
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
-    await window.supabase.auth.signOut();
-    window.location.href = "accueil.html";
   });
 });
+
 
 // Onglets
 document.addEventListener("click", (e) => {
@@ -116,4 +88,75 @@ async function loadSubscription() {
 
 document.addEventListener("DOMContentLoaded", () => {
   loadSubscription();
+});
+
+async function initSubscriptions() {
+  const { data: { user } } = await window.supabase.auth.getUser();
+  const currentBox = document.getElementById("current-subscription");
+  if (!user) {
+    currentBox.innerHTML = "Please login to see your subscription.";
+    currentBox.style.display = "block";
+    return;
+  }
+
+  // Récupère l’abonnement actuel
+  const { data, error } = await window.supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (error) {
+    console.error(error);
+    currentBox.innerHTML = "Error loading subscription.";
+    currentBox.style.display = "block";
+    return;
+  }
+
+  const sub = data[0];
+  if (sub) {
+    currentBox.innerHTML = `
+      Your current plan: <strong>${sub.plan}</strong><br>
+      Status: ${sub.status}
+    `;
+    currentBox.style.display = "block";
+  }
+
+  // Quand on clique sur une offre
+  document.querySelectorAll(".subscribe-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const plan = btn.closest(".plan-card").dataset.plan;
+      const prices = {
+        basic: { price_eur: 100, price_aed: 400, properties: 10 },
+        pro: { price_eur: 300, price_aed: 1200, properties: 50 },
+        unlimited: { price_eur: 500, price_aed: 2000, properties: -1 }
+      };
+
+      const offer = prices[plan];
+
+      // ⚡ Ici : rediriger vers Stripe/PayPal si tu veux
+      // Pour l’instant, on insère direct en DB
+      const { error: insertErr } = await window.supabase.from("subscriptions").insert([{
+        user_id: user.id,
+        plan,
+        status: "active",
+        properties_limit: offer.properties,
+        price_eur: offer.price_eur,
+        price_aed: offer.price_aed,
+        start_date: new Date()
+      }]);
+
+      if (insertErr) {
+        alert("Error subscribing: " + insertErr.message);
+      } else {
+        alert(`You subscribed to the ${plan} plan!`);
+        initSubscriptions();
+      }
+    });
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initSubscriptions();
 });
