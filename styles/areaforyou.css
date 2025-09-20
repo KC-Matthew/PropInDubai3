@@ -2186,7 +2186,4 @@ html, body {
   scrollbar-gutter: stable both-edges;
 }
 /* Fallback universel (aucun décalage car le scroll est toujours “réservé”) */
-.properties-col-v2,
-#chat-messages-scroll {
-  overflow-y: scroll;    /* au lieu de auto */
-}
+
