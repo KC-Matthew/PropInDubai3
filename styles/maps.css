@@ -663,13 +663,14 @@
       padding: 6px 0 16px 0;
     }
     /* Deck positions */
-  .mobile-cards-deck.collapsed { top: 90vh; height: 30vh; }
+  .mobile-cards-deck.collapsed { top: 80vh; height: 30vh; }
   .mobile-cards-deck.half      { top: 40vh; height: 60vh; }
   .mobile-cards-deck.full      { top: 8vh;     height: 100vh; border-radius: 0; }
 
   }
 
 
+  
   @media (max-width: 700px) {
     .maps-main {
       z-index: 35;
@@ -798,6 +799,33 @@
       z-index: 1003;
     }
   }
+
+
+
+  /* Évite toute largeur > viewport et le rebond au sommet */
+html {
+  height: 100%;
+  box-sizing: border-box;
+  scrollbar-gutter: stable both-edges; /* évite le shift quand la scrollbar apparaît */
+  overscroll-behavior: none;          /* pas de scroll chaining */
+}
+*, *::before, *::after { box-sizing: inherit; }
+
+:root { --header-h: 60px; } /* Ajuste si ton header change réellement */
+
+body {
+  margin: 0;
+  min-height: 100dvh;   /* tient compte des barres iOS/Android */
+  overflow-x: clip;     /* plus strict que hidden, bloque tout débordement */
+  overscroll-behavior: none;
+  background: #fafbfc;
+  font-family: Arial, sans-serif;
+}
+
+/* ❌ Supprime/écrase cette règle existante qui crée des soucis :
+body { width: 100vw; overflow-x: hidden; }
+*/
+
 
 
 
