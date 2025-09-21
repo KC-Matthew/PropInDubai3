@@ -873,3 +873,29 @@ body {
 
 
   
+/* Zone d'accroche large mais discrète */
+@media (max-width:700px){
+  .mobile-cards-deck .deck-grab-zone{
+    position: sticky;     /* reste en haut du deck */
+    top: 0;
+    height: 56px;         /* 👉 grande zone touch */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1002;
+    touch-action: none;   /* on gère le drag nous-mêmes */
+    cursor: grab;
+    -webkit-user-select: none; user-select: none;
+    background: transparent;
+  }
+  .mobile-cards-deck .deck-grab-zone:active{ cursor: grabbing; }
+
+  /* Garde ta petite “pilule” visuelle, mais on peut l'attraper partout dans 56px */
+  .mobile-cards-deck .deck-handle{
+    width: 78px;            /* un peu plus large */
+    height: 9px;            /* un peu plus haut */
+    background: #f2ae54;
+    border-radius: 12px;
+    box-shadow: 0 1px 6px rgba(0,0,0,.06) inset;
+  }
+}
