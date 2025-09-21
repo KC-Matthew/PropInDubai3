@@ -1114,3 +1114,113 @@ function closeMenu() {
   // Si on repasse desktop, on ferme proprement
   window.addEventListener('resize', ()=>{ if(!window.matchMedia('(max-width:800px)').matches) closeDrawer(); });
 })();
+
+
+
+
+
+/* ==== PATCH "New chat reste visible quand j'écris" (mobile) ==== */
+(function keepNewChatVisibleOnTyping(){
+  const mq = window.matchMedia('(max-width: 800px)');
+  if (!mq.matches) return;
+
+  const container = document.getElementById('split-mobile-container');
+  const chatCol   = document.getElementById('chat-col-v2');
+  const propsCol  = document.getElementById('properties-col');
+  const bar       = document.getElementById('splitterBar');
+  const input     = document.getElementById('user-input');
+  const scrollBox = document.getElementById('chat-messages-scroll');
+
+  if (!container || !chatCol || !propsCol || !bar || !input || !scrollBox) return;
+
+  // Empêche le zoom iOS sur focus (iOS zoome <16px)
+  try { input.style.fontSize = '16px'; } catch {}
+
+  // Bornes pour que la poignée ne sorte jamais de l’écran (mêmes valeurs que ton splitter)
+  const MIN_R = 0.12;     // stop bas (augmente si la poignée "tombe" trop bas)
+  const MAX_R = 0.85;     // stop haut (baisse si ça monte trop haut)
+  const MID_R = 0.54;     // milieu légèrement > 0.52 pour laisser le header visible
+
+  function totalH(){
+    return container.getBoundingClientRect().height - bar.offsetHeight;
+  }
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+  // Applique un ratio sans dépendre du code interne du splitter
+  function applyRatio(r){
+    const t = totalH();
+    const rr = clamp(r, MIN_R, MAX_R);
+    const h = Math.round(t * rr);
+    chatCol.style.setProperty('min-height','0','important');
+    propsCol.style.setProperty('min-height','0','important');
+    chatCol.style.height  = h + 'px';
+    propsCol.style.height = (t - h) + 'px';
+  }
+
+  // Force le "stop milieu" pendant la saisie
+  function snapToMid(){
+    applyRatio(MID_R);
+    // Ajoute un padding bas temporaire pour que l’input ne masque pas les derniers messages
+    const kbPad = Math.max(60, (document.querySelector('#chat-form')?.offsetHeight || 64)) + 16;
+    scrollBox.style.paddingBottom = kbPad + 'px';
+    // Scroll en bas pour rester collé à la conversation
+    requestAnimationFrame(()=> { scrollBox.scrollTop = scrollBox.scrollHeight; });
+  }
+
+  function releasePad(){
+    scrollBox.style.paddingBottom = '';
+  }
+
+  // Détecte ouverture/fermeture du clavier via visualViewport (iOS/Android)
+  let kbOpen = false;
+  const vv = window.visualViewport;
+  function onViewportChange(){
+    if (!mq.matches) return;
+    if (!vv) return;
+
+    // Heuristique: si la hauteur visible chute de >8%, on considère que le clavier est ouvert
+    const shrink = (vv.height / window.innerHeight) < 0.92;
+    if (shrink && !kbOpen){
+      kbOpen = true;
+      snapToMid();
+    } else if (!shrink && kbOpen){
+      kbOpen = false;
+      releasePad();
+      // On laisse l’utilisateur là où il est, pas de snap inverse agressif
+    }
+  }
+  if (vv){
+    vv.addEventListener('resize', onViewportChange);
+    vv.addEventListener('scroll', onViewportChange);
+  }
+
+  // Focus / Blur input : même logique que visualViewport pour les navigateurs qui ne l’exposent pas
+  input.addEventListener('focus', () => {
+    kbOpen = true;
+    snapToMid();
+  });
+  input.addEventListener('blur', () => {
+    kbOpen = false;
+    // on retire juste le padding; on ne bouge pas le splitter pour ne pas surprendre
+    releasePad();
+  });
+
+  // Pendant la frappe, on garde l’ancrage bas (utile quand nouveaux messages arrivent)
+  const keepAnchored = () => {
+    if (!kbOpen) return;
+    // Si on est déjà proche du bas, on recolle.
+    const nearBottom = (scrollBox.scrollHeight - scrollBox.scrollTop - scrollBox.clientHeight) < 32;
+    if (nearBottom) scrollBox.scrollTop = scrollBox.scrollHeight;
+  };
+  input.addEventListener('input', keepAnchored);
+
+  // Sécurité : si l’utilisateur tape très vite après le chargement
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && kbOpen) snapToMid();
+  });
+
+  // Première passe: s’assure que la poignée ne peut pas sortir dès maintenant
+  applyRatio(0.52);
+})();
+
+
