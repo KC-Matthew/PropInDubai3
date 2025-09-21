@@ -259,36 +259,60 @@ function initCardSlider(rootEl, images) {
   const prev  = rootEl.querySelector('.nav.prev');
   const next  = rootEl.querySelector('.nav.next');
   const nSpan = rootEl.querySelector('.img-total');
+  const isMobile = window.matchMedia('(max-width:800px)').matches;
+
   let i = 0;
 
-  // copie le border-radius de l'image pour que tout clippe pareil
+  // copy radius de l'image pour que tout clippe pareil
   if (imgEl) {
     const br = getComputedStyle(imgEl).borderRadius;
     if (br) rootEl.style.borderRadius = br;
   }
 
-  // aligne les flèches sur le bord VISUEL de l'image (pas du card)
+  // ----- pager à points (mobile) -----
+  let dotsWrap = null;
+  let dots = [];
+  if (isMobile) {
+    dotsWrap = document.createElement('div');
+    dotsWrap.className = 'prop-dots';
+    dots = pics.map((_, idx) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'prop-dot';
+      b.setAttribute('aria-label', `Image ${idx + 1}`);
+      b.addEventListener('click', (e) => { e.stopPropagation(); show(idx); });
+      dotsWrap.appendChild(b);
+      return b;
+    });
+    rootEl.appendChild(dotsWrap);
+  }
+
+  // ----- flèches / compteur (desktop) -----
+  if (nSpan) nSpan.textContent = pics.length;
+  const showNav = !isMobile && pics.length > 1;
+  if (prev) prev.style.display = showNav ? '' : 'none';
+  if (next) next.style.display = showNav ? '' : 'none';
+
   function alignNavToImage() {
-    if (!imgEl) return;
+    if (!imgEl || !prev || !next) return;
     const sr = rootEl.getBoundingClientRect();
     const ir = imgEl.getBoundingClientRect();
     const leftGap  = Math.max(0, ir.left  - sr.left);
     const rightGap = Math.max(0, sr.right - ir.right);
-
-    if (prev) prev.style.left  = `${10 + leftGap}px`;
-    if (next) next.style.right = `${10 + rightGap}px`;
+    prev.style.left  = `${10 + leftGap}px`;
+    next.style.right = `${10 + rightGap}px`;
   }
 
-  if (nSpan) nSpan.textContent = pics.length;
-  const showNav = pics.length > 1;
-  if (prev) prev.style.display = showNav ? '' : 'none';
-  if (next) next.style.display = showNav ? '' : 'none';
+  function updateDots() {
+    if (!isMobile || !dots.length) return;
+    dots.forEach((d, k) => d.classList.toggle('active', k === i));
+  }
 
-  function show(k){
+  function show(k) {
     i = (k + pics.length) % pics.length;
     if (imgEl) imgEl.src = pics[i];
-    // realigner au cas où le chargement d’image modifie la boîte
-    requestAnimationFrame(alignNavToImage);
+    updateDots();
+    if (!isMobile) requestAnimationFrame(alignNavToImage);
   }
 
   if (prev) prev.addEventListener('click', (e)=>{ e.stopPropagation(); show(i-1); });
@@ -304,14 +328,19 @@ function initCardSlider(rootEl, images) {
     sx = null;
   }, {passive:true});
 
-  // resize/reflow → on recale
-  const ro = new ResizeObserver(()=> alignNavToImage());
-  if (imgEl) ro.observe(imgEl);
-  window.addEventListener('resize', alignNavToImage);
+  // resize: recaler les flèches sur desktop
+  if (!isMobile) {
+    const ro = new ResizeObserver(()=> alignNavToImage());
+    if (imgEl) ro.observe(imgEl);
+    window.addEventListener('resize', alignNavToImage);
+  }
 
   show(0);
-  alignNavToImage();
+  if (!isMobile) alignNavToImage();
 }
+
+
+
 
 
 
@@ -735,6 +764,7 @@ function closeMenu() {
     if (overlay) overlay.style.display = 'none';
   }
 
+
   function handleOutside(target) {
     return !nav.contains(target) && !burger.contains(target);
   }
@@ -758,7 +788,6 @@ function closeMenu() {
     }
   });
 })();
-
 
 
 /* ====== MOBILE SPLITTER v2 — 3 états (closed / half / open) + snap + click toggle ====== */
