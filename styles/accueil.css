@@ -779,3 +779,7 @@ html, body { margin: 0; padding: 0; }
   }
   .mobile-hero-bottom:first-of-type{ display:none !important; }
 }
+
+@media (max-width:700px){
+  .mobile-hero-bottom{ left:50%; transform:translateX(-50%); }
+}
