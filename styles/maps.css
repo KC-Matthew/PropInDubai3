@@ -1,5 +1,4 @@
 
-
   body {
     margin: 0;
     padding: 0;
@@ -868,7 +867,7 @@ body {
   }
 }
 
-  
+
 /* Zone d'accroche large mais discrète */
 @media (max-width:700px){
   .mobile-cards-deck .deck-grab-zone{
