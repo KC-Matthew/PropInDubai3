@@ -2234,3 +2234,31 @@ html, body {
     min-height: -webkit-fill-available;
   }
 }
+
+
+
+
+
+
+@media (max-width:800px){
+  .prop-slider .nav,
+  .prop-slider .count-badge{ display:none !important; }
+
+  .prop-slider{ position:relative; }
+  .prop-dots{
+    position:absolute;
+    bottom:12px;
+    left:50%;
+    transform:translateX(-50%);   /* ← centrage horizontal */
+    display:flex; gap:8px; z-index:6;
+  }
+  .prop-dot{
+    width:10px; height:10px; border-radius:50%;
+    background:#fff;
+    box-shadow:0 0 0 2px rgba(0,0,0,.25), 0 2px 6px rgba(0,0,0,.25);
+    opacity:.95; border:none; padding:0;
+  }
+  .prop-dot.active{
+    box-shadow:0 0 0 2px #6a42f4, 0 2px 6px rgba(0,0,0,.25);
+  }
+}
