@@ -791,6 +791,7 @@ function closeMenu() {
 
 
 /* ====== MOBILE SPLITTER v2 — 3 états (closed / half / open) + snap + click toggle ====== */
+/* ====== MOBILE SPLITTER v2.1 — mêmes API, mais bornes haut/bas + stop milieu fiable ====== */
 (function () {
   const mq = window.matchMedia('(max-width: 800px)');
   const chat = document.getElementById('chat-col-v2');
@@ -799,10 +800,18 @@ function closeMenu() {
   const container = document.getElementById('split-mobile-container');
   if (!chat || !props || !bar || !container) return;
 
-  // états et ratios (part de hauteur prise par le chat)
-  const STATES = ['half', 'open', 'closed'];       // ordre quand on clique la barre
-  const RATIOS = { closed: 0.00, half: 0.52, open: 0.96 };
+  /* Réglages ARRÊTS (part de hauteur occupée par le chat)
+     - MIN_R → arrêt du BAS (empêche la poignée de “tomber” sous la barre iOS)
+     - MAX_R → arrêt du HAUT (empêche la poignée de passer sous le notch / toolbar)
+     Ajuste les 2 lignes ci-dessous pour “commencer plus haut / s’arrêter plus bas” */
+  const MIN_R = 0.10;  // 10%  (monte-le à 0.12/0.15 si tu veux que le bas reste plus haut)
+  const MAX_R = 0.88;  // 88%  (baisse-le à 0.85/0.82 si tu veux que le haut s’arrête plus bas)
+
+  const RATIOS = { closed: MIN_R, half: 0.52, open: MAX_R };
+  const STATES = ['half', 'open', 'closed'];   // ordre au clic sur la barre
   let state = 'half';
+
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
   function enableSmooth() {
     chat.style.transition = 'height .22s';
@@ -812,22 +821,21 @@ function closeMenu() {
     chat.style.transition = '';
     props.style.transition = '';
   }
-
-  // on supprime les min-heights (même ceux avec !important) quand on veut full open/close
   function overrideMins(zeroForChat, zeroForProps) {
     if (zeroForChat) chat.style.setProperty('min-height', '0', 'important');
     else chat.style.removeProperty('min-height');
-
     if (zeroForProps) props.style.setProperty('min-height', '0', 'important');
     else props.style.removeProperty('min-height');
   }
-
+  function totalH() {
+    return container.getBoundingClientRect().height - bar.offsetHeight;
+  }
   function applyRatio(r) {
-    const total = container.getBoundingClientRect().height - bar.offsetHeight;
-    const chatH = Math.max(0, Math.min(total, Math.round(total * r)));
-    const propsH = total - chatH;
+    const t = totalH();
+    const rr = clamp(r, MIN_R, MAX_R);
+    const chatH = Math.round(t * rr);
     chat.style.height = chatH + 'px';
-    props.style.height = propsH + 'px';
+    props.style.height = (t - chatH) + 'px';
   }
 
   function snapTo(newState, animate = true) {
@@ -835,13 +843,13 @@ function closeMenu() {
     if (animate) enableSmooth(); else disableSmooth();
 
     if (state === 'closed') {
-      overrideMins(true, true);           // autorise fermeture totale
+      overrideMins(true, true);
       applyRatio(RATIOS.closed);
     } else if (state === 'open') {
-      overrideMins(true, true);           // autorise ouverture totale du chat
+      overrideMins(true, true);
       applyRatio(RATIOS.open);
     } else {
-      overrideMins(false, false);         // remet les min-heights normaux
+      overrideMins(false, false);
       applyRatio(RATIOS.half);
     }
     setTimeout(disableSmooth, 260);
@@ -867,7 +875,7 @@ function closeMenu() {
     }
   });
 
-  // Drag avec snap à la relâche
+  // Drag avec bornes + snap au plus proche (bas / milieu / haut)
   let dragging = false, startY = 0, startChatH = 0, moved = 0;
 
   bar.addEventListener('mousedown', (e) => {
@@ -883,17 +891,23 @@ function closeMenu() {
     moved = Math.max(moved, Math.abs(dy));
     overrideMins(true, true);
     disableSmooth();
-    const total = container.getBoundingClientRect().height - bar.offsetHeight;
-    const h = Math.max(0, Math.min(total, startChatH + dy));
+
+    const t = totalH();
+    const minH = Math.round(MIN_R * t);
+    const maxH = Math.round(MAX_R * t);
+
+    const h = clamp(startChatH + dy, minH, maxH);  // ← clampé entre MIN/MAX
     chat.style.height = h + 'px';
-    props.style.height = (total - h) + 'px';
+    props.style.height = (t - h) + 'px';
   });
   window.addEventListener('mouseup', () => {
     if (!dragging) return;
     dragging = false;
     document.body.style.userSelect = '';
-    const total = container.getBoundingClientRect().height - bar.offsetHeight;
-    const ratio = (parseFloat(chat.style.height) || 0) / total;
+
+    const t = totalH();
+    const h = parseFloat(chat.style.height) || 0;
+    const ratio = clamp(h / t, MIN_R, MAX_R);
 
     // choisir l'état le plus proche
     let best = 'half', bestDist = Infinity;
@@ -920,17 +934,22 @@ function closeMenu() {
     moved = Math.max(moved, Math.abs(dy));
     overrideMins(true, true);
     disableSmooth();
-    const total = container.getBoundingClientRect().height - bar.offsetHeight;
-    const h = Math.max(0, Math.min(total, startChatH + dy));
+
+    const tot = totalH();
+    const minH = Math.round(MIN_R * tot);
+    const maxH = Math.round(MAX_R * tot);
+
+    const h = clamp(startChatH + dy, minH, maxH);  // ← clampé
     chat.style.height = h + 'px';
-    props.style.height = (total - h) + 'px';
+    props.style.height = (tot - h) + 'px';
   }, { passive: true });
   function endTouch() {
     if (!dragging) return;
     dragging = false;
     document.body.style.userSelect = '';
-    const total = container.getBoundingClientRect().height - bar.offsetHeight;
-    const ratio = (parseFloat(chat.style.height) || 0) / total;
+    const t = totalH();
+    const h = parseFloat(chat.style.height) || 0;
+    const ratio = clamp(h / t, MIN_R, MAX_R);
     let best = 'half', bestDist = Infinity;
     ['closed', 'half', 'open'].forEach(s => {
       const d = Math.abs(ratio - RATIOS[s]);
@@ -949,6 +968,7 @@ function closeMenu() {
     snapTo(next, true);
   });
 })();
+
 
 
 /* ===== MOBILE EDGE TAB → ouvre/ferme la sidebar (mobile only) ===== */
