@@ -2236,10 +2236,6 @@ html, body {
 }
 
 
-
-
-
-
 @media (max-width:800px){
   .prop-slider .nav,
   .prop-slider .count-badge{ display:none !important; }
@@ -2261,4 +2257,39 @@ html, body {
   .prop-dot.active{
     box-shadow:0 0 0 2px #6a42f4, 0 2px 6px rgba(0,0,0,.25);
   }
+}
+
+
+
+
+
+
+
+/* iOS: évite le zoom auto quand on focus un input (>=16px) */
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* iOS: évite le double-tap zoom sur les éléments cliquables */
+button, a, .splitter-bar, .chat-pick-btn-v2, .header-btn {
+  touch-action: manipulation;
+}
+
+/* Empêche l’effet “rebond” qui décale tout quand on atteint le haut/bas */
+html, body {
+  overscroll-behavior: none;
+}
+
+/* Quand le clavier est ouvert, on peut réduire subtilement la marge sous la zone d’input */
+body.keyboard-open .chat-input-form-v2,
+body.keyboard-open .chat-input-btns-row {
+  padding-bottom: max(6px, env(safe-area-inset-bottom)) !important;
+}
+
+/* Assure que la zone scrollable est bien le conteneur des messages, pas le body */
+#chat-messages-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
