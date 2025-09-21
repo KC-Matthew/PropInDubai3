@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Maps - PropInDubai</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="styles/maps.css" />
+<link rel="stylesheet" href="./styles/maps.css?v=3">
     <link rel="stylesheet" href="styles/accueil.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -117,8 +117,7 @@
 <script src="javascript/infoagent.js"></script>
 <script src="https://unpkg.com/scrollreveal"></script>
 
-<!-- ✅ Ajoute cette ligne : ton fichier JS de la page -->
-<script src="javascript/maps.js"></script>
+
 
 <!-- ✅ SDK Google Maps avec TA clé, callback=initMap -->
 <script
@@ -126,6 +125,10 @@
   defer
   src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAhq4ZJLPoG0pJyiT0-JHMNeBZ1py9-n_A&callback=initMap&language=fr&region=AE">
 </script>
+<!-- Mauvais (absolu) : /styles/maps.css -->
+
+<script src="./javascript/maps.js?v=3" defer></script>
+
 
 
   
