@@ -803,7 +803,7 @@ function closeMenu() {
      - MIN_R → arrêt du BAS (empêche la poignée de “tomber” sous la barre iOS)
      - MAX_R → arrêt du HAUT (empêche la poignée de passer sous le notch / toolbar)
      Ajuste les 2 lignes ci-dessous pour “commencer plus haut / s’arrêter plus bas” */
-  const MIN_R = 0.10;  // 10%  (monte-le à 0.12/0.15 si tu veux que le bas reste plus haut)
+  const MIN_R = 0.12;  // 10%  (monte-le à 0.12/0.15 si tu veux que le bas reste plus haut)
   const MAX_R = 0.85;  // 88%  (baisse-le à 0.85/0.82 si tu veux que le haut s’arrête plus bas)
 
   const RATIOS = { closed: MIN_R, half: 0.52, open: MAX_R };
