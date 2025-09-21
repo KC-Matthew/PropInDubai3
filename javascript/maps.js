@@ -932,124 +932,159 @@ function showMiniCardOnMap(property, latlng, marker) {
 
   /* === MOBILE BOTTOM-SHEET: compatible avec TON HTML/CSS existants === */
   /* À COLLER tout en bas de javascript/maps.js */
-  (function attachMobileDeck() {
-    document.addEventListener('DOMContentLoaded', () => {
-      const deck = document.querySelector('.mobile-cards-deck');
-      if (!deck || deck.dataset.deckInited === '1') return; // anti double-init
-      deck.dataset.deckInited = '1';
+/* === MOBILE BOTTOM-SHEET — poignée super facile à attraper === */
+(function attachMobileDeck() {
+  document.addEventListener('DOMContentLoaded', () => {
+    const deck = document.querySelector('.mobile-cards-deck');
+    if (!deck || deck.dataset.deckInited === '1') return;
+    deck.dataset.deckInited = '1';
 
-      const handle = deck.querySelector('.deck-handle');
-      const STATES = ['collapsed', 'half', 'full'];
-      let state = STATES.find(s => deck.classList.contains(s)) || 'collapsed';
+    // 1) États possibles
+    const STATES = ['collapsed', 'half', 'full'];
+    let state = STATES.find(s => deck.classList.contains(s)) || 'collapsed';
 
-      function setState(s) {
+    // 2) Zone de préhension élargie (si absente on la crée)
+    let grab = deck.querySelector('.deck-grab-zone');
+    if (!grab) {
+      grab = document.createElement('div');
+      grab.className = 'deck-grab-zone';
+      // on garde ta barre visuelle existante .deck-handle
+      const handle = deck.querySelector('.deck-handle') || document.createElement('div');
+      handle.classList.add('deck-handle');
+      grab.appendChild(handle);
+      deck.insertAdjacentElement('afterbegin', grab);
+    }
+
+    // 3) Mesure des positions réelles (issues du CSS: top pour .collapsed/.half/.full)
+    function measureTops() {
+      const tops = {};
+      const cur = state;
+      const keep = { transition: deck.style.transition, top: deck.style.top, height: deck.style.height };
+      deck.style.transition = 'none';
+      STATES.forEach(s => {
         STATES.forEach(c => deck.classList.remove(c));
         deck.classList.add(s);
-        state = s;
-        // on rend la main au CSS, pas d'inline persistant
         deck.style.top = '';
         deck.style.height = '';
-        // évite le scroll de la page quand la deck est en plein écran
-        document.body.style.overflow = (s === 'full') ? 'hidden' : '';
-      }
+        tops[s] = deck.getBoundingClientRect().top;
+      });
+      STATES.forEach(c => deck.classList.remove(c));
+      deck.classList.add(cur);
+      Object.assign(deck.style, keep);
+      return tops;
+    }
+    let TOPS = measureTops();
+    const SNAP_THRESHOLD = 28;     // px
+    const START_DRAG_DELTA = 6;    // px avant de considérer que c’est un drag
+    const FLICK_VELOCITY = 0.6;    // px/ms pour passer à l’état suivant sur swipe rapide
 
-      // Mesure les positions pixel réelles définies par ton CSS (80/50/18vh)
-      function measureTops() {
-        const tops = {};
-        const curState = state;
-        const saved = {
-          transition: deck.style.transition,
-          top: deck.style.top,
-          height: deck.style.height
-        };
-        deck.style.transition = 'none';
+    function setState(s) {
+      STATES.forEach(c => deck.classList.remove(c));
+      deck.classList.add(s);
+      state = s;
+      deck.style.top = '';
+      deck.style.height = '';
+      document.body.style.overflow = (s === 'full') ? 'hidden' : ''; // garde ton comportement
+    }
 
-        STATES.forEach(s => {
-          STATES.forEach(c => deck.classList.remove(c));
-          deck.classList.add(s);
-          deck.style.top = '';
-          deck.style.height = '';
-          // force reflow et lit la position réelle
-          tops[s] = deck.getBoundingClientRect().top;
+    window.addEventListener('resize', () => { TOPS = measureTops(); setState(state); });
+
+    // 4) Drag avec Pointer Events (meilleur que touch/mouse mix)
+    let dragging = false, startY = 0, startTop = 0, startedDrag = false;
+    let lastY = 0, lastT = 0, velocity = 0; // pour le swipe
+    let raf = null;
+
+    function onPointerDown(e) {
+      // uniquement contact direct (pas stylet flottant)
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      dragging = true; startedDrag = false;
+      deck.style.transition = 'none';
+      startY = e.clientY;
+      startTop = deck.getBoundingClientRect().top;
+      lastY = startY; lastT = performance.now(); velocity = 0;
+
+      grab.setPointerCapture?.(e.pointerId);
+      window.addEventListener('pointermove', onPointerMove, { passive: false });
+      window.addEventListener('pointerup', onPointerUp);
+      window.addEventListener('pointercancel', onPointerUp);
+    }
+
+    function onPointerMove(e) {
+      if (!dragging) return;
+      const y = e.clientY;
+      const dy = y - startY;
+
+      // seuil pour éviter d’attraper la scroll-list par erreur
+      if (!startedDrag && Math.abs(dy) < START_DRAG_DELTA) return;
+      startedDrag = true;
+      if (e.cancelable) e.preventDefault();
+
+      const min = TOPS.full;
+      const max = TOPS.collapsed;
+      let newTop = Math.max(min, Math.min(max, startTop + dy));
+
+      const now = performance.now();
+      const dt = now - lastT || 1;
+      velocity = (y - lastY) / dt; // px/ms
+      lastY = y; lastT = now;
+
+      // raf pour limiter les reflows
+      if (!raf) {
+        raf = requestAnimationFrame(() => {
+          deck.style.top = `${newTop}px`;
+          raf = null;
         });
-
-        // restore
-        STATES.forEach(c => deck.classList.remove(c));
-        deck.classList.add(curState);
-        deck.style.transition = saved.transition;
-        deck.style.top = saved.top;
-        deck.style.height = saved.height;
-
-        return tops;
       }
+    }
 
-      let TOPS = measureTops();
-      window.addEventListener('resize', () => {
-        TOPS = measureTops();
-        setState(state); // réaligne visuellement
-      });
+    function onPointerUp() {
+      if (!dragging) return;
+      dragging = false;
+      deck.style.transition = ''; // remet l’animation CSS
 
-      // Tap/clic sur le handle : cycle collapsed -> half -> full -> collapsed
-      handle.addEventListener('click', () => {
-        setState(state === 'collapsed' ? 'half' : state === 'half' ? 'full' : 'collapsed');
-      });
+      const curTop = deck.getBoundingClientRect().top;
 
-      // Drag du handle
-      let dragging = false, startY = 0, startTop = 0;
-
-      function onDown(e) {
-        dragging = true;
-        deck.style.transition = 'none';
-        startY = (e.touches ? e.touches[0].clientY : e.clientY);
-        startTop = deck.getBoundingClientRect().top;
-
-        document.addEventListener('mousemove', onMove, { passive: false });
-        document.addEventListener('touchmove', onMove, { passive: false });
-        document.addEventListener('mouseup', onUp);
-        document.addEventListener('touchend', onUp);
-      }
-
-      function onMove(e) {
-        if (!dragging) return;
-        if (e.cancelable) e.preventDefault(); // évite le scroll pendant le drag
-
-        const y = (e.touches ? e.touches[0].clientY : e.clientY);
-        const dy = y - startY;
-
-        const min = TOPS.full;        // plus haut (18vh)
-        const max = TOPS.collapsed;   // plus bas (80vh)
-
-        let newTop = startTop + dy;
-        if (newTop < min) newTop = min;
-        if (newTop > max) newTop = max;
-
-        deck.style.top = `${newTop}px`;
-      }
-
-      function onUp() {
-        if (!dragging) return;
-        dragging = false;
-        deck.style.transition = ''; // remet la transition CSS
-
-        const curTop = deck.getBoundingClientRect().top;
+      // swipe rapide => va à l’état suivant dans le sens du mouvement
+      if (Math.abs(velocity) > FLICK_VELOCITY) {
+        const dir = velocity > 0 ? 1 : -1; // vers le bas => +1
+        const order = ['full', 'half', 'collapsed'];
+        let idx = order.indexOf(state) + dir;
+        idx = Math.max(0, Math.min(order.length - 1, idx));
+        setState(order[idx]);
+      } else {
+        // snap au plus proche avec un seuil
         const candidates = [
           { s: 'collapsed', v: TOPS.collapsed },
           { s: 'half',      v: TOPS.half },
           { s: 'full',      v: TOPS.full }
-        ].sort((a, b) => Math.abs(curTop - a.v) - Math.abs(curTop - b.v));
+        ].sort((a,b) => Math.abs(curTop - a.v) - Math.abs(curTop - b.v));
 
-        setState(candidates[0].s);
-
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('touchmove', onMove);
-        document.removeEventListener('mouseup', onUp);
-        document.removeEventListener('touchend', onUp);
+        const best = candidates[0];
+        const dist = Math.abs(curTop - best.v);
+        // si on n’a presque pas bougé, toggle sur simple tap
+        if (!startedDrag && state !== 'full') {
+          setState(state === 'collapsed' ? 'half' : 'collapsed');
+        } else {
+          setState(dist <= SNAP_THRESHOLD ? best.s : state);
+        }
       }
 
-      handle.addEventListener('mousedown', onDown);
-      handle.addEventListener('touchstart', onDown, { passive: true });
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+    }
+
+    // 5) Bind sur la GRANDE zone de grab (et plus seulement la petite barre)
+    grab.addEventListener('pointerdown', onPointerDown);
+
+    // 6) Click pour cycler (pour les utilisateurs qui ne “draguent” pas)
+    grab.addEventListener('click', (e) => {
+      if (startedDrag) return; // déjà géré par le drag
+      setState(state === 'collapsed' ? 'half' : state === 'half' ? 'full' : 'collapsed');
     });
-  })();
+  });
+})();
+
 
 
 
@@ -1109,14 +1144,6 @@ function showMiniCardOnMap(property, latlng, marker) {
     window.addEventListener('resize', placeSearchBar);
   }
 })();
-
-
-
-
-
-
-
-
 
 
 
