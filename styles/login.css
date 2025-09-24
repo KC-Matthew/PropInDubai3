@@ -197,6 +197,7 @@ label{
 }
 .login-links a:hover{ text-decoration:underline; }
 
+
 /* ===== Footer du formulaire ===== */
 .login-footer{
   margin-top: 16px;
@@ -227,3 +228,10 @@ label{
   .login-card{ padding: 18px; border-radius: 12px; }
   .login-title{ font-size: 1.6rem; }
 }
+
+
+/* ---- Sélecteur de rôle ---- */
+.role-select { margin-bottom: 8px; }
+.role-label { font-weight: 700; }
+.role-options { display:flex; gap:16px; margin-top:6px; }
+.role-options label { display:flex; align-items:center; gap:6px; font-weight:600; }
