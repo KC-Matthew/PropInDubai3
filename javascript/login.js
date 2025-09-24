@@ -1,7 +1,7 @@
 // login.js — tabs + auth (Login/Signup/Reset) + rôle Utilisateur/Agent
 const $  = s => document.querySelector(s);
 
-// --- Onglets ---
+/* -------------------- Onglets -------------------- */
 const tabLogin   = $('#tabLogin');
 const tabSignup  = $('#tabSignup');
 const openReset  = $('#openReset');
@@ -11,9 +11,9 @@ const formSignup = $('#formSignup');
 const formReset  = $('#formReset');
 
 function show(which){
-  formLogin.classList.toggle('is-hidden', which !== 'login');
-  formSignup.classList.toggle('is-hidden', which !== 'signup');
-  formReset.classList.toggle('is-hidden', which !== 'reset');
+  formLogin?.classList.toggle('is-hidden', which !== 'login');
+  formSignup?.classList.toggle('is-hidden', which !== 'signup');
+  formReset?.classList.toggle('is-hidden', which !== 'reset');
   if (tabLogin && tabSignup){
     tabLogin.style.fontWeight  = (which==='login') ? '700' : '400';
     tabSignup.style.fontWeight = (which==='signup')? '700' : '400';
@@ -24,11 +24,32 @@ tabSignup?.addEventListener('click', e=>{ e.preventDefault(); show('signup'); })
 openReset?.addEventListener('click', e=>{ e.preventDefault(); show('reset'); });
 $('#linkToSignup')?.addEventListener('click', e=>{ e.preventDefault(); show('signup'); });
 
-// --- Helpers ---
+/* -------------------- Helpers -------------------- */
 const supa = window.supabase;
 const alertBox = $('#loginAlert');
-const siteBase = `${location.origin}`;
-const getRole = () => (document.querySelector('input[name="authRole"]:checked')?.value || 'user');
+
+// Base path auto (gère *.github.io/<repo>/ et localhost/domaine perso)
+const basePath = (() => {
+  // si un <base href="..."> est défini dans le HTML, on le respecte
+  const htmlBase = document.querySelector('base')?.getAttribute('href');
+  if (htmlBase) {
+    // enlève le trailing slash si présent
+    return htmlBase.replace(/\/+$/,'');
+  }
+  // cas GitHub Pages "project": https://user.github.io/<repo>/
+  if (location.hostname.endsWith('github.io')) {
+    const seg = location.pathname.split('/').filter(Boolean); // ["repo", "page.html"...]
+    return seg.length ? `/${seg[0]}` : '';
+  }
+  // localhost ou domaine racine
+  return '';
+})();
+
+// URL absolue "site"
+const siteBase = `${location.origin}${basePath}`;
+
+const getRole = () =>
+  (document.querySelector('input[name="authRole"]:checked')?.value || 'user');
 
 function flash(msg, ok=false){
   if(!alertBox) return;
@@ -51,7 +72,7 @@ async function ensureAgentExists(userId){
   return !!data;
 }
 
-// --- LOGIN ---
+/* -------------------- LOGIN -------------------- */
 formLogin?.addEventListener('submit', async (e)=>{
   e.preventDefault();
   const email = $('#loginEmail').value.trim();
@@ -66,7 +87,8 @@ formLogin?.addEventListener('submit', async (e)=>{
     if (role === 'agent'){
       const uid = data.user.id;
       const hasAgent = await ensureAgentExists(uid);
-      const redirect = hasAgent ? '/accueil.html' : '/agent-onboarding.html';
+      const redirect = hasAgent ? `${basePath}/accueil.html`
+                                : `${basePath}/agent-onboarding.html`;
       flash('Connected! Redirecting…', true);
       setTimeout(()=> location.href = redirect, 500);
       return;
@@ -74,13 +96,14 @@ formLogin?.addEventListener('submit', async (e)=>{
 
     // rôle utilisateur
     flash('Connected! Redirecting…', true);
-    setTimeout(()=> location.href = '/accueil.html', 500);
+    setTimeout(()=> location.href = `${basePath}/accueil.html`, 500);
   }catch(err){
+    console.error(err);
     flash('Unexpected error.');
   }
 });
 
-// --- SIGNUP ---
+/* -------------------- SIGNUP -------------------- */
 formSignup?.addEventListener('submit', async (e)=>{
   e.preventDefault();
   const email = $('#signupEmail').value.trim();
@@ -92,6 +115,7 @@ formSignup?.addEventListener('submit', async (e)=>{
       email, password,
       options: {
         data: { full_name },
+        // IMPORTANT: URL absolue dans le bon sous-dossier
         emailRedirectTo: `${siteBase}/reset-password.html`
       }
     });
@@ -104,56 +128,83 @@ formSignup?.addEventListener('submit', async (e)=>{
     flash('Check your email to confirm your account.', true);
     show('login');
   }catch(err){
+    console.error(err);
     flash('Unexpected error.');
   }
 });
 
-// --- RESET ---
+/* -------------------- RESET -------------------- */
 formReset?.addEventListener('submit', async (e)=>{
   e.preventDefault();
   const email = $('#resetEmail').value.trim();
   try{
     const { error } = await supa.auth.resetPasswordForEmail(email, {
+      // IMPORTANT: URL absolue dans le bon sous-dossier
       redirectTo: `${siteBase}/reset-password.html`
     });
     if (error) return flash(error.message);
     flash('Reset link sent. Check your email.', true);
     show('login');
   }catch(err){
+    console.error(err);
     flash('Unexpected error.');
   }
 });
 
-// --- OAuth Google : respecte le rôle choisi
+/* -------------------- OAuth Google --------------------
+   - Respecte le rôle choisi pour la page d’atterrissage
+   - redirectTo doit être une URL ABSOLUE enregistrée dans Supabase Auth
+-------------------------------------------------------- */
 $('#btnGoogle')?.addEventListener('click', async ()=>{
   const role = getRole();
-  const redirect = role === 'agent' ? '/agent-onboarding.html' : '/accueil.html';
+  const land = role === 'agent' ? `${basePath}/agent-onboarding.html`
+                                : `${basePath}/accueil.html`;
+
+  // Certains providers ignorent l’état (state), on redirige côté Supabase vers notre URL
   const { error } = await supa.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: `${siteBase}${redirect}` }
+    options: {
+      redirectTo: `${location.origin}${land}`, // URL absolue SANS double basePath
+      // facultatif mais utile si tu veux récupérer le rôle au retour:
+      // queryParams: { prompt: 'select_account' }
+    }
   });
   if (error) flash(error.message);
 });
 
-// --- Header login/logout + dropdown + burger ---
+/* ------------- Header login/logout + dropdown + burger ------------- */
 window.addEventListener('supabase:ready', async ()=>{
-  const btn = $('#headerLoginBtn');
-  if(!btn) return;
-  const { data } = await supa.auth.getSession();
-  if(data.session){
-    btn.textContent = "Logout";
-    btn.href = "#";
-    btn.onclick = async (e)=>{ e.preventDefault(); await supa.auth.signOut(); location.reload(); };
-  }else{
-    btn.textContent = "Login";
-    btn.href = "login.html";
+  try{
+    const btn = $('#headerLoginBtn');
+    if(!btn) return;
+    const { data } = await supa.auth.getSession();
+    if(data.session){
+      btn.textContent = "Logout";
+      btn.href = "#";
+      btn.onclick = async (e)=>{ e.preventDefault(); await supa.auth.signOut(); location.reload(); };
+    }else{
+      btn.textContent = "Login";
+      btn.href = `${basePath}/login.html`;
+    }
+    supa.auth.onAuthStateChange((_evt, session)=>{
+      if(session){ btn.textContent="Logout"; btn.href="#"; }
+      else{ btn.textContent="Login"; btn.href=`${basePath}/login.html`; }
+    });
+  }catch(e){
+    console.warn('supabase:ready handler error', e);
   }
-  supa.auth.onAuthStateChange((_evt, session)=>{
-    if(session){ btn.textContent="Logout"; btn.href="#"; }
-    else{ btn.textContent="Login"; btn.href="login.html"; }
-  });
 });
 
+// Fallback au cas où l’événement personnalisé n’est pas dispatché
+document.addEventListener('DOMContentLoaded', async ()=>{
+  if (!window.__headerInitOnce){
+    window.__headerInitOnce = true;
+    const evt = new Event('supabase:ready');
+    window.dispatchEvent(evt);
+  }
+});
+
+/* -------------------- UI header (dropdown/burger) -------------------- */
 document.addEventListener('DOMContentLoaded', function () {
   const buyDropdown = document.getElementById('buyDropdown');
   const mainBuyBtn = document.getElementById('mainBuyBtn');
@@ -163,7 +214,9 @@ document.addEventListener('DOMContentLoaded', function () {
       buyDropdown.classList.toggle('open');
     });
     document.addEventListener('click', function (e) {
-      if (!buyDropdown.contains(e.target)) buyDropdown.classList.remove('open');
+      if (!buyDropdown.contains(e.target) && e.target !== mainBuyBtn) {
+        buyDropdown.classList.remove('open');
+      }
     });
   }
 
@@ -186,3 +239,4 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 });
+
