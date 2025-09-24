@@ -1,154 +1,188 @@
-// login.js — gère Login / Signup / Reset avec Supabase (window.supabase)
+// login.js — tabs + auth (Login/Signup/Reset) + rôle Utilisateur/Agent
+const $  = s => document.querySelector(s);
 
-(function(){
-  const $  = s => document.querySelector(s);
-  const $$ = s => Array.from(document.querySelectorAll(s));
+// --- Onglets ---
+const tabLogin   = $('#tabLogin');
+const tabSignup  = $('#tabSignup');
+const openReset  = $('#openReset');
 
-  const supa = window.supabase;
+const formLogin  = $('#formLogin');
+const formSignup = $('#formSignup');
+const formReset  = $('#formReset');
 
-  // Tabs
-  const tabs = $$('.auth-tab');
-  const formSignin = $('#form-signin');
-  const formSignup = $('#form-signup');
-  const formReset  = $('#form-reset');
-
-  const siMsg = $('#si-message');
-  const suMsg = $('#su-message');
-  const rpMsg = $('#rp-message');
-
-  tabs.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      tabs.forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      const tab = btn.dataset.tab;
-      formSignin.classList.toggle('hidden', tab!=='signin');
-      formSignup.classList.toggle('hidden', tab!=='signup');
-      formReset .classList.add('hidden'); // si on passe d’un reset à autre chose
-      clearMessages();
-    });
-  });
-
-  $('#link-forgot')?.addEventListener('click', (e)=>{
-    e.preventDefault();
-    tabs.forEach(b=>b.classList.remove('active'));
-    formSignin.classList.add('hidden');
-    formSignup.classList.add('hidden');
-    formReset.classList.remove('hidden');
-  });
-
-  function clearMessages(){
-    [siMsg,suMsg,rpMsg].forEach(el=>{ if(!el) return; el.textContent=''; el.classList.remove('error','success'); });
+function show(which){
+  formLogin.classList.toggle('is-hidden', which !== 'login');
+  formSignup.classList.toggle('is-hidden', which !== 'signup');
+  formReset.classList.toggle('is-hidden', which !== 'reset');
+  if (tabLogin && tabSignup){
+    tabLogin.style.fontWeight  = (which==='login') ? '700' : '400';
+    tabSignup.style.fontWeight = (which==='signup')? '700' : '400';
   }
+}
+tabLogin?.addEventListener('click', e=>{ e.preventDefault(); show('login'); });
+tabSignup?.addEventListener('click', e=>{ e.preventDefault(); show('signup'); });
+openReset?.addEventListener('click', e=>{ e.preventDefault(); show('reset'); });
+$('#linkToSignup')?.addEventListener('click', e=>{ e.preventDefault(); show('signup'); });
 
-  // Utilitaires
-  const redirectTo = new URLSearchParams(location.search).get('redirect') || 'accueil.html';
-  const siteBase   = `${location.origin}`;
+// --- Helpers ---
+const supa = window.supabase;
+const alertBox = $('#loginAlert');
+const siteBase = `${location.origin}`;
+const getRole = () => (document.querySelector('input[name="authRole"]:checked')?.value || 'user');
 
-  // Si déjà logué → redirection
-  (async ()=>{
-    if (!supa || !supa.auth) return;
-    const { data } = await supa.auth.getSession();
-    if (data?.session) location.href = redirectTo;
-  })();
+function flash(msg, ok=false){
+  if(!alertBox) return;
+  alertBox.textContent = msg;
+  alertBox.style.borderColor = ok ? '#d6f2dd' : '#ffd9b8';
+  alertBox.style.background  = ok ? '#ecfff0' : '#fff7f0';
+  alertBox.style.color       = ok ? '#146c2e' : '#7a3c00';
+  alertBox.classList.add('show');
+  setTimeout(()=> alertBox.classList.remove('show'), 4000);
+}
 
-  // LOGIN
-  formSignin?.addEventListener('submit', async (e)=>{
-    e.preventDefault(); clearMessages();
-    if (!supa || !supa.auth){
-      siMsg.textContent = 'Auth indisponible.'; siMsg.classList.add('error'); return;
+async function ensureAgentExists(userId){
+  // retourne true si une ligne agent existe déjà
+  const { data, error } = await supa
+    .from('agent')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  return !!data;
+}
+
+// --- LOGIN ---
+formLogin?.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = $('#loginEmail').value.trim();
+  const password = $('#loginPassword').value;
+  const role = getRole();
+
+  try{
+    const { data, error } = await supa.auth.signInWithPassword({ email, password });
+    if (error) return flash(error.message);
+
+    // rôle agent → vérifier s'il a déjà une fiche agent
+    if (role === 'agent'){
+      const uid = data.user.id;
+      const hasAgent = await ensureAgentExists(uid);
+      const redirect = hasAgent ? '/accueil.html' : '/agent-onboarding.html';
+      flash('Connected! Redirecting…', true);
+      setTimeout(()=> location.href = redirect, 500);
+      return;
     }
-    const email = $('#si-email').value.trim();
-    const password = $('#si-password').value;
-    try{
-      const { data, error } = await supa.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      // Souvenir : optionnel (tu peux stocker un flag)
-      if ($('#si-remember').checked){
-        try { localStorage.setItem('rememberMe','1'); } catch {}
+
+    // rôle utilisateur
+    flash('Connected! Redirecting…', true);
+    setTimeout(()=> location.href = '/accueil.html', 500);
+  }catch(err){
+    flash('Unexpected error.');
+  }
+});
+
+// --- SIGNUP ---
+formSignup?.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = $('#signupEmail').value.trim();
+  const password = $('#signupPassword').value;
+  const full_name = $('#signupName').value.trim();
+
+  try{
+    const { data, error } = await supa.auth.signUp({
+      email, password,
+      options: {
+        data: { full_name },
+        emailRedirectTo: `${siteBase}/reset-password.html`
       }
-      siMsg.textContent = 'Logged in. Redirecting…'; siMsg.classList.add('success');
-      setTimeout(()=>location.href = redirectTo, 400);
-    }catch(err){
-      siMsg.textContent = err.message || 'Login failed.'; siMsg.classList.add('error');
+    });
+    if (error) return flash(error.message);
+
+    // Optionnel : créer le profile si tu as la table
+    if (data.user){
+      await supa.from('profiles').insert({ id: data.user.id, full_name }).select();
     }
+    flash('Check your email to confirm your account.', true);
+    show('login');
+  }catch(err){
+    flash('Unexpected error.');
+  }
+});
+
+// --- RESET ---
+formReset?.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = $('#resetEmail').value.trim();
+  try{
+    const { error } = await supa.auth.resetPasswordForEmail(email, {
+      redirectTo: `${siteBase}/reset-password.html`
+    });
+    if (error) return flash(error.message);
+    flash('Reset link sent. Check your email.', true);
+    show('login');
+  }catch(err){
+    flash('Unexpected error.');
+  }
+});
+
+// --- OAuth Google : respecte le rôle choisi
+$('#btnGoogle')?.addEventListener('click', async ()=>{
+  const role = getRole();
+  const redirect = role === 'agent' ? '/agent-onboarding.html' : '/accueil.html';
+  const { error } = await supa.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: `${siteBase}${redirect}` }
   });
+  if (error) flash(error.message);
+});
 
-  // SIGNUP
-  formSignup?.addEventListener('submit', async (e)=>{
-    e.preventDefault(); clearMessages();
-    if (!supa || !supa.auth){
-      suMsg.textContent = 'Auth indisponible.'; suMsg.classList.add('error'); return;
-    }
-    const email = $('#su-email').value.trim();
-    const password = $('#su-password').value;
-    const fullName = $('#su-name').value.trim();
-
-    try{
-      const { data, error } = await supa.auth.signUp({
-        email, password,
-        options: {
-          // si tu veux préremplir un profil
-          data: { full_name: fullName },
-          emailRedirectTo: `${siteBase}/reset-password.html` // page que tu créeras si tu actives le reset
-        }
-      });
-      if (error) throw error;
-      suMsg.textContent = 'Account created! Check your email to confirm.'; suMsg.classList.add('success');
-    }catch(err){
-      suMsg.textContent = err.message || 'Signup failed.'; suMsg.classList.add('error');
-    }
+// --- Header login/logout + dropdown + burger ---
+window.addEventListener('supabase:ready', async ()=>{
+  const btn = $('#headerLoginBtn');
+  if(!btn) return;
+  const { data } = await supa.auth.getSession();
+  if(data.session){
+    btn.textContent = "Logout";
+    btn.href = "#";
+    btn.onclick = async (e)=>{ e.preventDefault(); await supa.auth.signOut(); location.reload(); };
+  }else{
+    btn.textContent = "Login";
+    btn.href = "login.html";
+  }
+  supa.auth.onAuthStateChange((_evt, session)=>{
+    if(session){ btn.textContent="Logout"; btn.href="#"; }
+    else{ btn.textContent="Login"; btn.href="login.html"; }
   });
+});
 
-  // RESET PASSWORD
-  formReset?.addEventListener('submit', async (e)=>{
-    e.preventDefault(); clearMessages();
-    if (!supa || !supa.auth){
-      rpMsg.textContent = 'Auth indisponible.'; rpMsg.classList.add('error'); return;
-    }
-    const email = $('#rp-email').value.trim();
-    try{
-      const { data, error } = await supa.auth.resetPasswordForEmail(email, {
-        redirectTo: `${siteBase}/reset-password.html`
-      });
-      if (error) throw error;
-      rpMsg.textContent = 'Reset link sent! Check your inbox.'; rpMsg.classList.add('success');
-    }catch(err){
-      rpMsg.textContent = err.message || 'Reset failed.'; rpMsg.classList.add('error');
-    }
-  });
-
-  // GOOGLE OAUTH
-  $('#btn-google')?.addEventListener('click', async ()=>{
-    if (!supa || !supa.auth){
-      siMsg.textContent = 'Auth indisponible.'; siMsg.classList.add('error'); return;
-    }
-    try{
-      const { error } = await supa.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${siteBase}/accueil.html` // ou `${siteBase}${location.pathname}?redirect=...`
-        }
-      });
-      if (error) throw error;
-    }catch(err){
-      siMsg.textContent = err.message || 'Google sign-in failed.'; siMsg.classList.add('error');
-    }
-  });
-
-  // Header: dropdown Buy
-  document.addEventListener('DOMContentLoaded', function () {
-    const buyDropdown = document.getElementById('buyDropdown');
-    const mainBuyBtn = document.getElementById('mainBuyBtn');
-    if (!buyDropdown || !mainBuyBtn) return;
+document.addEventListener('DOMContentLoaded', function () {
+  const buyDropdown = document.getElementById('buyDropdown');
+  const mainBuyBtn = document.getElementById('mainBuyBtn');
+  if (buyDropdown && mainBuyBtn){
     mainBuyBtn.addEventListener('click', function (e) {
       e.preventDefault();
       buyDropdown.classList.toggle('open');
     });
     document.addEventListener('click', function (e) {
-      if (!buyDropdown.contains(e.target)) {
-        buyDropdown.classList.remove('open');
+      if (!buyDropdown.contains(e.target)) buyDropdown.classList.remove('open');
+    });
+  }
+
+  const burger = document.getElementById('burgerMenu');
+  const nav = document.querySelector('.all-button');
+  if (burger && nav) {
+    burger.addEventListener('click', () => {
+      nav.classList.toggle('mobile-open');
+      document.body.style.overflow = nav.classList.contains('mobile-open') ? 'hidden' : '';
+      if (nav.classList.contains('mobile-open')) {
+        setTimeout(() => {
+          document.addEventListener('click', function closeOnce(e) {
+            if (!nav.contains(e.target) && !burger.contains(e.target)) {
+              nav.classList.remove('mobile-open');
+              document.body.style.overflow = '';
+            }
+          }, { once: true });
+        }, 0);
       }
     });
-  });
-
-})();
+  }
+});
