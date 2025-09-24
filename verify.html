@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>License Verification — PropInDubai</title>
+  <link rel="stylesheet" href="styles/verify.css" />
+  <script type="module" src="javascript/supabaseClient.js"></script>
+  <script type="module" src="javascript/verify.js" defer></script>
+</head>
+<body>
+  <main class="verify-container">
+    <a class="back-link" href="profile.html">← Back to profile</a>
+
+
+    <h1>License verification</h1>
+    <p id="plan-label" class="plan-label"></p>
+
+    <form id="verifyForm" class="verify-form" autocomplete="off">
+      <label>Agency
+        <input id="agency_name" name="agency_name" type="text" required />
+      </label>
+
+      <label>Emirate
+        <input id="emirate" name="emirate" type="text" placeholder="Dubai / Abu Dhabi" required />
+      </label>
+
+      <label>ORN
+        <input id="orn" name="orn" type="text" required />
+      </label>
+
+      <label>BRN (optional)
+        <input id="brn" name="brn" type="text" />
+      </label>
+
+      <label>Email
+        <input id="email" name="email" type="email" required />
+      </label>
+
+      <label>Phone
+        <input id="phone" name="phone" type="tel" required />
+      </label>
+
+      <label>License file (PDF / JPG / PNG)
+        <input id="license_file" name="license_file" type="file" accept=".pdf,.jpg,.jpeg,.png" required />
+      </label>
+
+      <input id="requested_plan" name="requested_plan" type="hidden" />
+
+      <button id="submitBtn" type="submit" class="btn-primary">Send request</button>
+    </form>
+
+    <p id="status" class="status" aria-live="polite"></p>
+  </main>
+</body>
+</html>
