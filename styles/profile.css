@@ -215,3 +215,195 @@ form input {
   font-weight: bold;
   color: #333;
 }
+
+
+
+
+/* Couleurs / identité */
+:root{
+  --pi-brand: #f17100;
+  --pi-brand-2: #d75e00;
+  --pi-text: #1a1a1a;
+  --pi-muted: #6b7280;
+  --pi-border: #e9e9e9;
+  --pi-soft: #f7f7f8;
+}
+
+/* -------- Avatar propre & visible -------- */
+.pic{
+  width: 96px; height: 96px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--pi-border);
+  background: var(--pi-soft);
+  display: grid; place-items: center;
+  position: relative;
+}
+.pic img{
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: none; /* par défaut */
+}
+/* Afficher l’image dès qu’un src utile est posé (blob:, http:, https:) */
+.pic img[src^="blob:"], 
+.pic img[src^="http"]{ display: block; }
+.pic-blank{ color:#9aa1a9; font-weight:700; }
+.pic img[src^="blob:"], .pic img[src^="http"] ~ .pic-blank{ display:none; }
+
+/* -------- Bouton d’upload custom -------- */
+.pi-file{
+  display: flex; align-items: center; gap: 12px;
+  flex-wrap: wrap;
+}
+.pi-file input[type="file"]{
+  /* on masque le vrai input, mais il reste accessible via <label for> */
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; clip-path: inset(50%);
+  border: 0; padding: 0; margin: -1px;
+}
+.pi-file-btn{
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  color: #fff;
+  background: var(--pi-brand);
+  border: 1px solid transparent;
+  box-shadow: 0 2px 0 rgba(0,0,0,.05);
+  transition: background .15s ease, transform .04s ease;
+}
+.pi-file-btn:hover{ background: var(--pi-brand-2); }
+.pi-file-btn:active{ transform: translateY(1px); }
+.pi-file-hint{ color: var(--pi-muted); font-size: 0.9rem; }
+
+/* -------- Inputs plus propres -------- */
+.pi-label{ font-weight: 800; color: var(--pi-text); }
+.pi-input, .pi-textarea{
+  border: 1px solid var(--pi-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  outline: none; background: #fff; color: var(--pi-text);
+  transition: border-color .15s, box-shadow .15s;
+}
+.pi-input:focus, .pi-textarea:focus{
+  border-color: var(--pi-brand);
+  box-shadow: 0 0 0 3px rgba(241,113,0,.12);
+}
+
+/* -------- Boutons d’action -------- */
+.pi-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+.pi-btn{ border-radius:12px; padding:12px 18px; font-weight:800; cursor:pointer; border:1px solid transparent; }
+.pi-btn-primary{ background: var(--pi-brand); color:#fff; }
+.pi-btn-primary:hover{ background: var(--pi-brand-2); }
+.pi-btn-ghost{ background:#fff; border-color: var(--pi-border); color:var(--pi-text); }
+
+/* Drag & Drop (si tu l’actives ici aussi) */
+.drop{ border:2px dashed var(--pi-border); border-radius:14px; padding:10px 12px; text-align:center; }
+.drop.dragover{ border-color: var(--pi-brand); background: rgba(241,113,0,.06); }
+.drop .linklike{ color: var(--pi-brand); text-decoration: underline; font-weight:700; background:none; border:0; cursor:pointer; }
+
+
+
+/* Bouton upload uniforme (avatar + logo) */
+input[type="file"] {
+  appearance: none;
+  border: none;
+  padding: 0;
+}
+input[type="file"]::file-selector-button {
+  background: #f17100;        /* brand */
+  color: #fff;
+  border: 1px solid #f17100;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-right: 10px;
+}
+input[type="file"]::file-selector-button:hover {
+  background: #d85e00;
+  border-color: #d85e00;
+}
+
+/* Textarea “About you / Agency” */
+#about, #agc_about {
+  width: 100%;
+  min-height: 84px;
+  border: 1px solid #e9e9e9;
+  border-radius: 12px;
+  padding: 12px 14px;
+  outline: none;
+  resize: vertical;
+}
+#about:focus, #agc_about:focus {
+  border-color: #f17100;
+  box-shadow: 0 0 0 3px rgba(241,113,0,.12);
+}
+
+/* Préviews */
+#avatarPreview {
+  width: 96px; height: 96px; border-radius: 999px;
+  object-fit: cover; display: none;
+}
+#logoPreview {
+  max-width: 140px; max-height: 88px; object-fit: contain; display: none;
+}
+
+
+/* Avatar & logo: ne jamais montrer l'img si pas de src ou si src vide */
+#avatarPreview,
+#logoPreview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* cache l'img si pas de src ou src vide (évite l'affichage de l'alt) */
+#avatarPreview:not([src]),
+#avatarPreview[src=""],
+#logoPreview:not([src]),
+#logoPreview[src=""] {
+  display: none;
+}
+
+/* boîtes visuelles (si pas déjà en place) */
+.avatar {
+  width: 96px; height: 96px; border-radius: 999px;
+  background: #f6f6f6; border: 1px solid #eee;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+
+.logo-box {
+  width: 140px; height: 88px; border-radius: 14px;
+  background: #f6f6f6; border: 1px solid #eee;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+
+/* petit alignement du bouton à côté du titre */
+.profile-photo .btn-orange,
+.agency-logo .btn-orange {
+  vertical-align: middle;
+}
+
+/* Avatar rond */
+.avatar-circle {
+  width: 96px; height: 96px; border-radius: 50%;
+  border: 1px solid #eee; background:#f5f5f5;
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+#avatarPreview {
+  width:100%; height:100%; object-fit:cover; display:block;
+}
+
+/* Logo rectangulaire */
+.logo-box {
+  width: 140px; height: 88px; border-radius:14px;
+  border: 1px solid #eee; background:#fafafa;
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+#logoPreview {
+  max-width:100%; max-height:100%; display:block; object-fit:contain;
+}
