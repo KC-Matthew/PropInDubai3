@@ -17,71 +17,156 @@
     </a>
   </div>
 
-  <main class="profile-container">
-    <h1>My Account</h1>
+<main class="profile-container">
+  <!-- Alerte (messages de succès/erreur) -->
+  <div id="psAlert" style="display:none;"></div>
 
-    <!-- Onglets -->
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="tab-info">Personal Information</button>
-      <button class="tab-btn" data-tab="tab-saved">Saved properties</button>
-      <button class="tab-btn" data-tab="tab-subscription">Subscription</button>
-      <button class="tab-btn" data-tab="tab-contacted">Contacted properties</button>
-    </div>
+  <h1>My Account</h1>
 
-    <!-- Subscription -->
-    <section id="tab-subscription" class="tab-content" style="display:none;">
-      <h2>Choose your subscription plan</h2>
-      <div class="subscription-plans">
-        <div class="plan-card" data-plan="basic">
-          <h3>Starter</h3>
-          <p>Up to 10 properties</p>
-          <p class="price">100€ / 400 AED</p>
-          <button class="btn-orange subscribe-btn">Choose Starter</button>
-        </div>
+  <!-- Onglets -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tab-info">My Profil</button>
+    <button class="tab-btn" data-tab="tab-saved">Saved properties</button>
+    <button class="tab-btn" data-tab="tab-subscription">Subscription</button>
+    <button class="tab-btn" data-tab="tab-contacted">Contacted properties</button>
+  </div>
 
-        <div class="plan-card" data-plan="pro">
-          <h3>Professional</h3>
-          <p>Up to 50 properties</p>
-          <p class="price">300€ / 1200 AED</p>
-          <button class="btn-orange subscribe-btn">Choose Pro</button>
-        </div>
-
-        <div class="plan-card" data-plan="unlimited">
-          <h3>Unlimited</h3>
-          <p>Unlimited properties</p>
-          <p class="price">500€ / 2000 AED</p>
-          <button class="btn-orange subscribe-btn">Choose Unlimited</button>
-        </div>
+  <!-- Onglet : Subscription -->
+  <section id="tab-subscription" class="tab-content" style="display:none;">
+    <h2>Choose your subscription plan</h2>
+    <div class="subscription-plans">
+      <div class="plan-card" data-plan="basic">
+        <h3>Starter</h3>
+        <p>Up to 10 properties</p>
+        <p class="price">100€ / 400 AED</p>
+        <button class="btn-orange subscribe-btn">Choose Starter</button>
       </div>
 
-      <div id="current-subscription" class="current-sub-box"></div>
-    </section>
+      <div class="plan-card" data-plan="pro">
+        <h3>Professional</h3>
+        <p>Up to 50 properties</p>
+        <p class="price">300€ / 1200 AED</p>
+        <button class="btn-orange subscribe-btn">Choose Pro</button>
+      </div>
 
-    <!-- Info -->
-    <section id="tab-info" class="tab-content active">
-      <h2>Information</h2>
-      <form id="profileForm">
+      <div class="plan-card" data-plan="unlimited">
+        <h3>Unlimited</h3>
+        <p>Unlimited properties</p>
+        <p class="price">500€ / 2000 AED</p>
+        <button class="btn-orange subscribe-btn">Choose Unlimited</button>
+      </div>
+    </div>
+
+    <div id="current-subscription" class="current-sub-box"></div>
+  </section>
+
+  <!-- Onglet : My Profil (Agent + Agency + Uploads) -->
+  <section id="tab-info" class="tab-content active">
+    <h2>Information</h2>
+
+    <!-- Agent -->
+    <form id="profileForm">
+      <!-- Photo de profil (optionnelle) -->
+    <!-- NOUVEAU (à coller) -->
+<div class="pic-row" style="display:flex;gap:16px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+  <div class="pic">
+    <img id="avatarPreview" alt="Profile picture preview">
+    <div class="pic-blank">PP</div>
+  </div>
+  <div class="pic-actions">
+    <div class="pi-label">Profile picture</div>
+
+    <div class="pi-file">
+      <!-- on garde ton ID existant -->
+      <input id="fileProfilePicture" type="file" accept="image/*">
+      <label for="fileProfilePicture" class="pi-file-btn">Choose an image</label>
+      <span class="pi-file-hint">JPG/PNG/WebP, jusqu’à 5 MB.</span>
+    </div>
+  </div>
+</div>
+
+
+      <div class="grid-two" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
         <label>Name
           <input type="text" id="firstName" placeholder="First name"/>
         </label>
         <label>Surname
           <input type="text" id="lastName" placeholder="Last name"/>
         </label>
+      </div>
 
-        <h2>Contact</h2>
+      <h2>Contact</h2>
+      <div class="grid-two" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
         <label>Email
           <input type="email" id="email" disabled/>
         </label>
+        <label>Phone
+          <input type="text" id="phone" placeholder="+971 ..."/>
+        </label>
+        <label>WhatsApp
+          <input type="text" id="whatsapp" placeholder="+971 ..."/>
+        </label>
+        <label>Nationality
+          <input type="text" id="nationality" placeholder="French"/>
+        </label>
+        <label>Languages
+          <input type="text" id="languages" placeholder="English, French, Arabic"/>
+        </label>
+      </div>
 
-        <button type="submit" class="save-btn">Save</button>
-      </form>
-      <button id="logoutBtn" class="logout-btn">Logout</button>
-    </section>
+      <label>About you
+        <textarea id="about" rows="3" placeholder="A short bio to introduce yourself."></textarea>
+      </label>
 
-    <!-- Saved properties -->
-    <section id="tab-saved" class="tab-content">
-      <p>No properties saved yet.</p>
-    </section>
+      <hr style="margin:20px 0; border:none; border-top:1px solid #eee;"/>
+
+      <!-- Agency -->
+      <h2>Agency</h2>
+
+      <!-- Logo (optionnel) -->
+      <div class="agency-logo" style="display:flex;gap:16px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+        <div style="width:140px;height:88px;border-radius:14px;overflow:hidden;background:#fafafa;border:1px solid #eee;display:flex;align-items:center;justify-content:center;">
+          <img id="logoPreview" alt="Agency logo preview" style="max-width:100%;max-height:100%;display:none;object-fit:contain;">
+        </div>
+        <div>
+          <label class="label" style="font-weight:700;">Agency logo</label><br/>
+          <input id="fileAgencyLogo" type="file" accept="image/*">
+          <small style="display:block;color:#777;">SVG/PNG/JPG/WebP, jusqu’à 3&nbsp;MB.</small>
+        </div>
+      </div>
+
+      <div class="grid-two" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
+        <label>Agency name
+          <input type="text" id="agc_name" placeholder="Your agency name"/>
+        </label>
+        <label>Address
+          <input type="text" id="agc_address" placeholder="Address"/>
+        </label>
+      </div>
+
+      <label>About the agency
+        <textarea id="agc_about" rows="3" placeholder="Short description of your agency."></textarea>
+      </label>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+        <button type="submit" class="save-btn btn-orange">Save</button>
+      </div>
+    </form>
+
+  
+  </section>
+
+  <!-- Onglet : Saved properties -->
+  <section id="tab-saved" class="tab-content" style="display:none;">
+    <p>No properties saved yet.</p>
+  </section>
+
+  <!-- Onglet : Contacted properties -->
+  <section id="tab-contacted" class="tab-content" style="display:none;">
+    <p>No properties contacted yet.</p>
+  </section>
+</main>
+
 
     <!-- Contacted properties -->
     <section id="tab-contacted" class="tab-content">
