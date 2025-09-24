@@ -9,8 +9,8 @@ const $$ = (s) => Array.from(document.querySelectorAll(s));
 const BUCKET = "profiles";            // Bucket public existant
 const supa   = window.supabase;
 
-let profilePictureUrl = null;         // agent.photo_agent_url
-let agencyLogoUrl     = null;         // agency.logo_url
+let profilePictureUrl = null;         // agent.photo_agent_url (string, nous stockons la 1ère URL)
+let agencyLogoUrl     = null;         // agency.logo_url (string, nous stockons la 1ère URL)
 const locked = { "agent-picture": false, "agency-logo": false };
 
 /* ============ UI ============ */
@@ -93,20 +93,27 @@ function fillAgent(a){
   $("#ag_languages").value   = a.languages || "";
   $("#ag_about").value       = a["about agent"] || "";
   $("#ag_superagent") && ($("#ag_superagent").checked = !!a.superagent);
-  if (a.photo_agent_url){
-    profilePictureUrl = a.photo_agent_url;
-    showAvatar(a.photo_agent_url);
+
+  // 🔧 Accepte string ou text[]
+  const avatar = Array.isArray(a.photo_agent_url) ? a.photo_agent_url[0] : a.photo_agent_url;
+  if (avatar){
+    profilePictureUrl = avatar;
+    showAvatar(avatar);
     lockDropzone("agent-picture", true);
   }
 }
+
 function fillAgency(ag){
   if (!ag) return;
   $("#agc_name").value    = ag.name_agency || "";
   $("#agc_address").value = ag.address || "";
-  $("#agc_about").value   = ag["about the agency"] || "";
-  if (ag.logo_url){
-    agencyLogoUrl = ag.logo_url;
-    showLogo(ag.logo_url);
+  $("#agc_about").value   = ag.about_the_agency || "";
+
+  // 🔧 Accepte string ou text[]
+  const logo = Array.isArray(ag.logo_url) ? ag.logo_url[0] : ag.logo_url;
+  if (logo){
+    agencyLogoUrl = logo;
+    showLogo(logo);
     lockDropzone("agency-logo", true);
   }
 }
@@ -295,12 +302,15 @@ async function removeImage(type){
 async function upsertAgency(vals, existingId, userId) {
   const payload = existingId ? { id: existingId } : {};
 
-  // ⚠️ UNIQUEMENT les colonnes qui existent
-  payload["name agency"]      = vals.name || null;
-  payload["about the agency"] = vals.about || null;
-  payload.logo_url            = vals.logo_url || null;
-  payload.address             = vals.address || null;
-  if (!existingId) payload.created_by = userId; // si RLS l’exige
+  // ✅ Noms EXACTS de la table `agency`
+  payload.name_agency        = vals.name || null;
+  payload.about_the_agency   = vals.about || null;
+
+  // 🔧 logo_url est text[] en DB → on envoie un array (ou null)
+  payload.logo_url           = vals.logo_url ? [vals.logo_url] : null;
+
+  payload.address            = vals.address || null;
+  if (!existingId) payload.created_by = userId;
 
   const q = supa.from("agency");
   const { data, error } = existingId
@@ -311,24 +321,25 @@ async function upsertAgency(vals, existingId, userId) {
   return data;
 }
 
-
 async function upsertAgent(vals, userId, existingId, agencyId){
   const payload = existingId ? { id: existingId } : {};
 
-  payload.name            = vals.name;
-  payload.email           = vals.email;
-  payload.phone           = vals.phone;
-  payload.whatsapp        = vals.whatsapp || null;
-  payload.photo_agent_url = vals.photo_agent_url || null;
+  payload.name       = vals.name;
+  payload.email      = vals.email;
+  payload.phone      = vals.phone;
+  payload.whatsapp   = vals.whatsapp || null;
 
-  // ⚠️ colonne avec espace
-  payload["about agent"]  = vals.about || null;
+  // 🔧 photo_agent_url est text[] en DB → on envoie un array (ou null)
+  payload.photo_agent_url = vals.photo_agent_url ? [vals.photo_agent_url] : null;
 
-  payload.nationality     = vals.nationality || null;
-  payload.languages       = vals.languages || null;
-  payload.superagent      = !!vals.superagent;
-  payload.user_id         = userId;
-  payload.agency_id       = agencyId;
+  // ⚠️ colonne avec espace (existe ainsi dans ta table)
+  payload["about agent"] = vals.about || null;
+
+  payload.nationality = vals.nationality || null;
+  payload.languages   = vals.languages || null;
+  payload.superagent  = !!vals.superagent;
+  payload.user_id     = userId;
+  payload.agency_id   = agencyId;
 
   const q = supa.from("agent");
   const { data, error } = existingId
@@ -338,7 +349,6 @@ async function upsertAgent(vals, userId, existingId, agencyId){
   if (error) throw error;
   return data;
 }
-
 
 /* ============ Boot ============ */
 (async ()=>{
