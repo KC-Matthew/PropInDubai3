@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Request Submitted - PropInDubai</title>
+  <link rel="stylesheet" href="styles/verify_submitted.css" />
+  <script type="module" src="javascript/supabaseClient.js"></script>
+  <script src="javascript/verify_submitted.js" defer></script>
+</head>
+<body>
+  <main class="container">
+    <div class="card">
+      <div class="check-wrap" id="checkIcon">
+        <!-- big check -->
+        <svg width="120" height="120" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="11" fill="#fff" stroke="#ff7a00" stroke-width="1.2"/>
+          <path d="M6.5 12.5 L10 16 L17.5 7.5" fill="none" stroke="#ff7a00" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <h1 id="title">Submission received</h1>
+      <p id="subtitle">Thanks — your license verification request has been submitted. Our PropInDubai team is reviewing it.</p>
+
+      <div class="status-box">
+        <strong>Application status:</strong>
+        <div id="appStatus" class="status pending">Pending</div>
+        <div id="appDetails"></div>
+      </div>
+
+      <div class="actions">
+        <button id="refreshBtn" class="btn">Refresh status</button>
+        <a href="/profile.html" class="btn-outline">Back to profile</a>
+      </div>
+
+      <div id="debug" class="debug"></div>
+    </div>
+  </main>
+</body>
+</html>
