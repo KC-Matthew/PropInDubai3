@@ -1,182 +1,167 @@
-// verify.debug.js — improved: sanitize filename, better logs, robust upload + insert
-// Load this file instead of verify.js while debugging
-
+// javascript/verify.js — saves to `agent` (+ creates/links `agency` if provided)
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("[verify.debug] DOM loaded");
+  const sb = window.supabase;
+
+  // ---- plan depuis l'URL
   const params = new URLSearchParams(window.location.search);
-  const plan = params.get('plan') || 'starter';
-  const planLabel = document.getElementById('plan-label');
-  if (planLabel) planLabel.textContent = `Requested plan: ${plan}`;
-  const requestedPlanInput = document.getElementById('requested_plan');
-  if (requestedPlanInput) requestedPlanInput.value = plan;
+  const plan = params.get("plan") || "starter";
+  document.getElementById("plan-label")?.replaceChildren(
+    document.createTextNode(`Requested plan: ${plan}`)
+  );
+  const hiddenPlan = document.getElementById("requested_plan");
+  if (hiddenPlan) hiddenPlan.value = plan;
 
-  const status = document.getElementById('status');
-  function showError(msg){
-    console.error("[verify.debug] ", msg);
-    if (status) status.textContent = "Error: " + msg;
-  }
+  const form      = document.getElementById("verifyForm");
+  const statusEl  = document.getElementById("status");
+  const submitBtn = document.getElementById("submitBtn");
 
-  // sanitize filename: remove accents, replace unsafe chars by underscore, keep extension
+  const setErr = (msg) => { console.error("[verify]", msg); if (statusEl) statusEl.textContent = "Error: " + msg; };
+  const setOk  = (msg) => { console.log("[verify]", msg);  if (statusEl) statusEl.textContent = msg; };
+
+  // ---------- helpers ----------
   function sanitizeFilename(filename, maxLen = 200) {
-    try {
-      const normalized = filename.normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
-      const cleaned = normalized.replace(/[^A-Za-z0-9._-]/g, '_');
-      const safeStart = cleaned.replace(/^[._-]+/, '');
-      const lastDot = safeStart.lastIndexOf('.');
-      if (lastDot > 0 && safeStart.length > maxLen) {
-        const ext = safeStart.slice(lastDot);
-        const namePart = safeStart.slice(0, lastDot).slice(0, maxLen - ext.length);
-        return (namePart || 'file') + ext;
+    try{
+      const normalized = filename.normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+      const cleaned    = normalized.replace(/[^A-Za-z0-9._-]/g, "_").replace(/^[._-]+/, "");
+      const lastDot    = cleaned.lastIndexOf(".");
+      if (lastDot > 0 && cleaned.length > maxLen){
+        const ext  = cleaned.slice(lastDot);
+        const name = cleaned.slice(0, lastDot).slice(0, maxLen - ext.length);
+        return (name || "file") + ext;
       }
-      return safeStart.slice(0, maxLen) || 'file';
-    } catch (e) {
-      // fallback
-      return filename.replace(/\s+/g, '_').replace(/[^A-Za-z0-9._-]/g, '_').slice(0, maxLen) || 'file';
+      return cleaned.slice(0, maxLen) || "file";
+    }catch{ return (filename || "file").replace(/\s+/g, "_").slice(0, maxLen); }
+  }
+
+  async function uploadToDocs(file){
+    const safe = sanitizeFilename(file?.name || "upload.bin", 200);
+    const path = `licenses/${crypto.randomUUID()}-${safe}`;
+    const { data, error } = await sb.storage.from("docs").upload(path, file);
+    if (error) throw error;
+
+    try{
+      const { data: pub } = sb.storage.from("docs").getPublicUrl(data.path);
+      return pub?.publicUrl || data.path;
+    }catch{
+      return data.path;
     }
   }
 
-  // wrapper to upload and return path
-  async function uploadFileToDocs(file) {
-    const originalName = file.name || 'upload.bin';
-    const safeName = sanitizeFilename(originalName, 200);
-    const path = `licenses/${crypto.randomUUID()}-${safeName}`;
-    console.debug("[verify.debug] Uploading to path:", path);
-
-    const { data: uploadData, error: uploadError } = await window.supabase
-      .storage
-      .from('docs')
-      .upload(path, file);
-
-    console.debug("[verify.debug] upload result:", { uploadData, uploadError });
-    if (uploadError) {
-      // throw full error object so caller can inspect
-      throw uploadError;
-    }
-    return { path: uploadData?.path ?? path };
+  async function getExistingAgent(userId){
+    const { data } = await sb.from("agent").select("*").eq("user_id", userId).maybeSingle();
+    return data || null;
   }
 
-  // Print current auth user for debugging (on load)
-  try {
-    const userRes = await window.supabase.auth.getUser();
-    console.log("[verify.debug] getUser() =>", userRes);
-    console.log("[verify.debug] current user id:", userRes?.data?.user?.id);
-  } catch (e) {
-    console.warn("[verify.debug] getUser() failed", e);
+  async function upsertAgencyIfNeeded({ userId, agencyName }){
+    if (!agencyName) return null;
+
+    // cherche une agence existante (même créateur + même nom)
+    const { data: existing } = await sb
+      .from("agency")
+      .select("id")
+      .eq("created_by", userId)
+      .eq("name_agency", agencyName)
+      .maybeSingle();
+
+    if (existing?.id) return existing.id;
+
+    // sinon crée une agence minimaliste
+    const { data: ins, error: insErr } = await sb
+      .from("agency")
+      .insert({ created_by: userId, name_agency: agencyName })
+      .select("id")
+      .single();
+    if (insErr) throw insErr;
+    return ins.id;
   }
 
-  const form = document.getElementById('verifyForm');
-  const submitBtn = document.getElementById('submitBtn');
-  if (!form) {
-    console.warn("[verify.debug] verifyForm not found in DOM");
-    return;
-  }
-
-  form.addEventListener('submit', async (e) => {
+  form?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (status) status.textContent = '';
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending…'; }
+    if (statusEl) statusEl.textContent = "";
+    submitBtn.disabled = true; submitBtn.textContent = "Sending…";
 
-    try {
-      // ensure user is authenticated
-      const { data: { user }, error: userErr } = await window.supabase.auth.getUser();
-      console.log("[verify.debug] auth.getUser response:", { user, userErr });
-      if (userErr) {
-        showError("auth.getUser error: " + (userErr.message || userErr));
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Send request'; }
-        return;
-      }
-      if (!user) {
-        showError("Not logged in. Please sign in first.");
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Send request'; }
-        return;
-      }
-      console.log("[verify.debug] user.id =", user.id);
+    try{
+      // 0) Auth
+      const { data: { user }, error: authErr } = await sb.auth.getUser();
+      if (authErr || !user){ setErr("You must be logged in."); submitBtn.disabled=false; submitBtn.textContent="Send request"; return; }
 
-      // collect form values
-      const agency_name = (document.getElementById('agency_name')?.value || '').trim();
-      const emirate = (document.getElementById('emirate')?.value || '').trim();
-      const orn = (document.getElementById('orn')?.value || '').trim();
-      const brn = (document.getElementById('brn')?.value || '').trim();
-      const email = (document.getElementById('email')?.value || '').trim();
-      const phone = (document.getElementById('phone')?.value || '').trim();
-      const fileInput = document.getElementById('license_file');
-      const file = fileInput?.files?.[0];
+      // 1) Lire le formulaire
+      const agency_name = (document.getElementById("agency_name")?.value || "").trim();
+      const emirate     = (document.getElementById("emirate")?.value || "").trim();
+      const orn         = (document.getElementById("orn")?.value || "").trim();
+      const brn         = (document.getElementById("brn")?.value || "").trim();
+      const email       = (document.getElementById("email")?.value || "").trim();
+      const phone       = (document.getElementById("phone")?.value || "").trim();
+      const file        = document.getElementById("license_file")?.files?.[0];
 
-      if (!agency_name || !emirate || !orn || !email || !file) {
-        showError('Please fill required fields and attach a license file.');
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Send request'; }
-        return;
+      if (!emirate || !orn || !email || !phone || !file){
+        setErr("Please fill required fields and attach a license file.");
+        submitBtn.disabled=false; submitBtn.textContent="Send request"; return;
       }
 
-      // 1) upload file (sanitizes name)
-      let uploadResp;
-      try {
-        uploadResp = await uploadFileToDocs(file);
-        console.log("[verify.debug] uploaded path:", uploadResp.path);
-      } catch (uplErr) {
-        // Storage API error (400/403/...)
-        console.error("[verify.debug] Upload failed:", uplErr);
-        showError("Upload failed: " + (uplErr?.message || JSON.stringify(uplErr)));
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Send request'; }
-        return;
+      // 2) Upload
+      let licence_file_url;
+      try{
+        licence_file_url = await uploadToDocs(file);
+      }catch(err){
+        setErr("Upload failed: " + (err?.message || JSON.stringify(err)));
+        submitBtn.disabled=false; submitBtn.textContent="Send request"; return;
       }
 
-      // 2) try get public URL (if bucket public)
-      let publicUrl = null;
-      try {
-        const pub = window.supabase.storage.from('docs').getPublicUrl(uploadResp.path);
-        publicUrl = pub?.data?.publicUrl ?? null;
-      } catch (e) {
-        console.warn("[verify.debug] getPublicUrl error", e);
-      }
-      console.log("[verify.debug] publicUrl:", publicUrl);
+      // 3) Valeurs par défaut pour colonnes NOT NULL d'`agent`
+      const existing = await getExistingAgent(user.id);
+      const safeName      = (existing?.name && existing.name.trim()) || (email.split("@")[0] || "Agent");
+      const aboutFallback = (existing?.["about agent"] && String(existing["about agent"]).trim()) || "-";
+      const languagesDef  = (existing?.languages && String(existing.languages).trim()) || "-";
+      const superagentDef = (typeof existing?.superagent === "boolean") ? existing.superagent : false;
 
-      // 3) prepare record and insert
-      const id = crypto.randomUUID();
-      const record = {
-        id,
-        user_id: user.id,            // NOTE: ensure your RLS compares user_id = auth.uid()::text if user_id is text
-        agency_name,
+      // 4) Créer/relier une agency si nom fourni
+      let agencyId = existing?.agency_id || null;
+      if (agency_name){
+        try{ agencyId = await upsertAgencyIfNeeded({ userId: user.id, agencyName: agency_name }); }
+        catch(e){ console.warn("[verify] agency upsert failed:", e); }
+      }
+
+      // 5) Upsert dans `agent` (clé = user_id)
+      const payload = {
+        user_id: user.id,                // uuid
+        name: safeName,                  // NOT NULL
+        email,
+        phone,
         emirate,
         orn,
         brn: brn || null,
-        email,
-        phone,
-        license_file_url: publicUrl || uploadResp.path,
+        licence_file_url,                // orthographe de ta colonne
         requested_plan: plan,
-        status: 'pending',
+        status: "pending",
         approved: false,
         paid: false,
-        created_at: new Date().toISOString()
+        ["about agent"]: aboutFallback,  // NOT NULL
+        languages: languagesDef,         // NOT NULL (si défini ainsi dans ton schéma)
+        superagent: superagentDef        // NOT NULL (si défini ainsi)
       };
-      console.log("[verify.debug] record to insert:", record);
+      if (agencyId) payload.agency_id = agencyId;
 
-      const insertResp = await window.supabase
-        .from('license_applications')
-        .insert([record])
-        .select()
+      const { data: row, error: upErr } = await sb
+        .from("agent")
+        .upsert(payload, { onConflict: "user_id" })
+        .select("id")
         .single();
 
-      console.log("[verify.debug] insertResp:", insertResp);
-      if (insertResp.error) {
-        showError("Insert error: " + (insertResp.error.message || JSON.stringify(insertResp.error)));
-        console.error("[verify.debug] full insertResp.error:", insertResp.error);
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Send request'; }
-        return;
+      if (upErr){
+        setErr("Insert/Update error: " + (upErr.message || JSON.stringify(upErr)));
+        submitBtn.disabled=false; submitBtn.textContent="Send request"; return;
       }
 
-      // success
-      if (status) status.textContent = 'Request sent — we will verify your license and email you.';
-      console.log("[verify.debug] insert success:", insertResp.data);
-      // après insert success (insertResp.data contient la row insérée)
-        const insertedId = insertResp.data?.id ?? record.id;
-        window.location.href = `/verify_submitted.html?id=${encodeURIComponent(insertedId)}`;
+      // 6) OK → redirection de suivi (tu peux laisser ta page telle quelle)
+      setOk("Request sent — we will verify your license.");
+      const agentId = row?.id;
+      window.location.href = `/verify_submitted.html?table=agent&id=${encodeURIComponent(agentId)}`;
 
-
-    } catch (err) {
-      console.error("[verify.debug] unexpected error:", err);
-      showError("Unexpected: " + (err?.message || String(err)));
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Send request'; }
+    }catch(err){
+      setErr("Unexpected: " + (err?.message || String(err)));
+    }finally{
+      submitBtn.disabled = false; submitBtn.textContent = "Send request";
     }
   });
 });
