@@ -130,3 +130,4 @@ document.addEventListener('DOMContentLoaded', () => {
     try { window.supabase.removeChannel(channel); } catch {}
   });
 });
+
