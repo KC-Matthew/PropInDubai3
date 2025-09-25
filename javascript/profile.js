@@ -14,7 +14,28 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("profileForm")?.addEventListener("submit", (e)=>{e.preventDefault(); onSaveProfile();});
 });
 
+document.getElementById("chooseLogoBtn")?.addEventListener("click", () =>
+  document.getElementById("fileAgencyLogo")?.click()
+);
+
+
 /* ============================ Utils ============================ */
+function setSavingState(isSaving){
+  const btn = document.querySelector(".save-btn");
+  if (!btn) return;
+  if (isSaving){
+    btn.disabled = true;
+    btn.dataset.originalText = btn.textContent;
+    btn.textContent = "Saving…";
+  }else{
+    btn.disabled = false;
+    if (btn.dataset.originalText) btn.textContent = btn.dataset.originalText;
+  }
+}
+
+
+
+
 const $ = (s) => document.querySelector(s);
 function flash(msg, ok=false){
   const el = document.getElementById("psAlert");
@@ -27,11 +48,75 @@ function flash(msg, ok=false){
   setTimeout(()=> el.style.display="none", 2800);
 }
 function cacheBust(u){ if(!u || u.startsWith("blob:")) return u; return `${u}${u.includes("?")?"&":"?"}v=${Date.now()}`; }
-function showPreview(sel, url){ const img=$(sel); if(!img||!url) return; img.onload=()=>img.style.display="block"; img.onerror=()=>{}; img.src=cacheBust(url); }
+
+function showPreview(sel, url){
+  const img = document.querySelector(sel);
+  if (!img || !url) return;
+  const safe = cacheBust(url);
+  img.onload = () => { img.style.display = "block"; };
+  img.onerror = () => {};
+  img.src = safe;
+}
+
+
+
+
 function pickExt(m){ if(!m) return "jpg"; if(m.includes("png")) return "png"; if(m.includes("webp")) return "webp"; if(m.includes("svg")) return "svg"; if(m.includes("jpeg")) return "jpg"; return "jpg"; }
-// helpers array<->string pour colonnes text[]
-const firstUrl = (v) => Array.isArray(v) ? (v[0] || null) : (v || null);
-const toPgTextArray = (u) => (u ? [u] : null);
+function firstUrl(v){ return Array.isArray(v) ? (v[0] || null) : (v || null); }
+function toPgTextArray(u){ return u ? [cleanUrl(u)] : null; }
+
+
+
+// Remove surrounding quotes/spaces and normalize the URL
+function cleanUrl(u){
+  if (!u) return u;
+  const s = String(Array.isArray(u) ? u[0] : u).trim();
+  return s.replace(/^['"]+|['"]+$/g, "");
+}
+
+
+function cacheBust(u){
+  const v = cleanUrl(u);
+  if (!v || v.startsWith("blob:") || v.startsWith("data:")) return v;
+  return `${v}${v.includes("?") ? "&" : "?"}v=${Date.now()}`;
+}
+
+
+
+
+
+
+// Fallback preview setters if your HTML uses other IDs
+function showLogoPreview(url){
+  const el = document.querySelector("#logoPreview, #agencyLogoPreview, [data-preview='agency-logo'] img");
+  if (!el || !url) return;
+  el.onload = () => el.style.display = "block";
+  el.src = cacheBust(url);
+}
+function showAvatarPreview(url){
+  const el = document.querySelector("#avatarPreview, #profileAvatarPreview, [data-preview='avatar'] img");
+  if (!el || !url) return;
+  el.onload = () => el.style.display = "block";
+  el.src = cacheBust(url);
+}
+
+
+// Local preview that works on Safari/Chrome/Firefox
+function showLocalPreview(file, selector){
+  return new Promise((resolve) => {
+    const img = document.querySelector(selector);
+    if (!img || !file) return resolve(false);
+    const r = new FileReader();
+    r.onload = () => { img.onload = () => { img.style.display = "block"; resolve(true); }; img.src = r.result; };
+    r.onerror = () => resolve(false);
+    r.readAsDataURL(file);
+  });
+}
+
+
+
+
+
 
 /* ============================ Tabs ============================ */
 function initTabs(){
@@ -73,26 +158,44 @@ async function loadEverything(){
 }
 
 function fillAgent(a){
-  $("#firstName").value = ""; $("#lastName").value  = "";
-  if (a?.name){ const p=String(a.name).trim().split(" "); $("#firstName").value=p.shift()||""; $("#lastName").value=p.join(" ")||""; }
-  $("#phone").value       = a?.phone || "";
-  $("#whatsapp").value    = a?.whatsapp ?? "";
-  $("#nationality").value = a?.nationality || "";
-  $("#languages").value   = a?.languages || "";
-  $("#about").value       = a?.["about agent"] ?? "";
+  document.querySelector("#firstName").value = "";
+  document.querySelector("#lastName").value  = "";
+  if (a?.name){
+    const p = String(a.name).trim().split(" ");
+    document.querySelector("#firstName").value = p.shift() || "";
+    document.querySelector("#lastName").value  = p.join(" ");
+  }
+  document.querySelector("#phone").value       = a?.phone || "";
+  document.querySelector("#whatsapp").value    = a?.whatsapp ?? "";
+  document.querySelector("#nationality").value = a?.nationality || "";
+  document.querySelector("#languages").value   = a?.languages || "";
+  document.querySelector("#about").value       = a?.["about agent"] ?? "";
 
-  avatarUrl = firstUrl(a?.photo_agent_url);
+  avatarUrl = cleanUrl(firstUrl(a?.photo_agent_url));
   if (avatarUrl) showPreview("#avatarPreview", avatarUrl);
 }
 
-function fillAgency(ag){
-  $("#agc_name").value    = ag?.name_agency ?? "";
-  $("#agc_address").value = ag?.address ?? "";
-  $("#agc_about").value   = ag?.about_the_agency ?? "";
 
-  logoUrl = firstUrl(ag?.logo_url);
-  if (logoUrl) showPreview("#logoPreview", logoUrl);
+function fillAgency(ag){
+  document.querySelector("#agc_name").value    = ag?.name_agency ?? "";
+  document.querySelector("#agc_address").value = ag?.address ?? "";
+  document.querySelector("#agc_about").value   = ag?.about_the_agency ?? "";
+
+  // agency.logo_url est un text[] (recommandé). On prend le 1er, nettoyé.
+  logoUrl = ag?.logo_url ? cleanUrl(Array.isArray(ag.logo_url) ? ag.logo_url[0] : ag.logo_url) : null;
+
+  if (logoUrl) {
+    // affiche immédiatement et évite le cache
+    showPreview("#logoPreview", logoUrl);
+  } else {
+    // cache l'image si pas d'URL pour éviter le texte alt
+    const img = document.querySelector("#logoPreview");
+    if (img) img.style.display = "none";
+  }
 }
+
+
+
 
 /* ============================ Storage (1 seule image) ============================ */
 async function cleanupOtherExts(folder, base, keepName){
@@ -104,12 +207,13 @@ async function cleanupOtherExts(folder, base, keepName){
 }
 
 async function uploadToProfiles(file, kind){
-  const { data: s } = await supa.auth.getSession();
+  const { data: s, error: sessErr } = await supa.auth.getSession();
+  if (sessErr) throw sessErr;
   const uid = s?.session?.user?.id;
   if (!uid) throw new Error("Not authenticated");
 
   const max = (kind === "agency") ? 3*1024*1024 : 5*1024*1024;
-  if (!file.type.startsWith("image/")) throw new Error("Invalid file");
+  if (!file?.type?.startsWith("image/")) throw new Error("Invalid file");
   if (file.size > max) throw new Error("File too large");
 
   const folder = (kind === "agency") ? `agencies/${uid}` : `agents/${uid}`;
@@ -118,16 +222,21 @@ async function uploadToProfiles(file, kind){
   const filename = `${base}.${ext}`;
   const path   = `${folder}/${filename}`;
 
-  const { error: upErr } = await supa.storage.from(BUCKET).upload(path, file, {
+  const { data: upData, error: upErr } = await supa.storage.from(BUCKET).upload(path, file, {
     upsert: true, contentType: file.type || "image/jpeg", cacheControl: "0"
   });
-  if (upErr) throw upErr;
+  if (upErr) { console.error("upload error:", upErr); throw upErr; }
 
-  await cleanupOtherExts(folder, base, filename);
+  // nettoie les autres extensions
+  const { data: files } = await supa.storage.from(BUCKET).list(folder, { limit: 100 });
+  const toDel = (files||[]).filter(f => f.name.startsWith(base + ".") && f.name !== filename).map(f => `${folder}/${f.name}`);
+  if (toDel.length) await supa.storage.from(BUCKET).remove(toDel).catch(()=>{});
 
   const { data: pub } = await supa.storage.from(BUCKET).getPublicUrl(path);
   return pub?.publicUrl ?? null;
 }
+
+
 
 async function findExistingIn(folder, base){
   const { data: files } = await supa.storage.from(BUCKET).list(folder, { limit: 50 });
@@ -140,94 +249,225 @@ async function findExistingIn(folder, base){
 
 async function hydratePreviewsFromStorageIfMissing(){
   const uid = gUser?.id; if (!uid) return;
-  if (!avatarUrl){ const u=await findExistingIn(`agents/${uid}`, "profile-picture"); if(u){ avatarUrl=u; showPreview("#avatarPreview", u);} }
-  if (!logoUrl){ const u=await findExistingIn(`agencies/${uid}`, "logo"); if(u){ logoUrl=u; showPreview("#logoPreview", u);} }
+
+  if (!avatarUrl){
+    const { data: filesA } = await supa.storage.from(BUCKET).list(`agents/${uid}`, { limit: 50 });
+    const exts = ["jpg","jpeg","png","webp","svg"];
+    const fA = filesA?.find(x => exts.some(e => x.name.toLowerCase() === `profile-picture.${e}`));
+    if (fA){
+      const { data: pub } = await supa.storage.from(BUCKET).getPublicUrl(`agents/${uid}/${fA.name}`);
+      avatarUrl = cleanUrl(pub?.publicUrl);
+      if (avatarUrl) showPreview("#avatarPreview", avatarUrl);
+    }
+  }
+
+  if (!logoUrl){
+    const { data: filesL } = await supa.storage.from(BUCKET).list(`agencies/${uid}`, { limit: 50 });
+    const exts = ["jpg","jpeg","png","webp","svg"];
+    const fL = filesL?.find(x => exts.some(e => x.name.toLowerCase() === `logo.${e}`));
+    if (fL){
+      const { data: pub } = await supa.storage.from(BUCKET).getPublicUrl(`agencies/${uid}/${fL.name}`);
+      logoUrl = cleanUrl(pub?.publicUrl);
+      if (logoUrl) showPreview("#logoPreview", logoUrl);
+    }
+  }
 }
 
-/* ============================ File inputs ============================ */
+
+
+async function getOrCreateAgency(){
+  // si on a déjà gAgency, on le renvoie tel quel
+  if (gAgency?.id) return gAgency;
+
+  // sinon, on regarde si l'agent a une agency_id
+  if (gAgent?.agency_id){
+    const { data: ag } = await supa.from("agency").select("*").eq("id", gAgent.agency_id).maybeSingle();
+    if (ag) { gAgency = ag; return gAgency; }
+  }
+
+  // sinon, on crée une agence minimaliste (nom/adresse null ok)
+  const { data: s } = await supa.auth.getSession();
+  const uid = s?.session?.user?.id;
+  if (!uid) throw new Error("Not authenticated");
+
+  const { data: agIns, error: agErr } = await supa
+    .from("agency")
+    .insert({ created_by: uid })
+    .select()
+    .single();
+
+  if (agErr) throw agErr;
+  gAgency = agIns;
+
+  // si l'agent existe, on l'attache à cette agence
+  if (gAgent?.id) {
+    await supa.from("agent").update({ agency_id: gAgency.id }).eq("id", gAgent.id);
+    gAgent.agency_id = gAgency.id;
+  }
+
+  return gAgency;
+}
+
+
+async function saveLogoAfterUpload(newUrl){
+  // newUrl = URL publique retournée par uploadToProfiles
+  if (!newUrl) return false;
+  const url = cleanUrl(newUrl);
+
+  const ag = await getOrCreateAgency();   // garantit une agence
+  const payload = { logo_url: toPgTextArray(url) }; // text[]
+
+  const { data: agUpd, error } = await supa
+    .from("agency")
+    .update(payload)
+    .eq("id", ag.id)
+    .select()
+    .single();
+
+  if (error) { console.error("saveLogoAfterUpload error:", error); return false; }
+
+  gAgency = agUpd;           // garde l'état à jour
+  logoUrl = url;             // garde l'URL en mémoire
+  return true;
+}
+
+
 function wireFileInputs(){
   const avatarInput = document.getElementById("fileProfilePicture");
   const logoInput   = document.getElementById("fileAgencyLogo");
 
+  document.getElementById("chooseLogoBtn")?.addEventListener("click", () => logoInput?.click());
+
+  // --- Avatar ---
   avatarInput?.addEventListener("change", async () => {
     const f = avatarInput.files?.[0]; if (!f) return;
-    const local = URL.createObjectURL(f); showPreview("#avatarPreview", local);
-    try{ avatarUrl = await uploadToProfiles(f, "agent"); showPreview("#avatarPreview", avatarUrl); flash("Avatar uploadé.", true);}
-    catch(e){ console.error(e); flash("Upload avatar échoué."); }
-    finally{ try{ URL.revokeObjectURL(local);}catch{} }
+
+    // 1) aperçu immédiat
+    await showLocalPreview(f, "#avatarPreview");
+
+    // 2) upload storage
+    try{
+      const url = await uploadToProfiles(f, "agent");
+      if (url){
+        avatarUrl = cleanUrl(url);
+        showPreview("#avatarPreview", avatarUrl); // bust cache
+        flash("Profile picture uploaded.", true);
+      }else{
+        flash("Could not get public URL for avatar.");
+      }
+    }catch(e){
+      console.error(e);
+      flash("Profile picture upload failed.");
+    }
   });
 
+  // --- Agency logo ---
   logoInput?.addEventListener("change", async () => {
     const f = logoInput.files?.[0]; if (!f) return;
-    const local = URL.createObjectURL(f); showPreview("#logoPreview", local);
-    try{ logoUrl = await uploadToProfiles(f, "agency"); showPreview("#logoPreview", logoUrl); flash("Logo uploadé.", true);}
-    catch(e){ console.error(e); flash("Upload logo échoué."); }
-    finally{ try{ URL.revokeObjectURL(local);}catch{} }
+
+    // 1) aperçu immédiat (évite la sensation 'il faut 2 fois')
+    await showLocalPreview(f, "#logoPreview");
+
+    try{
+      // 2) upload storage
+      const url = await uploadToProfiles(f, "agency");
+      if (!url) { flash("Could not get public URL for logo."); return; }
+
+      // 3) met à jour l'aperçu avec l’URL publique
+      logoUrl = cleanUrl(url);
+      showPreview("#logoPreview", logoUrl);
+
+      // 4) sauvegarde IMMÉDIATE en DB (clé: ça persiste au reload)
+      const ok = await saveLogoAfterUpload(logoUrl);
+      if (ok) flash("Logo uploaded & saved.", true);
+      else    flash("Logo uploaded but DB save failed.");
+
+    }catch(e){
+      console.error("upload logo error:", e);
+      flash("Logo upload failed.");
+    }
   });
 }
 
+
+
+
 /* ============================ SAVE (UI -> DB) ============================ */
 async function onSaveProfile(){
+  setSavingState(true);
   try{
     const { data: s } = await supa.auth.getSession();
     const uid = s?.session?.user?.id;
-    if (!uid) { flash("Not authenticated"); return; }
+    if (!uid) { flash("Not authenticated"); setSavingState(false); return; }
 
-    // 1) AGENCY (snake_case exact)
+    // ----- AGENCY -----
     let agencyId = gAgency?.id || null;
     const agencyVals = {
-      name_agency:      $("#agc_name").value.trim() || null,
-      address:          $("#agc_address").value.trim() || null,
-      about_the_agency: $("#agc_about").value.trim() || null,
-      logo_url:         toPgTextArray(logoUrl),  // <- text[]
+      name_agency:      document.querySelector("#agc_name").value.trim() || null,
+      address:          document.querySelector("#agc_address").value.trim() || null,
+      about_the_agency: document.querySelector("#agc_about").value.trim() || null,
+      logo_url:         toPgTextArray(logoUrl),
       created_by:       uid
     };
+    const hasAgencyData =
+      agencyVals.name_agency || agencyVals.address || agencyVals.about_the_agency || firstUrl(agencyVals.logo_url);
 
-    const hasAgencyData = agencyVals.name_agency || agencyVals.address || agencyVals.about_the_agency || firstUrl(agencyVals.logo_url);
     if (agencyId){
-      const { data: agUpd, error: agErr } = await supa.from("agency").update(agencyVals).eq("id", agencyId).select().single();
+      const { data: agUpd, error: agErr } =
+        await supa.from("agency").update(agencyVals).eq("id", agencyId).select().single();
       if (agErr) throw agErr;
       gAgency = agUpd;
     } else if (hasAgencyData){
-      const { data: agIns, error: agInsErr } = await supa.from("agency").insert(agencyVals).select().single();
+      const { data: agIns, error: agInsErr } =
+        await supa.from("agency").insert(agencyVals).select().single();
       if (agInsErr) throw agInsErr;
       gAgency = agIns; agencyId = gAgency.id;
     }
 
-    // 2) AGENT (with "about agent")
-    const fullName = [$("#firstName").value.trim(), $("#lastName").value.trim()].filter(Boolean).join(" ");
+    // ----- AGENT -----
+    const fullName = [document.querySelector("#firstName").value.trim(), document.querySelector("#lastName").value.trim()]
+      .filter(Boolean).join(" ");
+
     const agentVals = {
       user_id: uid,
       name: fullName || null,
-      email: $("#email").value.trim() || null,
-      phone: $("#phone").value.trim() || null,
-      whatsapp: ($("#whatsapp").value ?? "").trim(),
-      nationality: $("#nationality").value.trim() || null,
-      languages: $("#languages").value.trim() || null,
-      ["about agent"]: $("#about").value.trim() || null,
-      photo_agent_url: toPgTextArray(avatarUrl), // <- text[]
+      email: document.querySelector("#email").value.trim() || null,
+      phone: document.querySelector("#phone").value.trim() || null,
+      whatsapp: (document.querySelector("#whatsapp").value ?? "").trim(),
+      nationality: document.querySelector("#nationality").value.trim() || null,
+      languages: document.querySelector("#languages").value.trim() || null,
+      ["about agent"]: document.querySelector("#about").value.trim() || null,
+      photo_agent_url: toPgTextArray(avatarUrl),
       superagent: false,
       agency_id: agencyId || null
     };
 
     const { data: exists } = await supa.from("agent").select("id").eq("user_id", uid).maybeSingle();
     if (exists?.id){
-      const { data: aUpd, error: aErr } = await supa.from("agent").update(agentVals).eq("user_id", uid).select().single();
+      const { data: aUpd, error: aErr } =
+        await supa.from("agent").update(agentVals).eq("user_id", uid).select().single();
       if (aErr) throw aErr;
       gAgent = aUpd;
     } else {
-      const { data: aIns, error: aInsErr } = await supa.from("agent").insert(agentVals).select().single();
+      const { data: aIns, error: aInsErr } =
+        await supa.from("agent").insert(agentVals).select().single();
       if (aInsErr) throw aInsErr;
       gAgent = aIns;
     }
 
-    await loadEverything(); // relit et affiche ce qui est stocké
-    flash("Sauvegardé ✅", true);
+    flash("Saved ✅", true);
+
+    // Laisse 350ms pour voir le flash puis refresh (forces reload)
+    setTimeout(() => { location.reload(); }, 350);
+
   }catch(err){
     console.error("SAVE error:", err);
     flash(err?.message || "Save failed");
+    setSavingState(false);
   }
 }
+
+
 
 /* ============================ Subscription (inchangé) ============================ */
 async function loadSubscription() {
@@ -282,3 +522,5 @@ function attachSubscribeHandlers() {
   });
 }
 function escapeHtml(unsafe){ return (unsafe + "").replace(/[&<"'>]/g, (m)=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m])); }
+
+
