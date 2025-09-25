@@ -517,7 +517,7 @@ function attachSubscribeHandlers() {
     btn.addEventListener("click", () => {
       const plan = btn.closest(".plan-card")?.dataset.plan;
       if (!plan) return;
-      window.location.href = `/verify.html?plan=${encodeURIComponent(plan)}`;
+      window.location.href = `verify.html?plan=${encodeURIComponent(plan)}`;
     });
   });
 }
