@@ -31,31 +31,52 @@
     <button class="tab-btn" data-tab="tab-contacted">Contacted properties</button>
   </div>
 
-  <!-- Onglet : Subscription -->
-  <section id="tab-subscription" class="tab-content" style="display:none;">
-    <h2>Choose your subscription plan</h2>
-    <div class="subscription-plans">
-      <div class="plan-card" data-plan="basic">
-        <h3>Starter</h3>
-        <p>Up to 10 properties</p>
-        <p class="price">100€ / 400 AED</p>
-        <button class="btn-orange subscribe-btn">Choose Starter</button>
-      </div>
+<!-- Onglet : Subscription -->
+<section id="tab-subscription" class="tab-content" style="display:none;">
+  <h2>Choose your subscription plan</h2>
+  <div class="subscription-plans">
 
-      <div class="plan-card" data-plan="pro">
-        <h3>Professional</h3>
-        <p>Up to 50 properties</p>
-        <p class="price">300€ / 1200 AED</p>
-        <button class="btn-orange subscribe-btn">Choose Pro</button>
-      </div>
-
-      <div class="plan-card" data-plan="unlimited">
-        <h3>Unlimited</h3>
-        <p>Unlimited properties</p>
-        <p class="price">500€ / 2000 AED</p>
-        <button class="btn-orange subscribe-btn">Choose Unlimited</button>
-      </div>
+    <!-- Plan 1 -->
+    <div class="plan-card" data-plan="basic">
+      <h3>Monthly</h3>
+      <ul class="plan-features">
+        <li>Unlimited properties</li>
+      </ul>
+      <p class="price">2,000 AED / month</p>
+      <button class="btn-orange subscribe-btn">Choose Monthly</button>
     </div>
+
+    <!-- Plan 2 -->
+    <div class="plan-card" data-plan="pro">
+      <h3>3 Months</h3>
+      <ul class="plan-features">
+        <li>Unlimited properties</li>
+        <li>Founder Badge / Pre-launching offer</li>
+        <li>3 boosted properties per month</li>
+        <li>Promotional video on social media</li>
+        <li>Price locked for the future with Founder Badge</li>
+      </ul>
+      <p class="price">1,500 AED / month</p>
+      <button class="btn-orange subscribe-btn">Choose 3 Months</button>
+    </div>
+
+    <!-- Plan 3 -->
+    <div class="plan-card" data-plan="unlimited">
+      <h3>6 Months</h3>
+      <ul class="plan-features">
+        <li>Unlimited properties</li>
+        <li>Founder Badge / Pre-launching offer</li>
+        <li>3 boosted properties per month</li>
+        <li>Promotional video on social media</li>
+        <li>Price locked for the future with Founder Badge</li>
+      </ul>
+      <p class="price">1,000 AED / month</p>
+      <button class="btn-orange subscribe-btn">Choose 6 Months</button>
+    </div>
+
+  </div>
+</section>
+
 
     <div id="current-subscription" class="current-sub-box"></div>
   </section>
