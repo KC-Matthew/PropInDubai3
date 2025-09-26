@@ -156,7 +156,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       // 6) OK → redirection de suivi (tu peux laisser ta page telle quelle)
       setOk("Request sent — we will verify your license.");
       const agentId = row?.id;
-      window.location.href = `/verify_submitted.html?table=agent&id=${encodeURIComponent(agentId)}`;
+      window.location.href = `verify_submitted.html?table=agent&id=${encodeURIComponent(agentId)}`;
 
     }catch(err){
       setErr("Unexpected: " + (err?.message || String(err)));
