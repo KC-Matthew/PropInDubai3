@@ -8,6 +8,14 @@ function formatAED(v){
 
 
 
+const { createClient } = supabase; // si tu l’as importé via <script>
+window.supabase = window.supabase || createClient(
+  'https://hiigdwqtilboeimlybl.supabase.co',
+  'sb_publishable_k0Lb2Wz-effCwGk0ZMq-3Q_Kfo8PY7y'
+);
+
+
+
 /* ===== Helper prix — EN uniquement pour CETTE page ===== */
 function formatAED_EN(value){
   // si value est numérique (ou string numérique) -> "250,000 AED"
@@ -25,6 +33,7 @@ function qq(name){
   if(!name) return null;
   return /[\s()\-]/.test(name) ? `"${String(name).replace(/"/g,'""')}"` : name;
 }
+
 
 
 
@@ -664,23 +673,89 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('new-chat-btn').onclick = () => addNewChat(true);
 
-  document.getElementById('chat-form').onsubmit = function (e) {
-    e.preventDefault();
-    const input = document.getElementById('user-input');
-    const msg = input.value.trim();
-    if (!msg) return;
-    addMessageToCurrentChat('user', msg);
-    input.value = '';
-    setTimeout(() => {
-      addMessageToCurrentChat('bot', "Thanks for your message! We will check properties accordingly.");
-    }, 700);
+
+async function callChatGPT(message){
+  const { data, error } = await window.supabase.functions.invoke(
+    'hyper-function',
+    { body: { message } }    // ← pas d’en-têtes custom, supabase-js s’en charge
+  );
+  if (error) throw error;
+  return data; // { reply, filters }
+}
+
+
+
+// --- optionnel: applique les filtres renvoyés par l'IA à ta grille de biens ---
+async function applyAIFilters(filters = {}) {
+  // supporte au minimum le 'type' qui correspond déjà à fetchProperties
+  // (tu peux enrichir: budgetMin/budgetMax, bedrooms, location…)
+  const type = filters.type || "all";
+  const data = await fetchProperties({ type, limit: 30 });
+  renderProperties(data);
+}
+
+// --- REMPLACE ton ancien onsubmit par celui-ci ---
+document.getElementById('chat-form').onsubmit = async function (e) {
+  e.preventDefault();
+  const input = document.getElementById('user-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  // 1) affiche le message utilisateur
+  addMessageToCurrentChat('user', msg);
+  input.value = '';
+
+  // 2) petit état "en cours" côté bot
+  const typingId = '__typing__';
+  addMessageToCurrentChat('bot', '…'); // placeholder
+  // on retire le placeholder après la vraie réponse
+  const removeTyping = () => {
+    // re-rends le chat sans le dernier "…" (rapide & simple)
+    const chat = getCurrentChat();
+    if (!chat) return;
+    const last = chat.messages[chat.messages.length - 1];
+    if (last && last.type === 'bot' && last.text === '…') {
+      chat.messages.pop();
+      saveChats(getChats().map(c => c.id === chat.id ? chat : c));
+      renderChat(chat);
+    }
   };
+
+  try {
+    // 3) appelle TON backend (qui appelle OpenAI en toute sécurité)
+    const { reply, filters } = await callChatGPT(msg);
+
+    // 4) remplace "…" par la vraie réponse de l’IA
+    removeTyping();
+    addMessageToCurrentChat('bot', reply || "I couldn't find an answer.");
+
+    // 5) recharge la colonne de droite selon les filtres proposés par l’IA
+    if (filters) await applyAIFilters(filters);
+
+  } catch (err) {
+    console.error(err);
+    removeTyping();
+    addMessageToCurrentChat('bot', "Sorry, something went wrong. Please try again.");
+  }
+};
+
+
+
+
+
+
+
+  
 
   document.getElementById('reset-chat-btn').onclick = () => resetCurrentChat();
 
   setupFilters();
   renderAll();
 });
+
+
+
+
 
 // ========= DROPDOWN =========
 document.addEventListener('DOMContentLoaded', function () {
