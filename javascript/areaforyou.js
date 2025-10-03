@@ -315,15 +315,23 @@ function escapeHTML(s){
 function ensureDraftBubble(){
   const wrap = document.getElementById('chat-messages-container');
   let draft = document.getElementById('assistant-draft');
+
+  // créer si absent
   if (!draft){
     draft = document.createElement('div');
     draft.id = 'assistant-draft';
     draft.className = 'chat-message-bot';
     draft.innerHTML = `<div class="msg"></div>`;
+  }
+
+  // ⚠️ Toujours replacer la draft tout en bas (collée au dernier message)
+  if (wrap.lastElementChild !== draft) {
     wrap.appendChild(draft);
   }
+
   return draft;
 }
+
 
 
 
@@ -344,6 +352,23 @@ function renderAreaSuggestionsUnder(elem, areas = [], baseFilters = {}) {
     selectArea(areaName, baseFilters);
   });
 }
+
+
+function enableAreaLinks(scope = document) {
+  scope.querySelectorAll('a.area-chip').forEach(a => {
+    if (a.__bound) return;     // évite double-binding
+    a.__bound = true;
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const area = a.dataset.area?.trim();
+      if (!area) return;
+
+      // utilise ta logique existante → applique filtre + recharge
+      selectArea(area, window.__activeFilters || {});
+    });
+  });
+}
+
 
 // sélectionne un quartier → applique filters + refresh
 function selectArea(areaName, baseFilters = {}) {
@@ -369,38 +394,34 @@ async function typeIntoDraft(text, speed = 28, mode = 'char'){
   draft.classList.add('streaming');
 
   const box = draft.querySelector('.msg');
-  _typing.active = true;
-  _typing.stop   = false;
+  _typing.active = true; _typing.stop = false;
 
   const source = String(text ?? "");
-  // force le mode caractère
   const tokens = Array.from(source);
-
   let written = "";
-
-  // rerender toutes les N lettres (2 = super fluide)
   const BATCH = 2;
 
   for (let i = 0; i < tokens.length; i++){
     if (_typing.stop) break;
-
     written += tokens[i];
 
-    // Rerendre le markdown très souvent pour l'effet lettre par lettre
     if ((i % BATCH === 0) || i === tokens.length - 1){
       const html = renderMarkdownToHTML(written);
       box.innerHTML = html + `<span class="typing-caret">▋</span>`;
+      box.dataset.src = written;                 // <<< mémorise le texte brut
+      enableAreaLinks(box);
       if (scroll) scroll.scrollTop = scroll.scrollHeight;
     }
-
-    // petite pause entre lettres
     await new Promise(r => setTimeout(r, speed));
   }
 
-  // fin: fixe le rendu sans caret
   box.innerHTML = renderMarkdownToHTML(written || source);
+  box.dataset.src = written || source;          // <<< mémorise aussi à la fin
+  enableAreaLinks(box);
   _typing.active = false;
 }
+
+
 
 
 
@@ -413,12 +434,14 @@ function finalizeDraftToMessage(){
   if (!draft) { stopGenerating(); return; }
   draft.classList.remove('streaming');
 
-  const txt = draft.querySelector('.msg')?.textContent || "";
+  const box = draft.querySelector('.msg');
+  const raw = box?.dataset.src || box?.textContent || "";  // <<< récupère le texte brut
   draft.remove();
-  if (txt) addMessageToCurrentChat('bot', txt);
+  if (raw) addMessageToCurrentChat('bot', raw);
 
   stopGenerating();
 }
+
 
 
 
@@ -701,12 +724,12 @@ function renderChatList(selectedId) {
 /// mini-escape
 function escapeHTML(s=''){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// Parseur Markdown léger : **gras**, listes "-" et "1.", sauts de ligne
+// --- Tiny markdown parser (bold, lists, paragraphs)
 function markdownLite(md = '') {
   const sEsc = String(md)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  // **gras**
+  // **bold**
   let s = sEsc.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 
   const lines = s.split(/\r?\n/);
@@ -719,16 +742,8 @@ function markdownLite(md = '') {
   };
 
   for (const L of lines) {
-    if (/^\s*[-•]\s+/.test(L)) {               // puces
-      if (!ul) { flush(); ul = []; }
-      ul.push('<li>' + L.replace(/^\s*[-•]\s+/, '') + '</li>');
-      continue;
-    }
-    if (/^\s*\d+\.\s+/.test(L)) {               // numérotées
-      if (!ol) { flush(); ol = []; }
-      ol.push('<li>' + L.replace(/^\s*\d+\.\s+/, '') + '</li>');
-      continue;
-    }
+    if (/^\s*[-•]\s+/.test(L)) { if (!ul) { flush(); ul = []; } ul.push('<li>' + L.replace(/^\s*[-•]\s+/, '') + '</li>'); continue; }
+    if (/^\s*\d+\.\s+/.test(L)) { if (!ol) { flush(); ol = []; } ol.push('<li>' + L.replace(/^\s*\d+\.\s+/, '') + '</li>'); continue; }
     flush();
     out.push(L.trim() ? ('<p>' + L + '</p>') : '<br>');
   }
@@ -736,9 +751,9 @@ function markdownLite(md = '') {
   return out.join('\n');
 }
 
-function renderMarkdownToHTML(mdText = '') {
-  return markdownLite(mdText);
-}
+
+
+
 
 // Accroche : met en gras la première phrase si raisonnable
 function boldFirstSentence(md = '') {
@@ -749,8 +764,28 @@ function boldFirstSentence(md = '') {
 
 
 
+// Markdown -> HTML + puces quartiers et retours à la ligne
+function renderMarkdownToHTML(md = '') {
+  let src = String(md || '');
 
-function renderMarkdownToHTML(md=''){ return markdownLite(md); }
+  // 1) Si un texte contient "... __Quartier__", on force un saut de ligne avant la puce
+  src = src.replace(/\.\s*__\s*/g, '.\n\n__');
+
+  // 2) On transforme __**Quartier**__ et __Quartier__ en marqueurs [[Quartier]]
+  src = src.replace(/__\*\*([\s\S]+?)\*\*__/g, '[[$1]]');
+  src = src.replace(/__([^_][\s\S]*?)__/g, '[[$1]]');
+
+  // 3) Markdown léger existant (gras, listes, paragraphes)
+  let html = markdownLite(src);
+
+  // 4) Nos marqueurs [[Quartier]] deviennent des liens "chips" cliquables en gras
+  html = html.replace(/\[\[([\s\S]+?)\]\]/g, (_, area) => {
+    const safe = String(area).replace(/"/g, '&quot;').trim();
+    return `<a href="#" class="area-chip" data-area="${safe}"><strong>${safe}</strong></a>`;
+  });
+
+  return html;
+}
 
 
 // Transforme les <ol> du message en “steps”
@@ -760,6 +795,9 @@ function beautifySteps(root) {
     ol.classList.add('steps'); // pense à styliser .steps en CSS si tu veux
   });
 }
+
+
+
 
 // Plie les longs messages avec un bouton “Lire la suite”
 function applyCollapsible(root) {
@@ -802,15 +840,6 @@ function applyCollapsible(root) {
 
 
 
-// Accroche : met en gras la première phrase si elle est raisonnable
-function boldFirstSentence(md) {
-  if (!md) return md;
-  const i = md.indexOf('.');
-  if (i > 10 && i < 160) {
-    return `**${md.slice(0, i + 1)}**` + md.slice(i + 1);
-  }
-  return md;
-}
 
 
 
@@ -843,6 +872,7 @@ function renderChat(chat) {
       div.innerHTML = `<div class="msg">${html}</div>`;
       beautifySteps(div);
       applyCollapsible(div);
+      enableAreaLinks(div);
     }
 
     container.appendChild(div);
