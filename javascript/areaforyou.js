@@ -1821,3 +1821,4 @@ function closeMenu() {
   apply();
   window.addEventListener('resize', apply);
 })();
+
