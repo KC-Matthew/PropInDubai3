@@ -2708,3 +2708,104 @@ body{
   font-weight: 700; text-decoration: underline; cursor: pointer;
 }
 .ai-areas a:hover { opacity:.8; }
+
+
+
+
+/* Centrage simple du chat dans la colonne gauche */
+#chat-col-v2 {
+  display: flex;
+  flex-direction: column;
+}
+
+/* même largeur pour le header, la zone messages et l’input */
+#chat-col-v2 .multi-header,
+#chat-col-v2 #chat-messages-scroll,
+#chat-col-v2 #chat-form {
+  max-width: 760px;   /* ajuste si tu veux plus/moins large */
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto; /* => centré */
+}
+
+/* petite respiration entre la liste et l’input (optionnel) */
+#chat-col-v2 #chat-form { 
+  margin-top: 10px;
+}
+
+
+
+
+
+
+
+
+
+
+/* === Barre d'entrée : full-width, sans bloc blanc autour === */
+#chat-form{
+  display:flex;                 /* input + bouton côte à côte */
+  align-items:center;
+  gap:12px;                     /* espace entre input et flèche */
+  width:100%;
+  padding:0 !important;         /* retire tout padding du form */
+  margin:0 !important;          /* pas d'espace au-dessus/ côtés */
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+
+/* Le champ en lui-même (prend tout l'espace) */
+#chat-form input#user-input{
+  flex:1 1 auto;                /* prend la largeur dispo */
+  width:auto;                   /* pas de largeur fixe */
+  height:56px;
+  border-radius:28px;
+  border:1px solid #e9e9eb;
+  padding:0 18px;
+  background:#fff;
+  box-shadow:none;
+  margin:0;                     /* pas d'espace parasite */
+}
+
+/* Le bouton flèche : élément indépendant, pas posé sur l'input */
+#chat-form button[type="submit"]{
+  position:static !important;   /* surtout PAS absolute */
+  flex:0 0 56px;
+  width:56px; height:56px;
+  border-radius:50%;
+  margin:0;
+  box-shadow:none;
+  /* garde ton dégradé existant si tu en as un */
+}
+
+/* Au cas où un wrapper autour du form ajoute du padding/marge */
+#chat-col-v2 .chat-input,
+#chat-col-v2 .chat-footer,
+#chat-col-v2 .chat-form-outer{
+  padding:0 !important;
+  margin:0 !important;
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+
+/* critical: allow flex shrink to avoid pushing the right pane */
+#chat-form { min-width: 0; }
+#chat-form input#user-input { min-width: 0; }
+
+/* small lateral padding so it looks neat, but does not eat space */
+#chat-col-v2{
+  padding: 0 12px 12px !important;  /* left/right 12px, bottom 12px */
+  min-width: 0;                      /* allow column to shrink */
+  box-sizing: border-box;
+}
+
+/* make sure the arrow button never stretches the row */
+#chat-form button[type="submit"]{
+  flex: 0 0 56px;         /* fixed size */
+  max-width: 56px;
+}
+
+
+
