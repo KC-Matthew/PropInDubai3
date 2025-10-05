@@ -478,3 +478,457 @@ input[type="file"]::file-selector-button:hover {
 #tab-subscription h2 {
   margin-bottom: 18px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ===== My listing (profile) ===== */
+
+/* Notice / paywall */
+.notice{
+  background: #fff8ee;
+  border: 1px solid #ffd9b3;
+  color: #7a4b00;
+  padding: 12px 14px;
+  border-radius: 12px;
+}
+.notice .btn-orange{ margin-left: 8px; }
+
+/* Sous-onglets compacts */
+.tabs.small{
+  display: inline-flex;
+  gap: 8px;
+  background: #f6f7fb;
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid #e6e8ef;
+  margin: 12px 0 16px;
+}
+.tabs.small .tab-btn{
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-weight: 600;
+  color: #5a6270;
+  cursor: pointer;
+}
+.tabs.small .tab-btn.active{
+  background: #fff;
+  border-color: #d6d9e4;
+  color: #111827;
+  box-shadow: 0 1px 2px rgba(16,24,40,.06);
+}
+
+/* Subtabs show/hide (complément JS) */
+.subtab{ display:none; }
+.subtab.active{ display:block; }
+
+/* Formulaire Add a listing */
+#addListingForm label{
+  display: block;
+  font-weight: 600;
+  color: #1f2937;
+}
+#addListingForm input,
+#addListingForm select,
+#addListingForm textarea{
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  outline: none;
+  font: inherit;
+}
+#addListingForm input:focus,
+#addListingForm select:focus,
+#addListingForm textarea:focus{
+  border-color: #f97316;           /* orange */
+  box-shadow: 0 0 0 3px rgba(249,115,22,.15);
+}
+
+/* Boutons génériques */
+.btn-orange{
+  background: #f97316;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-orange:hover{ filter: brightness(.95); }
+.btn-outline{
+  background: #fff;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-outline:hover{ background:#f8fafc; }
+
+/* Cartes "View my listings" */
+#myListings{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+.property-card{
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+  background: #fff;
+  border: 1px solid #edeef3;
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(16,24,40,.05);
+}
+.property-media{
+  width: 100%;
+  height: 150px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.property-media img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.property-media .img-ph{
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.property-body h3{
+  margin: 2px 0 6px;
+  font-size: 20px;
+  color: #1f2937;
+}
+.property-body .meta{
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.property-body .price{
+  color: #0f172a;
+  font-weight: 800;
+  margin: 8px 0;
+}
+
+/* Grille du formulaire (si pas déjà stylée) */
+.grid-two{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* Responsive */
+@media (max-width: 900px){
+  .property-card{
+    grid-template-columns: 1fr;
+  }
+  .property-media{
+    height: 200px;
+  }
+}
+@media (max-width: 640px){
+  .tabs.small{
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .grid-two{ grid-template-columns: 1fr; }
+}
+
+/* ===== More Filters (Add a listing) — Nouveau style ===== */
+.more-filters{
+  margin-top: 14px;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid #e6e8ef;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(16,24,40,.06);
+}
+
+/* Titres */
+.more-filters .mf-title{
+  font-weight: 700;
+  color: #111827;
+  margin: 8px 0 10px;
+}
+
+/* Corrige les styles globaux des <label> du projet */
+.more-filters label{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;                 /* pas d’offset vertical parasite */
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Lignes simples (Furnished only) */
+.more-filters .chk-line{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+/* Grille d'amenities */
+.more-filters .mf-grid{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 12px 18px;
+  margin-bottom: 8px;
+}
+.more-filters .chk{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  color: #374151;
+  line-height: 1.25;
+}
+
+/* Checkboxes: taille, couleur, ordre */
+.more-filters input[type="checkbox"]{
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: #f97316;          /* orange du thème */
+  border: 1px solid #d6d9e4;
+  border-radius: 4px;
+}
+
+/* Champs textuels à l'intérieur du bloc */
+.more-filters input[type="text"]{
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  outline: none;
+  font: inherit;
+}
+.more-filters input[type="text"]:focus{
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249,115,22,.15);
+}
+
+/* Espacement au-dessus du bouton */
+#addListingForm .btn-orange{ margin-top: 10px; }
+
+/* Responsive */
+@media (max-width: 1024px){
+  .more-filters .mf-grid{ grid-template-columns: repeat(2, minmax(200px, 1fr)); }
+}
+@media (max-width: 640px){
+  .more-filters .mf-grid{ grid-template-columns: 1fr; }
+}
+
+
+
+
+
+/* --- Subtabs: My listings --- */
+#listingSubTabs{
+  display: inline-flex;
+  gap: 8px;
+  background: #f6f7fb;
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid #e6e8ef;
+  margin: 12px 0 16px;
+}
+
+#listingSubTabs .tab-btn{
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-weight: 700;
+  color: #5a6270;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+#listingSubTabs .tab-btn.active,
+#listingSubTabs .tab-btn.active:hover{
+  background: #f97316;         /* orange */
+  color: #fff;
+  border-color: #f97316;
+  box-shadow: 0 2px 8px rgba(249,115,22,.25);
+}
+
+/* show/hide des sous-onglets via classe */
+#tab-contacted .subtab{ display: none; }
+#tab-contacted .subtab.active{ display: block; }
+
+
+
+
+
+/* gallery */
+.photos-block { margin-top: 6px; }
+.photos-head { display:flex; align-items:center; gap:12px; justify-content:space-between; }
+.photos-actions { display:flex; align-items:center; gap:10px; }
+.photos-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap:12px; margin-top:10px; }
+.photo-card { border:1px solid #eee; border-radius:12px; overflow:hidden; background:#fff; }
+.photo-thumb { position:relative; aspect-ratio: 4/3; overflow:hidden; }
+.photo-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.photo-thumb .badge { position:absolute; left:8px; top:8px; background:#ff7a00; color:#fff; font-size:12px; padding:2px 8px; border-radius:999px; }
+.photo-actions { display:flex; gap:6px; padding:8px; justify-content:center; }
+.btn-small { font-size:12px; padding:6px 10px; border-radius:8px; border:1px solid #e6e6e6; background:#fafafa; cursor:pointer; }
+.btn-small.danger { color:#b00020; border-color:#f1c9cf; background:#fff5f6; }
+
+
+
+
+
+
+
+
+
+
+/* Cadre 16:9 */
+.photos-grid .photos-item,
+.listing-card .media{
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  background: #f6f6f6;
+}
+
+/* Remplir le cadre en déformant si besoin */
+.photos-grid .photos-item img,
+.listing-card .media img{
+  width: 100%;
+  height: 100%;
+  object-fit: fill;     /* <= force le remplissage, peut déformer */
+  object-position: center;
+  display: block;
+}
+
+/* Bouton suppression sur chaque vignette */
+.photos-grid .remove-btn{
+  position:absolute; top:6px; right:6px;
+  background:rgba(0,0,0,.7); color:#fff; border:none;
+  border-radius:10px; padding:6px 8px; font-size:12px; cursor:pointer;
+}
+
+
+
+
+
+
+
+/* Cadre 16:9 fixe */
+.photos-grid .photos-item,
+.listing-card .media{
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f6f6f6;
+}
+
+/* Remplir le cadre en déformant si besoin */
+.photos-grid .photos-item img,
+.listing-card .media img{
+  width: 100%;
+  height: 100%;
+  object-fit: fill;      /* <= remplit, peut déformer : OK pour ton besoin */
+  object-position: center;
+  display: block;
+}
+
+
+/* Page profil : cacher tout le texte des cards */
+.profile-container .property-body {
+  display: none !important;
+}
+/* ==== Preview dans #listingPreview : ne montrer QUE la grande image ==== */
+
+
+
+
+/* 1) Cacher la colonne de droite générée par buildListingCardHTML */
+#listingPreview .right{
+  display: none !important;
+}
+
+/* 2) Forcer la structure à une seule colonne (au cas où .top est en grid/flex) */
+#listingPreview .top{
+  display: block !important;
+}
+
+/* 3) Dimensionner la media comme tes cards (plus petite que 800x480) */
+#listingPreview .media{
+  width: 620px !important;          /* ajuste 560–660px si besoin */
+  height: 348px !important;         /* 16:9 */
+  margin: 0 auto;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,.06);
+}
+
+/* 4) Image responsive et propre */
+#listingPreview .media img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 5) Responsive mobile */
+@media (max-width: 900px){
+  #listingPreview .media{
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16/9;
+  }
+}
+
+#lst_gallery .photos-item { cursor: pointer; }
+#lst_gallery .remove-btn { cursor: default; }
