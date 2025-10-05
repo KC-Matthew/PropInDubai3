@@ -28,7 +28,7 @@
     <button class="tab-btn active" data-tab="tab-info">My Profil</button>
     <button class="tab-btn" data-tab="tab-saved">Saved properties</button>
     <button class="tab-btn" data-tab="tab-subscription">Subscription</button>
-    <button class="tab-btn" data-tab="tab-contacted">Contacted properties</button>
+    <button class="tab-btn" data-tab="tab-contacted">My listings</button>
   </div>
 
 <!-- Onglet : Subscription -->
@@ -75,11 +75,8 @@
     </div>
 
   </div>
+  <div id="current-subscription" class="current-sub-box"></div>
 </section>
-
-
-    <div id="current-subscription" class="current-sub-box"></div>
-  </section>
 
   <!-- Onglet : My Profil (Agent + Agency + Uploads) -->
   <section id="tab-info" class="tab-content active">
@@ -187,25 +184,183 @@
   
   </section>
 
-  <!-- Onglet : Saved properties -->
-  <section id="tab-saved" class="tab-content" style="display:none;">
-    <p>No properties saved yet.</p>
-  </section>
 
-  <!-- Onglet : Contacted properties -->
-  <section id="tab-contacted" class="tab-content" style="display:none;">
-    <p>No properties contacted yet.</p>
-  </section>
+  <!-- Onglet : Saved properties -->
+<section id="tab-saved" class="tab-content" style="display:none;">
+  <p>No properties saved yet.</p>
+</section>
+
+<!-- Onglet : My listing -->
+<section id="tab-contacted" class="tab-content" style="display:none;">
+  <h2>My listing</h2>
+
+  <!-- Paywall si l'agent n'a pas payé -->
+  <div id="listingPaywall" class="notice" style="display:none;">
+    <p>Your plan doesn’t allow creating/viewing listings.</p>
+    <a href="#" class="btn-orange" data-open-tab="tab-subscription">Go to Subscription</a>
+  </div>
+
+  <!-- Sous-onglets (affichés seulement si paid=true) -->
+<div class="tabs small" id="listingSubTabs">
+  <button class="tab-btn active" data-subtab="sub-add">Add a listing</button>
+  <button class="tab-btn" data-subtab="sub-view">View my listings</button>
+</div>
+
+<div id="sub-add" class="subtab active">
+
+
+
+    <form id="addListingForm">
+      <div class="grid-two" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">
+        <label>Category
+          <select id="lst_category" required>
+            <option value="buy">Buy</option>
+            <option value="rent">Rent</option>
+            <option value="commercial">Commercial</option>
+          </select>
+        </label>
+        <label>Property type
+          <select id="lst_property_type" required>
+            <option>Apartment</option>
+            <option>Villa</option>
+            <option>Townhouse</option>
+            <option>Office</option>
+            <option>Retail</option>
+            <option>Warehouse</option>
+          </select>
+        </label>
+        <label>Title
+          <input id="lst_title" required placeholder="e.g. Apartment in JVC">
+        </label>
+        <label>Price (AED)
+          <input id="lst_price" type="number" min="0" required>
+        </label>
+      <label>Bedrooms
+  <select id="lst_bedrooms" required>
+    <option value="0">0</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4+</option>
+  
+  </select>
+</label>
+
+<label>Bathrooms
+  <select id="lst_bathrooms" required>
+    <option value="0">0</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4+</option>
+
+  
+  </select>
+</label>
+
+        <label>Size (sqft)
+          <input id="lst_sqft" type="number" min="0">
+        </label>
+        <label id="wrap_rental_period" style="display:none;">Rental period
+          <select id="lst_rental_period">
+            <option>Yearly</option>
+            <option>Monthly</option>
+          </select>
+        </label>
+        <label>Location
+          <input id="lst_location" placeholder="Jumeirah Village Circle">
+        </label>
+      <!-- Properties pictures (remplace "Cover photo URL") -->
+<div class="photos-block">
+  <div class="photos-head">
+    <label>Properties pictures</label>
+    <div class="photos-actions">
+      <!-- input natif (caché) -->
+      <input id="lst_photos" type="file" accept="image/*" multiple hidden>
+      <!-- bouton stylé qui ouvre l’input -->
+      <button type="button" id="btnPickPhotos" class="btn-orange">Upload pictures</button>
+      <small class="hint">JPG/PNG/WebP, jusqu’à 8 MB par image.</small>
+    </div>
+  </div>
+
+
+  <!-- Grille d’aperçus -->
+  <div id="lst_gallery" class="photos-grid"></div>
+
+
+<!-- Live preview of the listing -->
+<div id="listingPreview" class="listing-card" style="margin-top:20px;"></div>
+
+
+  <!-- ID technique: la valeur sera un JSON d’URLs à sauver en DB -->
+  <input type="hidden" id="lst_photos_json">
+</div>
+
+      </div>
+
+      <label>Description
+        <textarea id="lst_description" rows="3"></textarea>
+      </label>
+
+
+
+<!-- ===== More Filters (facultatifs) ===== -->
+<div class="more-filters">
+  <label class="chk-line">
+    <input type="checkbox" id="lst_furnished"> Furnished  
+  </label>
+
+  <div class="mf-group">
+    <div class="mf-title">Amenities</div>
+    <div class="mf-grid">
+      <!-- une case = data-amenity="..." -->
+      <label class="chk"><input type="checkbox" class="amenity" data-amenity="Central A/C"> Central A/C</label>
+      <label class="chk"><input type="checkbox" class="amenity" data-amenity="Maids Room"> Maids Room</label>
+      <label class="chk"><input type="checkbox" class="amenity" data-amenity="Balcony"> Balcony</label>
+      <label class="chk"><input type="checkbox" class="amenity" data-amenity="Shared Pool"> Shared Pool</label>
+      <label class="chk"><input type="checkbox" class="amenity" data-amenity="Shared Gym"> Shared Gym</label>
+      <label class="chk"><input type="checkbox" class="amenity" data-amenity="Concierge Service"> Concierge Service</label>
+      <label class="chk"><input type="checkbox" class="amenity" data-amenity="Covered Parking"> Covered Parking</label>
+      <label class="chk"><input type="checkbox" class="amenity" data-amenity="View of Water"> View of Water</label>
+      <label class="chk"><input type="checkbox" class="amenity" data-amenity="View of Landmark"> View of Landmark</label>
+      <label class="chk"><input type="checkbox" class="amenity" data-amenity="Private Garden"> Private Garden</label>
+      <label class="chk"><input type="checkbox" class="amenity" data-amenity="Pets Allowed"> Pets Allowed</label>
+      <label class="chk"><input type="checkbox" class="amenity" data-amenity="Private Pool"> Private Pool</label>
+      <label class="chk"><input type="checkbox" class="amenity" data-amenity="Built in Wardrobes"> Built in Wardrobes</label>
+      <label class="chk"><input type="checkbox" class="amenity" data-amenity="Built in Kitchen Appliances"> Built in Kitchen Appliances</label>
+      <label class="chk"><input type="checkbox" class="amenity" data-amenity="Barbecue Area"> Barbecue Area</label>
+    </div>
+  </div>
+
+  <div class="grid-two" style="margin-top:8px;">
+    <label>Keywords
+      <input id="lst_keywords" placeholder="e.g. pool, chiller free">
+    </label>
+  </div>
+</div>
+<!-- ===== fin More Filters ===== -->
+
+
+
+
+
+
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button type="submit" class="btn-orange">Save listing</button>
+      </div>
+    </form>
+    <div id="addListingAlert" class="notice" style="display:none;margin-top:10px;"></div>
+  </div>
+
+  <!-- SUBTAB: View my listings -->
+  <div id="sub-view" class="subtab">
+    <div id="myListings"></div>
+    <div id="viewListingAlert" class="notice" style="display:none;margin-top:10px;"></div>
+  </div>
+</section>
+
+
 </main>
 
 
-    <!-- Contacted properties -->
-    <section id="tab-contacted" class="tab-content">
-      <p>No properties contacted yet.</p>
-    </section>
-  </main>
-</body>
-</html>
-
-
- 
+<script src="https://cdn.jsdelivr.net/npm/heic2any/dist/heic2any.min.js"></script>
