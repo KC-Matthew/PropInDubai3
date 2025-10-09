@@ -17,27 +17,22 @@ function formatAED(v){
 }
 
 
-// --- Supabase init robuste (ne jette pas si le SDK n'est pas encore global)
 (function initSupabase() {
-  const URL = 'https://hiigdwqtilboeimlybl.supabase.co';
+  const URL = 'https://hiigdwqwtilboeimlybl.supabase.co'; // <— corrigé (…qwtil…)
   const KEY = 'sb_publishable_k0Lb2Wz-effCwGk0ZMq-3Q_Kfo8PY7y';
 
-  // 1) Si window.supabase est déjà un client (.from), on garde
   if (window.supabase && typeof window.supabase.from === 'function') return;
 
-  // 2) Si le SDK est chargé en global (window.supabase.createClient)
   if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') {
     window.supabase = window.supabase.createClient(URL, KEY);
     return;
   }
 
-  // 3) Variante où le global s'appelle supabase (sans window.)
   if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
     window.supabase = supabase.createClient(URL, KEY);
     return;
   }
 
-  // 4) SDK manquant → message clair
   console.error('Supabase SDK non chargé : ajoute <script src="https://unpkg.com/@supabase/supabase-js@^2"></script> AVANT ce fichier.');
 })();
 
@@ -1821,4 +1816,3 @@ function closeMenu() {
   apply();
   window.addEventListener('resize', apply);
 })();
-
