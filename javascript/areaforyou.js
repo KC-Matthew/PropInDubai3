@@ -1964,3 +1964,4 @@ function connectAIStream(message, onMeta, onToken, onDone){
   es.onerror = ()=> { onDone?.(); es.close(); };
   return es;
 }
+
