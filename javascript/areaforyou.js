@@ -1,4 +1,13 @@
 
+// --- SESSION EDGE (mémoire budget/chambres/POI…)
+const SESSION_ID_KEY = 'propindubai_session_id';
+let SESSION_ID = localStorage.getItem(SESSION_ID_KEY);
+if (!SESSION_ID) {
+  SESSION_ID = '_' + Math.random().toString(36).slice(2);
+  localStorage.setItem(SESSION_ID_KEY, SESSION_ID);
+}
+
+
 // -- helpers pour citer les colonnes avec espaces + formater le prix``
 
 function startGenerating() {
@@ -48,6 +57,24 @@ function formatAED_EN(value){
   // sinon, on renvoie tel quel (ex: "From 250,000 AED")
   return value ?? "";
 }
+
+
+// --- GEOLOC (helpers) ---
+async function useMyLocationOnce(){
+  return new Promise((resolve,reject)=>{
+    if (!navigator.geolocation) return reject(new Error('no geolocation'));
+    navigator.geolocation.getCurrentPosition(
+      p => { 
+        window.__userLat = p.coords.latitude; 
+        window.__userLon = p.coords.longitude; 
+        resolve();
+      },
+      err => reject(err),
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  });
+}
+
 
 
 // Quote un nom de colonne s'il contient des espaces  , parenthèses, tirets…
@@ -415,6 +442,7 @@ async function typeIntoDraft(text, speed = 28, mode = 'char'){
   enableAreaLinks(box);
   _typing.active = false;
 }
+
 
 
 
@@ -1102,23 +1130,79 @@ function quickExtractFromMessage(msg){
 
 
 
-async function callChatGPT(message){
-  const { data, error } = await window.supabase.functions.invoke(
-    'hyper-function',
-    { body: { message } }    // ← pas d’en-têtes custom, supabase-js s’en charge
-  );
-  if (error) throw error;
-  return data; // { reply, filters }
+// ⬇️ remplace complètement ta fonction
+// === Remplace TOUTE ta fonction callChatGPT par ceci ===
+
+async function callChatGPT(message) {
+  // ⚠️ Mets ici le NOM EXACT de ta Edge Function (slug Supabase > Functions)
+  const EDGE_FN = 'hyper-function'; // ← change si besoin
+
+  // Sécurité: client supabase dispo ?
+  if (!window.supabase || typeof window.supabase.functions?.invoke !== 'function') {
+    throw new Error('Supabase client not initialized on the page.');
+  }
+
+  // Construit le body attendu par la function TS
+  const body = {
+    mode: 'chat',
+    message: String(message || ''),
+    type: (window.__currentMode === 'all' ? 'any' : (window.__currentMode || 'any')),
+    top_k: 6,
+    with_tram: true
+  };
+
+  // Ajoute lat/lon si on les a
+  if (typeof window.__userLat === 'number' && typeof window.__userLon === 'number') {
+    body.lat = window.__userLat;
+    body.lon = window.__userLon;
+  }
+
+  // En-tête facultatif (tu l’utilises déjà pour la session)
+  const headers = { 'x-session-id': SESSION_ID };
+
+  // Appel Edge
+  const { data, error } = await window.supabase.functions.invoke(EDGE_FN, { body, headers });
+
+  // Gestion d’erreur claire (404 = mauvais nom de function / 500 = secret manquant, etc.)
+  if (error) {
+    console.error('Edge invoke error:', error);
+    const msg = (error.message || '').toLowerCase();
+    if (error.status === 404) {
+      throw new Error(`Edge function "${EDGE_FN}" introuvable (vérifie le slug dans Supabase > Functions).`);
+    }
+    if (error.status === 401 || error.status === 403) {
+      throw new Error('Accès refusé à la function (vérifie les clés/headers et la config).');
+    }
+    // 500/other
+    throw new Error(`Edge function error ${error.status || ''}: ${error.message || 'Unknown error'}`);
+  }
+
+  // Normalisation de la réponse attendue par le reste du code
+  const reply = data?.ai_reply || "Je n'ai rien trouvé.";
+  const listings = Array.isArray(data?.nearby) ? data.nearby.map(mapEdgeListingToCard) : [];
+  const returnedType = (data?.type || 'any');
+  const filters = returnedType !== 'any' ? { type: returnedType } : {};
+
+  return {
+    reply,
+    filters,               // ex: { type: 'rent' }
+    areas: [],             // tu pourras remplir plus tard si besoin
+    listings,              // déjà mappés pour renderProperties(listings)
+    ask: null,
+    coords: data?.coords || null,
+    tram: Array.isArray(data?.tram) ? data.tram : []
+  };
 }
+
 
 
 
 async function applyAIFilters(filters = {}) {
   window.__activeFilters = filters || {};
   if (filters?.type) {
-    setMode(filters.type);     // applique le type puis rafraîchit
+    setMode(filters.type);      // applique l’onglet puis recharge
   } else {
-    refreshProperties();       // garde le mode courant, recharge avec les filtres
+    refreshProperties();        // garde l’onglet courant, recharge avec filtres
   }
 }
 
@@ -1130,17 +1214,16 @@ document.getElementById('chat-form').onsubmit = async function (e) {
   const msg = input.value.trim();
   if (!msg) return;
 
-  // 1) push le message user
+  // 1) Push message user
   addMessageToCurrentChat('user', msg);
   input.value = '';
 
-  // 2) on passe en mode “génération” et on montre la bulle draft
+  // 2) Bulle draft + loader
   startGenerating();
   const draft = ensureDraftBubble();
   const draftMsg = draft.querySelector('.msg');
   draftMsg.textContent = "";
 
-  // 3) petit loader pendant l’appel réseau
   let dots = 0, alive = true;
   const scroll = document.getElementById('chat-messages-scroll');
   const loader = setInterval(()=>{
@@ -1150,18 +1233,45 @@ document.getElementById('chat-form').onsubmit = async function (e) {
   }, 280);
 
   try {
-    // 4) appel backend → { reply, filters }
-    const { reply, filters } = await callChatGPT(msg);
+    // 3) Appel Edge → { reply, filters, areas, listings, ask }
+    const { reply, filters, areas, listings, ask } = await callChatGPT(msg);
 
-    // 5) stop loader + streaming de la réponse
+    // 4) Stop loader + stream réponse
     alive = false; clearInterval(loader);
     await typeIntoDraft(reply || "I couldn't find an answer.");
-
-    // 6) convertir en message “fixe”
     finalizeDraftToMessage();
 
-    // 7) appliquer filtres éventuels
-    if (filters) await applyAIFilters(filters);
+    // 4b) Afficher des liens de quartiers sous la dernière bulle bot
+    try {
+      const container = document.getElementById('chat-messages-container');
+      const lastBot = Array.from(container.querySelectorAll('.chat-message-bot')).pop();
+      if (lastBot && Array.isArray(areas) && areas.length) {
+        // On passe les filtres actuels comme base
+        renderAreaSuggestionsUnder(lastBot, areas, filters || {});
+      }
+    } catch {}
+
+    // 5) Fusionner areas -> filters.locations si non présent
+    const merged = { ...(filters || {}) };
+    if (!merged.locations && Array.isArray(areas) && areas.length) {
+      merged.locations = areas;
+    }
+
+    // 6) Si l’Edge a déjà renvoyé des biens → affichage immédiat
+    if (Array.isArray(listings) && listings.length) {
+      renderProperties(listings.map(mapEdgeListingToCard));
+      // Applique quand même les filtres pour les interactions suivantes
+      await applyAIFilters(merged);
+    } else {
+      // Sinon, recharge via nos fetch* avec les filtres
+      await applyAIFilters(merged);
+    }
+
+    // 7) (Optionnel) afficher la question suivante (“ask”)
+    if (ask) {
+      addMessageToCurrentChat('bot', ask);
+      renderAll();
+    }
 
   } catch (err) {
     console.error(err);
@@ -1816,3 +1926,41 @@ function closeMenu() {
   apply();
   window.addEventListener('resize', apply);
 })();
+
+
+// ⬇️ remplace ta version par celle-ci (plus tolérante)
+function mapEdgeListingToCard(r){
+  return {
+    id: r.id,
+    source: r.source || r.table || 'buy',
+    title: r.title || '',
+    typeLabel: '',
+    location: r.localisation || r.location || '',
+    bedrooms: r.bedrooms ?? '',
+    bathrooms: r.bathrooms ?? '',
+    size: r.sqft ?? '',
+    price: r.price,
+    images: toPublicUrls(r.photo_url, r.source || r.table || 'buy'),
+    description: '',
+    lat: r.lat ?? null,
+    lon: r.lon ?? null,
+    created_at: null
+  };
+}
+
+
+
+// Exemple d’abonnement SSE -> hyper-function?stream=1 (non utilisé ici)
+function connectAIStream(message, onMeta, onToken, onDone){
+  const url = window.supabase.functions._getUrl('hyper-function') + '?stream=1';
+  const es = new EventSource(url, { withCredentials: false });
+  es.addEventListener('open', ()=> {
+    // on ne peut pas envoyer un body avec EventSource,
+    // il faudrait poster d’abord pour créer une room, etc.
+  });
+  es.addEventListener('meta', (ev)=> onMeta?.(JSON.parse(ev.data)));
+  es.addEventListener('token', (ev)=> onToken?.(JSON.parse(ev.data).delta));
+  es.addEventListener('done', ()=> { onDone?.(); es.close(); });
+  es.onerror = ()=> { onDone?.(); es.close(); };
+  return es;
+}
