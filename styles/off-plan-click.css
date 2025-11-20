@@ -544,3 +544,21 @@ p{ margin: .4rem 0; }
     margin:0; padding:0;
   }
 }
+
+
+
+
+
+.buy-button,
+.map-button,
+.agent-button {
+  pointer-events: none;
+  opacity: 0.5; /* optionnel : pour montrer que c’est désactivé */
+}
+
+
+.offplan-map-page {
+    background-color: #ffffff !important;
+}
+
+
