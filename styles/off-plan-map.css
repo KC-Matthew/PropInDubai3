@@ -1288,3 +1288,21 @@ body.offplan-map-page {
   .top-tabs-filters{ margin-top: 54px !important; } /* hauteur du header */
 }
 
+
+
+
+
+
+
+.buy-button,
+.map-button,
+.agent-button {
+  pointer-events: none;
+  opacity: 0.5; /* optionnel : pour montrer que c’est désactivé */
+}
+
+
+.offplan-map-page {
+    background-color: #ffffff !important;
+}
+
