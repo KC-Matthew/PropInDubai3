@@ -419,7 +419,7 @@
     const descWrapper = document.getElementById("descriptionWrapper");
     const descToggle = document.getElementById("descToggle");
     if (descEl && descWrapper && descToggle) {
-      const clampPx = 180;
+      const clampPx = 140;
       const refreshClamp = () => {
         const needsClamp = descEl.scrollHeight > clampPx;
         if (!needsClamp) descWrapper.classList.remove("collapsed");
@@ -659,7 +659,5 @@
       if (!mq.matches) closeMenu();
     });
   })();
-
-
 
   
