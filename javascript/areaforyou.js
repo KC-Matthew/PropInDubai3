@@ -679,8 +679,6 @@ function renderProperties(list) {
 
     <!-- statut à la place de bathroom -->
     <span>${getStatusIcon(statusValue)}</span>
-
-    <span><i class="fas fa-ruler-combined"></i> ${property.size ?? ""} sqft</span>
   </div>
 
   <!-- prix -->
