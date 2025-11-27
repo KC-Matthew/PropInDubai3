@@ -33,8 +33,7 @@ html, body {
   display: flex;
   flex: 1;
   justify-content: center;
-  gap: 15px;
-  max-width: 1000px;
+  gap: 40px;
 }
 .header-btn {
   max-width: 150px;
@@ -2805,6 +2804,17 @@ body{
 #chat-form button[type="submit"]{
   flex: 0 0 56px;         /* fixed size */
   max-width: 56px;
+}
+
+
+
+
+
+.buy-button,
+.map-button,
+.agent-button {
+  pointer-events: none;
+  opacity: 0.5; /* optionnel : pour montrer que c’est désactivé */
 }
 
 
