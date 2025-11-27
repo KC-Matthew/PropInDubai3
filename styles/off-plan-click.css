@@ -205,7 +205,6 @@ a:hover{ color: var(--brand); }
 #paymentToggle:hover{ border-color: #ccc; }
 #paymentDetail{ display: none; background: #fff; border: 1px solid #eee; border-radius: 8px; padding: var(--space-3); margin-top: .7rem; }
 #paymentDetail.show{ display: block; }
-
 /* Brochure */
 .download-section{ margin-top: var(--space-3); }
 .download-section a{
@@ -545,20 +544,12 @@ p{ margin: .4rem 0; }
   }
 }
 
-
-
-
-
+.viewMapsBtn
 .buy-button,
 .map-button,
 .agent-button {
   pointer-events: none;
   opacity: 0.5; /* optionnel : pour montrer que c’est désactivé */
-}
-
-
-.offplan-map-page {
-    background-color: #ffffff !important;
 }
 
 
