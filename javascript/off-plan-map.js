@@ -6,6 +6,7 @@ function detailHref(projet){
   return url.toString();
 }
 
+
 /* ======== ÉTATS / GLOBALES ======== */
 let projets = [];                    // remplace l'ancien tableau d'exemples
 let filteredProjets = [];
@@ -17,6 +18,9 @@ let priceSlider = null; // <-- ajoute ça en haut avec les autres let
 let gmap;                     // Google Map
 let gmarkers = [];            // AdvancedMarkerElement[]
 let infoWindow = null;        // une seule InfoWindow réutilisée
+let lastMarkerScale = 1;
+
+
 
 // mémoire pour popups (évite le “flash”)
 const OPEN_INFO = { id: null, html: "", marker: null };
@@ -153,6 +157,16 @@ function toBucketKey(value){
 function toPublicUrlFromBucket(value){
   const key = toBucketKey(value);
   return key ? storagePublicUrl(key) : null;
+}
+
+// Taille des marqueurs en fonction du zoom (diminue fortement quand on dézoome)
+function markerScaleForZoom(z){
+  const zoom = (z == null) ? (gmap?.getZoom?.() ?? 12) : z;
+  const max = 1;
+  const min = 0.2;
+  const pivot = 14; // zoom auquel on garde la taille max
+  const scale = max - Math.max(0, (pivot - zoom) * 0.2);
+  return Math.max(min, Math.min(max, scale));
 }
 
 
@@ -586,6 +600,7 @@ function updateMapMarkers() {
   gmarkers = [];
 
   const hasAdvanced = !!(google.maps.marker && google.maps.marker.AdvancedMarkerElement);
+  const currentScale = markerScaleForZoom();
 
   // helper: OverlayView HTML quand la lib 'marker' n'est pas dispo
   function makeHtmlOverlay(position, html, onClick) {
@@ -596,7 +611,8 @@ function updateMapMarkers() {
         this._div.className = 'gm-card-pin';
         this._div.innerHTML = this.html;
         this._div.style.position = 'absolute';
-        this._div.style.transform = 'translate(-50%, -100%)'; // ancre en bas-centre
+        this._div.style.transform = 'translate(-50%, -100%) scale(var(--marker-scale, 1))'; // ancre en bas-centre
+        this._div.style.setProperty('--marker-scale', currentScale);
         this._div.style.cursor = 'pointer';
         if (this.onClick) this._div.addEventListener('click', this.onClick);
         this.getPanes().overlayMouseTarget.appendChild(this._div);
@@ -622,6 +638,7 @@ function updateMapMarkers() {
       const wrapper = document.createElement('div');
       wrapper.className = 'gm-card-pin';
       wrapper.innerHTML = createPromoteurMarker(projet);
+      wrapper.style.setProperty('--marker-scale', currentScale);
 
       marker = new google.maps.marker.AdvancedMarkerElement({
         map: gmap,
@@ -656,6 +673,8 @@ function updateMapMarkers() {
     gmarkers.push(marker);
   });
 
+  applyMarkerScale(currentScale);
+
   // si une popup était ouverte, on la ré-ancre proprement
   if (OPEN_INFO.id) {
     const mk = gmarkers.find(m => m.__pid === OPEN_INFO.id);
@@ -675,8 +694,16 @@ function updateMapMarkers() {
   }
 }
 
-
-
+// Ajuste la taille des marqueurs selon le zoom (évite qu'ils couvrent la carte en dézoomant)
+function applyMarkerScale(forceScale){
+  const scale = forceScale ?? markerScaleForZoom();
+  if (scale === lastMarkerScale) return;
+  lastMarkerScale = scale;
+  gmarkers.forEach(m => {
+    const el = m.content || m._div || m.element;
+    if (el && el.style) el.style.setProperty('--marker-scale', scale);
+  });
+}
 
 
 /* ======== POPUP PRIX & HISTO ======== */
@@ -946,6 +973,10 @@ function initOffplanMap() {
   });
 
   ensureOverlay(); // pour le pan offset
+
+  gmap.addListener('zoom_changed', () => {
+    applyMarkerScale();
+  });
 
   // si on a déjà les données, on affiche; sinon updateMapMarkers sera appelé après load
   if (filteredProjets.length) updateMapMarkers();
