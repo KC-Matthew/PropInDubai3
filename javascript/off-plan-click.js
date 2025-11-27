@@ -72,6 +72,17 @@ function resolvePhotoBucketFirst(val){
   }
   return null;
 }
+function pickFirstValue(objs, fields){
+  for (const name of fields){
+    for (const obj of objs){
+      if (!obj) continue;
+      if (Object.prototype.hasOwnProperty.call(obj, name) && obj[name] != null && String(obj[name]).trim() !== "") {
+        return obj[name];
+      }
+    }
+  }
+  return "";
+}
 
 // LOGO: souvent externe → http(s) d'abord, sinon bucket
 function resolveLogoHttpFirst(val){
@@ -244,11 +255,15 @@ async function renderRecommended(list, COL){
     const unitsStr  = String(row[COL.units] || "").trim();
     const priceNum  = num(row[COL.price]);
     const priceText = priceNum ? `From ${currencyAED(priceNum)}` : "—";
+    let firstPriceShown = false;
+    let firstAvailShown = false;
 
     if (!unitsStr) {
       // Pas d’info en base → on montre au moins 1 ligne “générique”
       const tr = document.createElement("tr");
       tr.innerHTML = `<td>Units Available</td><td>—</td><td>${priceText}</td><td>Contact us</td>`;
+      firstPriceShown = true;
+      firstAvailShown = true;
       tbody.appendChild(tr);
       return;
     }
@@ -259,7 +274,11 @@ async function renderRecommended(list, COL){
       const k = t.toLowerCase();
       if (seen.has(k)) return; seen.add(k);
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${t}</td><td>—</td><td>${priceText}</td><td>Available</td>`;
+      const priceCell = firstPriceShown ? "—" : priceText;
+      const availCell = firstAvailShown ? "—" : "Available";
+      tr.innerHTML = `<td>${t}</td><td>—</td><td>${priceCell}</td><td>${availCell}</td>`;
+      firstPriceShown = true;
+      firstAvailShown = true;
       tbody.appendChild(tr);
     });
   }
@@ -351,6 +370,11 @@ function drawIndicators(){
   const units    = row[COL.units]     || "";
   const pay      = row[COL.payment]   || "";
   const desc     = row[COL.desc]      || extras?.description || "";
+  const devVision= (COL.devVision && row[COL.devVision])
+    || pickFirstValue([row, extras], [
+        "developer vision","developer_vision","vision","vision developer",
+        "developer statement","developer_message","developer story","developervision"
+       ]);
 
   // Brochure
   let brochure = row[COL.brochure] || "";
@@ -391,6 +415,27 @@ function drawIndicators(){
   setText("units", units);
   setText("paymentPlan", pay);
   setText("description", desc);
+  const descEl = document.getElementById("description");
+  const descWrapper = document.getElementById("descriptionWrapper");
+  const descToggle = document.getElementById("descToggle");
+  if (descEl && descWrapper && descToggle) {
+    const clampPx = 180;
+    const refreshClamp = () => {
+      const needsClamp = descEl.scrollHeight > clampPx;
+      if (!needsClamp) descWrapper.classList.remove("collapsed");
+      descToggle.style.display = needsClamp ? "" : "none";
+      const isCollapsed = descWrapper.classList.contains("collapsed");
+      descWrapper.style.maxHeight = needsClamp && isCollapsed ? clampPx + "px" : "none";
+      descToggle.textContent = isCollapsed ? "View more" : "View less";
+    };
+    descWrapper.classList.add("collapsed");
+    descToggle.onclick = () => {
+      descWrapper.classList.toggle("collapsed");
+      refreshClamp();
+    };
+    requestAnimationFrame(refreshClamp);
+    window.addEventListener("resize", refreshClamp, { passive: true });
+  }
 
   const brochureLink = document.getElementById("brochureLink");
   if (brochureLink){
@@ -513,7 +558,7 @@ function drawIndicators(){
 
   // ========= Vision =========
   const setVision = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || ""; };
-  setVision("developerVision", extras?.["developer vision"] || "");
+  setVision("developerVision", devVision);
   const devList = document.getElementById("developerProjects");
   if (devList){
     devList.innerHTML = "";
