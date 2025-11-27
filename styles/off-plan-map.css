@@ -1004,7 +1004,8 @@
 /* place le “card marker” au-dessus du point lat/lng */
 .gm-card-pin{
   position: relative;
-  transform: translate(-50%, calc(-100% - 8px)); /* ancre en bas-centre */
+  transform: translate(-50%, calc(-100% - 8px)) scale(var(--marker-scale, 1)); /* ancre en bas-centre + scale */
+  transform-origin: center bottom;
   pointer-events: auto;
 }
 
@@ -1287,10 +1288,6 @@ body.offplan-map-page {
   .header2{ position: fixed; top: 0; left: 0; right: 0; z-index: 1100; }
   .top-tabs-filters{ margin-top: 54px !important; } /* hauteur du header */
 }
-
-
-
-
 
 
 
