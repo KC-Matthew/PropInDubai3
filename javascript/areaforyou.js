@@ -1,3 +1,6 @@
+// ---- état global "source de vérité"
+window.__currentMode = 'offplan';   // 'offplan' uniquement
+window.__activeFilters = {};
 
 // --- SESSION EDGE (mémoire budget/chambres/POI…)
 const SESSION_ID_KEY = 'propindubai_session_id';
@@ -16,6 +19,7 @@ function startGenerating() {
 function stopGenerating() {
   document.body.classList.remove('is-generating');
 }
+
 
 
 
@@ -120,6 +124,22 @@ function toPublicUrls(raw, defaultBucket){
   return uniq.length ? uniq : [FALLBACK];
 }
 
+// Récupère un maximum d’images offplan (cover + galeries éventuelles)
+function collectOffplanImages(row){
+  if (!row) return toPublicUrls([], "offplan");
+
+  const all = [];
+  const pushList = (val) => { toList(val).forEach(x => all.push(x)); };
+
+  pushList(row.photo_url);
+  pushList(row["developer photo_url"]);
+
+  const extraFields = ["photos","images","gallery","galerie","image_urls","photos_urls","photo_gallery","medias","pictures","media"];
+  extraFields.forEach(f => pushList(row[f]));
+
+  return toPublicUrls(all, "offplan");
+}
+
 // ---- état global "source de vérité"
 window.__currentMode = 'all';        // 'buy' | 'rent' | 'offplan' | 'all'
 window.__activeFilters = {};         // ex: { min_price, max_price, bedrooms, locations, ... }
@@ -133,15 +153,17 @@ async function refreshProperties(limit = 30) {
   renderProperties(data);
 }
 
-/** Change le mode (onglet) + met à jour l’UI + recharge les biens. */
-function setMode(next) {
-  window.__currentMode = (next || 'all').toLowerCase().replace(/[\s_-]+/g,'');
-  // toggle l'état visuel des boutons
+/** On force le mode OFFPLAN, quel que soit le bouton cliqué */
+function setMode() {
+  window.__currentMode = 'offplan';
+
+  // visuellement, on n’active que le bouton offplan
   document.querySelectorAll('.chat-pick-btn-v2').forEach(b => {
     const raw = ((b.dataset.type || b.textContent) || '')
       .trim().toLowerCase().replace(/[\s_-]+/g,'');
-    b.classList.toggle('active', raw === window.__currentMode);
+    b.classList.toggle('active', raw === 'offplan');
   });
+
   refreshProperties();
 }
 
@@ -233,13 +255,8 @@ async function fetchRent(filters = {}, limit = 30){
 
 /* ================= FETCH OFFPLAN ================= */
 async function fetchOffplan(filters = {}, limit = 30){
-  const cols = [
-    "id","created_at","titre","localisation","description",
-    `"price starting"`, `"units types"`, `"project status"`,
-    `"developer name"`, `"developer photo_url"`, "photo_url","lat","lon"
-  ].join(",");
-
-  let q = window.supabase.from("offplan").select(cols).order("created_at", { ascending: false }).limit(limit);
+  // on prend toutes les colonnes pour récupérer d’éventuels champs photos/galerie
+  let q = window.supabase.from("offplan").select("*").order("created_at", { ascending: false }).limit(limit);
 
   if (filters.min_price != null) q = q.gte("price starting", filters.min_price);
   if (filters.max_price != null) q = q.lte("price starting", filters.max_price);
@@ -252,14 +269,16 @@ async function fetchOffplan(filters = {}, limit = 30){
   if (error) { console.error("fetchOffplan error", error); return []; }
 
   return (data || []).map(p => {
-    const imgs = toPublicUrls([p.photo_url, p["developer photo_url"]], "offplan");
+    const imgs = collectOffplanImages(p);
+    const projectStatus = p["project status"] || "";
     return {
       id: p.id,
       source: "offplan",
       title: p.titre || "",
       location: p.localisation || "Dubai",
       bedrooms: p["units types"] || "",
-      bathrooms: p["project status"] || "",
+      bathrooms: projectStatus,
+      status: projectStatus,
       size: "",
       price: (p["price starting"] != null) ? `From ${formatAED_EN(p["price starting"])}` : "",
       images: imgs,
@@ -271,15 +290,12 @@ async function fetchOffplan(filters = {}, limit = 30){
   });
 }
 
-/* ================= Routeur unique (accepte {type} ou {mode}) ================= */
-async function fetchProperties({ mode, type, filters = {}, limit = 30 } = {}){
-  const m = (mode || type || "all").toLowerCase().replace(/[\s_-]+/g,'');
-  if (m === "buy")     return await fetchBuy(filters, limit);
-  if (m === "rent")    return await fetchRent(filters, limit);
-  if (m === "offplan") return await fetchOffplan(filters, limit);
-  const parts = await Promise.all([fetchBuy(filters, limit), fetchRent(filters, limit), fetchOffplan(filters, limit)]);
-  return parts.flat();
+/* ================= Routeur unique : OFFPLAN ONLY ================= */
+async function fetchProperties({ mode, type, filters = {}, limit = 30 } = {}) {
+  // on ignore mode/type et on ne charge que l’offplan
+  return await fetchOffplan(filters, limit);
 }
+
 
 
 
@@ -620,6 +636,7 @@ function renderProperties(list) {
     card.className = "property-card-ui-v2";
     card.style.cursor = "pointer";
     card.style.position = "relative";
+    const statusValue = property.status ?? property.bathrooms ?? "";
 
     const isFav = favs.includes(property.id);
     const favBtn = `
@@ -628,33 +645,85 @@ function renderProperties(list) {
       </button>
     `;
 
-    card.innerHTML = `
-      ${favBtn}
+  card.innerHTML = `
+  ${favBtn}
 
-      <!-- on garde TA taille via .property-img-v2, on ne la touche pas -->
-      <div class="prop-slider" id="${sliderId}">
-        <img src="${(property.images && property.images[0]) || ''}" class="property-img-v2" alt="${property.title}" loading="lazy" decoding="async">
-        <button class="nav prev"  aria-label="Previous image" onclick="event.stopPropagation()">‹</button>
-        <button class="nav next"  aria-label="Next image"     onclick="event.stopPropagation()">›</button>
-        <div class="count-badge"><i class="fa fa-camera"></i><span class="img-total">1</span></div>
-      </div>
+  <!-- slider image -->
+  <div class="prop-slider" id="${sliderId}">
+    <img src="${(property.images && property.images[0]) || ''}" 
+         class="property-img-v2" 
+         alt="${property.title}" 
+         loading="lazy" 
+         decoding="async">
+         
+    <button class="nav prev" aria-label="Previous image" onclick="event.stopPropagation()">‹</button>
+    <button class="nav next" aria-label="Next image" onclick="event.stopPropagation()">›</button>
 
-      <div class="property-title-ui-v2">${property.title}</div>
-      <div class="property-loc-ui-v2"><i class="fas fa-map-marker-alt"></i> ${property.location || ""}</div>
-      <div class="property-features-ui-v2">
-        <span><i class="fas fa-bed"></i> ${property.bedrooms ?? ""}</span>
-        <span><i class="fas fa-bath"></i> ${property.bathrooms ?? ""}</span>
-        <span><i class="fas fa-ruler-combined"></i> ${property.size ?? ""} sqft</span>
-      </div>
-      <div class="property-desc-ui-v2">${property.description || ''}</div>
-      <div class="property-price-ui-v2">${formatAED_EN(property.price)}</div>
+    <div class="count-badge">
+      <i class="fa fa-camera"></i>
+      <span class="img-total">1</span>
+    </div>
+  </div>
 
-      <div class="property-actions-ui-v2">
-        <button type="button" onclick="event.stopPropagation();window.location.href='tel:+000000000';">Call</button>
-        <button type="button" onclick="event.stopPropagation();window.location.href='mailto:info@propindubai.com';">Email</button>
-        <button type="button" onclick="event.stopPropagation();window.open('https://wa.me/', '_blank');">WhatsApp</button>
-      </div>
-    `;
+  <!-- titre -->
+  <div class="property-title-ui-v2">${property.title}</div>
+
+  <!-- localisation -->
+  <div class="property-loc-ui-v2">
+    <i class="fas fa-map-marker-alt"></i> ${property.location || ""}
+  </div>
+
+  <!-- features avec statut -->
+  <div class="property-features-ui-v2">
+    <span><i class="fas fa-bed"></i> ${property.bedrooms ?? ""}</span>
+
+    <!-- statut à la place de bathroom -->
+    <span>${getStatusIcon(statusValue)}</span>
+
+    <span><i class="fas fa-ruler-combined"></i> ${property.size ?? ""} sqft</span>
+  </div>
+
+  <!-- prix -->
+  <div class="property-price-ui-v2">${formatAED_EN(property.price)}</div>
+
+  <!-- boutons actions -->
+  <div class="property-actions-ui-v2">
+    <button type="button" onclick="event.stopPropagation();window.location.href='tel:+000000000';">Call</button>
+    <button type="button" onclick="event.stopPropagation();window.location.href='mailto:info@propindubai.com';">Email</button>
+    <button type="button" onclick="event.stopPropagation();window.open('https://wa.me/', '_blank');">WhatsApp</button>
+  </div>
+`;
+
+
+function getStatusIcon(status) {
+  if (!status) return "";
+
+  const s = status.toLowerCase().trim();
+
+  // Launching
+  if (s.includes("launch")) {
+    return `<i class="fa-solid fa-rocket"></i> Launching`;
+  }
+
+  // Handover Soon
+  if (s.includes("soon")) {
+    return `<i class="fa-solid fa-person-digging"></i> Handover<br>Soon`;
+  }
+
+  // Completed
+  if (s.includes("completed")) {
+    return `<i class="fa-solid fa-house"></i> Completed`;
+  }
+
+  // Handover
+  if (s.includes("handover")) {
+    return `<i class="fa-solid fa-calendar-check"></i> Handover`;
+  }
+
+  // Fallback
+  return `<i class="fa-solid fa-circle-info"></i> ${status}`;
+}
+
 
   
   card.addEventListener("click", () => {
@@ -941,9 +1010,11 @@ async function renderAll() {
   renderChatList(current ? current.id : null);
   renderChat(current);
 
-  // Était : const data = await fetchProperties({ mode: "all", limit: 30 }); renderProperties(data);
-  setMode('all'); // initialise l’onglet & charge les biens
+  // Était : setMode('all');
+  setMode('offplan'); // initialise directement l’onglet & charge les projets offplan
 }
+
+
 
 
 function selectChat(id) {
@@ -1146,10 +1217,11 @@ async function callChatGPT(message) {
   const body = {
     mode: 'chat',
     message: String(message || ''),
-    type: (window.__currentMode === 'all' ? 'any' : (window.__currentMode || 'any')),
+    type: 'offplan',        // ← forcé : l’IA ne travaille QUE sur l’offplan
     top_k: 6,
     with_tram: true
   };
+
 
   // Ajoute lat/lon si on les a
   if (typeof window.__userLat === 'number' && typeof window.__userLon === 'number') {
@@ -1198,12 +1270,15 @@ async function callChatGPT(message) {
 
 
 async function applyAIFilters(filters = {}) {
-  window.__activeFilters = filters || {};
-  if (filters?.type) {
-    setMode(filters.type);      // applique l’onglet puis recharge
-  } else {
-    refreshProperties();        // garde l’onglet courant, recharge avec filtres
+  const f = { ...(filters || {}) };
+
+  // on ignore tout type autre que offplan
+  if (f.type && f.type !== 'offplan') {
+    delete f.type;
   }
+
+  window.__activeFilters = f;
+  setMode('offplan');   // on garde toujours l’onglet OFFPLAN
 }
 
 
@@ -1938,9 +2013,12 @@ function mapEdgeListingToCard(r){
     location: r.localisation || r.location || '',
     bedrooms: r.bedrooms ?? '',
     bathrooms: r.bathrooms ?? '',
+    status: r.status ?? r.project_status ?? r["project status"] ?? r.bathrooms ?? '',
     size: r.sqft ?? '',
     price: r.price,
-    images: toPublicUrls(r.photo_url, r.source || r.table || 'buy'),
+    images: (r.source || r.table) === 'offplan'
+      ? collectOffplanImages(r)
+      : toPublicUrls(r.photo_url, r.source || r.table || 'buy'),
     description: '',
     lat: r.lat ?? null,
     lon: r.lon ?? null,
@@ -1964,4 +2042,3 @@ function connectAIStream(message, onMeta, onToken, onDone){
   es.onerror = ()=> { onDone?.(); es.close(); };
   return es;
 }
-
